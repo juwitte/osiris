@@ -206,9 +206,6 @@ $user = $user ?? $_SESSION['username'];
 <script src="<?= ROOTPATH ?>/js/datatables/buttons.html5.min.js"></script>
 
 <script>
-    const CARET_DOWN = ' <i class="ph ph-caret-down"></i>';
-
-    // $.fn.DataTable.moment( 'HH:mm MMM D, YY' );
     var dataTable;
 
     const minEl = document.querySelector('#filter-from');

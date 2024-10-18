@@ -208,7 +208,7 @@ class Groups
     static function hierarchyList($datas, $parent = 0, $depth = 0)
     {
         $ni = count($datas);
-        if ($ni === 0 || $depth > 1000) return ''; // Make sure not to have an endless recursion
+        if ($ni === 0 || $depth > 10) return ''; // Make sure not to have an endless recursion
         $tree = '<ul class="list">';
         for ($i = 0; $i < $ni; $i++) {
             if ($datas[$i]['parent'] == $parent) {

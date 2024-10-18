@@ -272,12 +272,21 @@ Route::post('/crud/topics/delete/([A-Za-z0-9]*)', function ($id) {
         ['$pull' => ['topics' => $topic['id']]]
     );
 
+    // delete files if exist
+    if (isset($topic['image'])) {
+        $target_dir = BASEPATH . "/uploads/";
+        $filename = $topic['image'];
+        if (file_exists($target_dir . $filename)) {
+            unlink($target_dir . $filename);
+        }
+    }
+
     // remove topic
     $osiris->topics->deleteOne(
         ['_id' => $DB::to_ObjectID($id)]
     );
 
-    $_SESSION['msg'] = lang("topic has been deleted successfully.", "Projekt wurde erfolgreich gelöscht.");
+    $_SESSION['msg'] = lang("Research topic has been deleted successfully.", "Forschungsbereich wurde erfolgreich gelöscht.");
     header("Location: " . ROOTPATH . "/topics");
 });
 

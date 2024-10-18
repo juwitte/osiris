@@ -16,6 +16,7 @@
 
 require_once "DB.php";
 require_once "Country.php";
+require_once "Groups.php";
 
 class Project
 {
@@ -182,10 +183,14 @@ class Project
         'coordinator',
     ];
 
+    private $db;
+
     function __construct($project = null)
     {
         if ($project !== null)
             $this->project = $project;
+        $DB = new DB();
+        $this->db = $DB->db;
     }
 
     public function getFields($type)
@@ -198,8 +203,7 @@ class Project
     }
     public function setProjectById($project_id)
     {
-        $DB = new DB();
-        $this->project = $DB->db->projects->findOne(['_id' => $DB->to_ObjectID($project_id)]);
+        $this->project = $this->db->projects->findOne(['_id' => DB::to_ObjectID($project_id)]);
     }
 
     public function getStatus()
@@ -461,8 +465,7 @@ class Project
 
     public function getScope()
     {
-        $DB = new DB();
-        $req = $DB->db->adminGeneral->findOne(['key' => 'affiliation']);
+        $req = $this->db->adminGeneral->findOne(['key' => 'affiliation']);
         $institute = DB::doc2Arr($req['value']);
         $institute['role'] = $this->project['role'] ?? 'Partner';
 
@@ -502,5 +505,25 @@ class Project
         }
         $continents = array_unique($continents);
         return $continents;
+    }
+    public function getUnits($depts_only = false){
+        // get units based on project persons
+        $units = [];
+        $Groups = new Groups();
+
+        foreach ($this->project['persons'] as $person) {
+            $u = $person['units'] ?? null;
+            if (empty($u)) {
+                $p = $this->db->persons->findOne(['username' => $person['user']]);
+                $u = DB::doc2Arr($p['depts'] ?? []);
+            }
+            
+            if (!empty($u)) {
+                $units = array_merge($units, $u);
+            }
+        }
+        if (!$depts_only) return $units;
+        return $Groups->personDepts($units);
+        
     }
 }

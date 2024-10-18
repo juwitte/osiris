@@ -45,7 +45,7 @@
 
     <h1 class="title">
         <span class="topic-icon"></span>
-        <?= lang($topic['name'], $topic['name_de']?? null) ?>
+        <?= lang($topic['name'], $topic['name_de'] ?? null) ?>
     </h1>
 
     <h2 class="subtitle">
@@ -147,6 +147,28 @@
     });
 </script>
 
+<?php if ($Settings->hasPermission('topics.delete')) { ?>
+    <br>
+    <div class="alert danger mt-20">
+        <a onclick="$('#delete').slideToggle()">
+            <?= lang('Delete', 'Löschen') ?>
+            <i class="ph ph-caret-down"></i>
+        </a>
+
+        <div id="delete" style="display: none;">
+            <form action="<?= ROOTPATH ?>/crud/topics/delete/<?= $topic['_id'] ?>" method="post">
+                <p>
+                    <?= lang(
+                        'Do you really want to delete this topic? If you delete, it will be removed from all connected persons, activities and projects.',
+                        'Möchten Sie diesen Bereich wirklich löschen? Falls du löscht wird er von allen verknüpften Elementen (Aktivitäten, Personen, Projekten) ebenfalls entfernt.'
+                    ) ?>
+                </p>
+                <button type="submit" class="btn danger"><?= lang('Delete', 'Löschen') ?></button>
+            </form>
+        </div>
+    </div>
+
+<?php } ?>
 
 <!-- modal -->
 <div id="upload-image" class="modal">

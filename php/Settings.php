@@ -304,7 +304,7 @@ class Settings
     function printTopics($topics, $class = "", $header = false)
     {
         if (!$this->featureEnabled('topics')) return '';
-        if (empty($topics)) return '';
+        if (empty($topics) || empty($topics[0])) return '';
 
         $topics = $this->osiris->topics->find(['id' => ['$in' => $topics]]);
         $html = '<div class="topics ' . $class . '">';

@@ -753,6 +753,9 @@ Route::get('/api/projects', function () {
             $project['funding_numbers'] = $Project->getFundingNumbers('<br />');
             $project['applicant'] = $DB->getNameFromId($project['contact'] ?? $project['supervisor'] ?? '');
             $project['activities'] = $osiris->activities->count(['projects' => strval($project['name'])]);
+            $project['role'] = $project['role'] ?? '';
+            $project['topics'] = $project['topics'] ?? array();
+            $project['units'] = $Project->getUnits();
             $data[] = $project;
         }
         $result = $data;

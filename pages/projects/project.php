@@ -104,8 +104,8 @@ $institute = $Settings->get('affiliation_details');
     </h2>
 
 
-<!-- show research topics -->
-<?= $Settings->printTopics($project['topics'] ?? [], 'mb-20', true) ?>
+    <!-- show research topics -->
+    <?= $Settings->printTopics($project['topics'] ?? [], 'mb-20', true) ?>
 
     <div class="d-flex">
 
@@ -443,7 +443,6 @@ $institute = $Settings->get('affiliation_details');
                                     <?= lang('Connect persons', 'Personen verknüpfen') ?>
                                 </h5>
                                 <div>
-
                                     <form action="<?= ROOTPATH ?>/crud/projects/update-persons/<?= $id ?>" method="post">
 
                                         <table class="table simple">
@@ -573,6 +572,33 @@ $institute = $Settings->get('affiliation_details');
 
                     </tbody>
                 </table>
+
+                <h3>
+                    <?=lang('Associated units', 'Zugehörige Organisationseinheiten')?>
+                </h3>
+                <table class="table">
+                    <tbody>
+                        <?php
+                        $units = $Project->getUnits();
+                        // $tree =  $Groups->getPersonHierarchyTree($units);
+                        if (!empty($units)) {
+                            $hierarchy = $Groups->getPersonHierarchyTree($units);
+                            $tree = $Groups->readableHierarchy($hierarchy);
+
+                            foreach ($tree as $row) { ?>
+                                <tr>
+                                    <td style="padding-left: <?=($row['indent']*2 + 2). 'rem'?>;">
+                                        <a href="<?= ROOTPATH ?>/groups/view/<?= $row['id'] ?>">
+                                            <?= lang($row['name_en'], $row['name_de'] ?? null) ?>
+                                        </a>
+                                    </td>
+                                </tr>
+                        <?php }
+                        }
+                        ?>
+                    </tbody>
+                </table>
+
 
             </div>
         </div>
