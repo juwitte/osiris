@@ -302,7 +302,9 @@ Route::post('/synchronize-users', function () {
             "last",
             "name",
             "depts",
-            "username"
+            "username",
+            "created",
+            "created_by",
         ];
         foreach ($_POST['inactivate'] as $username) {
             $data = $DB->getPerson($username);
@@ -313,6 +315,7 @@ Route::post('/synchronize-users', function () {
                 $arr[$key] = null;
             }
             $arr['is_active'] = false;
+            $arr['inactivated'] = date('Y-m-d');
             $osiris->persons->updateOne(
                 ['username' => $username],
                 ['$set' => $arr]
@@ -476,7 +479,9 @@ Route::post('/crud/users/delete/(.*)', function ($user) {
         "last",
         "name",
         "depts",
-        "username"
+        "username",
+        "created",
+        "created_by",
     ];
     $arr = [];
     foreach ($data as $key => $value) {
@@ -484,6 +489,7 @@ Route::post('/crud/users/delete/(.*)', function ($user) {
         $arr[$key] = null;
     }
     $arr['is_active'] = false;
+    $arr['inactivated'] = date('Y-m-d');
     $updateResult = $osiris->persons->updateOne(
         ['username' => $user],
         ['$set' => $arr]
