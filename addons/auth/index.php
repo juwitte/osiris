@@ -33,9 +33,10 @@ Route::post('/auth/reset-password', function () {
     // check type of request 
     if (isset($_POST['password']) && isset($_POST['username'])) {
         // reset password
-        $osiris->persons->updateOne(
+        $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+        $osiris->accounts->updateOne(
             ['username' => $_POST['username']],
-            ['$set' => ['password' => $_POST['password']]]
+            ['$set' => ['password' => $password]]
         );
         header("Location: " . ROOTPATH . "/user/login");
         die;
@@ -71,8 +72,17 @@ Route::post('/auth/new-user', function () {
     }
 
     $person = $_POST['values'];
-    $person['username'] = $_POST['username'];
-    $person['password'] = $_POST['password'];
+
+    $username = $_POST['username'];
+    $password = $_POST['password'];
+    $hash = password_hash($password, PASSWORD_DEFAULT);
+    // move to a new collection
+    $osiris->accounts->insertOne([
+        'username' => $username,
+        'password' => $hash
+    ]);
+
+    $person['username'] = $username;
     $person['displayname'] = "$person[first] $person[last]";
     $person['formalname'] = "$person[last], $person[first]";
     $person['first_abbr'] = "";

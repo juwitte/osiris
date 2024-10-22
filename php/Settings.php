@@ -282,7 +282,7 @@ class Settings
         $selected = DB::doc2Arr($selected);
 ?>
         <div class="form-group">
-            <h5 for="topics"><?= lang('Research Topics', 'Forschungsbereiche') ?></h5>
+            <h5><?= lang('Research Topics', 'Forschungsbereiche') ?></h5>
             <!-- make suire that an empty value is submitted in case no checkbox is ticked -->
             <input type="hidden" name="values[topics]" value="">
             <div>

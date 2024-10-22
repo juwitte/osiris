@@ -2022,16 +2022,16 @@ Route::get('/api/activities-suggest/(.*)', function ($term) {
     echo return_rest($result, count($result));
 });
 
-/**
- * Official interface API endpoints
- */
+// Groups->tree 
+Route::get('/api/groups/tree', function () {
+    error_reporting(E_ERROR | E_PARSE);
+    include_once BASEPATH . "/php/init.php";
 
-/**
- * @apiDefine error404 Error 404
- */
+    if (!apikey_check($_GET['apikey'] ?? null)) {
+        echo return_permission_denied();
+        die;
+    }
 
-/**
- * @apiDefine Activity endpoints
- *
- * The following endpoints are used for querying activities.
- */
+    $tree = $Groups->tree;
+    echo return_rest($tree, count($tree));
+});

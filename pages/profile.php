@@ -267,6 +267,13 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
         <?php if (!($scientist['is_active'] ?? true)) { ?>
             <span class="text-danger badge">
                 <?= lang('Former Employee', 'Ehemalige Beschäftigte') ?>
+                <?php if (isset($scientist['inactivated'])) { ?>
+                    <small>
+                        <?= lang('since', 'seit') ?>
+                        <?= date('d.m.Y', strtotime($scientist['inactivated'])) ?>
+                    </small>
+                <?php } ?>
+                
             </span>
         <?php } ?>
 
@@ -1112,7 +1119,7 @@ if ($currentuser) { ?>
                     <h4 class="title">
                         <?= lang('Research interest', 'Forschungsinteressen') ?>
                         <?php if ($currentuser || $Settings->hasPermission('user.edit')) { ?>
-                            <a class="font-size-14 ml-10" href="<?= ROOTPATH ?>/user/edit-bio/<?= $user ?>#research">
+                            <a class="font-size-14 ml-10" href="<?= ROOTPATH ?>/user/edit/<?= $user ?>#section-research">
                                 <i class="ph ph-note-pencil ph-lg"></i>
                             </a>
                         <?php } ?>
@@ -1141,7 +1148,7 @@ if ($currentuser) { ?>
                     <h4 class="title">
                         <?= lang('Curriculum Vitae') ?>
                         <?php if ($currentuser || $Settings->hasPermission('user.edit')) { ?>
-                            <a class="font-size-14 ml-10" href="<?= ROOTPATH ?>/user/edit-bio/<?= $user ?>#cv">
+                            <a class="font-size-14 ml-10" href="<?= ROOTPATH ?>/user/edit/<?= $user ?>#section-biography">
                                 <i class="ph ph-note-pencil ph-lg"></i>
                             </a>
                         <?php } ?>

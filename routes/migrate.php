@@ -17,6 +17,7 @@
 
 Route::get('/migrate/test', function () {
     include_once BASEPATH . "/php/init.php";
+
     // $filter = "$and":[{"authors.last":"Eberth"},{"authors.user":{"$ne":"seb14"}}];
     // $filter = ['authors.last' => 'Eberth', 'authors.user' => ['$ne' => 'seb14']];
     // $cursor = $osiris->activities->find($filter);
@@ -30,28 +31,29 @@ Route::get('/migrate/test', function () {
     // }
     // writeMail();
 
+
     // render teaser from abstract of publications
-    $cursor = $osiris->projects->find(['teaser' => ['$exists' => false]]);
-    foreach ($cursor as $doc) {
-        $abstract_en = $doc['public_abstract'] ?? $doc['abstract'] ?? '';
-        $abstract_de = $doc['public_abstract_de'] ?? $abstract_en;
-        // $teaser_de = substr($doc['abstract'], 0, 200);
-        // break at words or sentences
-        $teaser_en = get_preview($abstract_en, 200);
-        $teaser_de = get_preview($abstract_de, 200);
+    // $cursor = $osiris->projects->find(['teaser' => ['$exists' => false]]);
+    // foreach ($cursor as $doc) {
+    //     $abstract_en = $doc['public_abstract'] ?? $doc['abstract'] ?? '';
+    //     $abstract_de = $doc['public_abstract_de'] ?? $abstract_en;
+    //     // $teaser_de = substr($doc['abstract'], 0, 200);
+    //     // break at words or sentences
+    //     $teaser_en = get_preview($abstract_en, 200);
+    //     $teaser_de = get_preview($abstract_de, 200);
 
-        dump($teaser_en, true);
-        dump($teaser_de, true);
+    //     dump($teaser_en, true);
+    //     dump($teaser_de, true);
 
-        if (empty($teaser_en) && empty($teaser_de)) continue;
+    //     if (empty($teaser_en) && empty($teaser_de)) continue;
 
-        $osiris->projects->updateOne(
-            ['_id' => $doc['_id']],
-            ['$set' => ['teaser_en' => $teaser_en, 'teaser_de' => $teaser_de]]
-        );
-    }
+    //     $osiris->projects->updateOne(
+    //         ['_id' => $doc['_id']],
+    //         ['$set' => ['teaser_en' => $teaser_en, 'teaser_de' => $teaser_de]]
+    //     );
+    // }
 
-    echo "Done";
+    // echo "Done";
 });
 
 
@@ -608,6 +610,29 @@ Route::get('/migrate', function () {
             $osiris->projects->updateOne(
                 ['_id' => $doc['_id']],
                 ['$set' => ['teaser_en' => $teaser_en, 'teaser_de' => $teaser_de]]
+            );
+        }
+    }
+
+    if (version_compare($DBversion, '1.4.0', '<')) {
+        echo "<p>Migrating account settings if necessary</p>";
+
+        // empty accounts 
+        $osiris->accounts->deleteMany([]);
+        // use password hashes to encrypt passwords
+        $cursor = $osiris->persons->find(['password' => ['$exists' => true]]);
+        foreach ($cursor as $doc) {
+            $hash = password_hash($doc['password'], PASSWORD_DEFAULT);
+            // move to a new collection
+            $osiris->accounts->insertOne([
+                'username' => $doc['username'],
+                'password' => $hash
+            ]);
+
+            // remove password from persons
+            $osiris->persons->updateOne(
+                ['_id' => $doc['_id']],
+                ['$unset' => ['password' => '']]
             );
         }
     }

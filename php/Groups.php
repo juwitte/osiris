@@ -382,7 +382,7 @@ class Groups
      */
     public function printPersonHierarchyTree($tree, $indent = 0) {
         foreach ($tree as $key => $subTree) {
-            echo str_repeat("  ", $indent) . ($indent > 0 ? str_repeat(">", $indent) . " " : "") . "$key\n";
+            echo str_repeat("  ", $indent) . ($indent > 0 ? str_repeat(">", $indent) . " " : "") . "$key<br>";
             if (!empty($subTree)) {
                 $this->printPersonHierarchyTree($subTree, $indent + 1);
             }
@@ -419,4 +419,5 @@ class Groups
         $tree = $this->getPersonHierarchyTree($personUnits);
         $this->printPersonHierarchyTree($tree);
     }
+
 }

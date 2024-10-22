@@ -403,17 +403,18 @@ if (!$Settings->hasPermission('projects.view')) {
             language: {
                 url: lang(null, ROOTPATH + '/js/datatables/de-DE.json')
             },
-            buttons: [{
-                    extend: 'copyHtml5',
-                    exportOptions: {
-                        columns: [4]
-                    },
-                    className: 'btn small'
-                },
+            buttons: [
+                // {
+                //     extend: 'copyHtml5',
+                //     exportOptions: {
+                //         columns: [4]
+                //     },
+                //     className: 'btn small'
+                // },
                 {
                     extend: 'excelHtml5',
                     exportOptions: {
-                        columns: [0, 4, 5, 6, 9, 10, 11, 12, 13]
+                        columns: [0, 4, 5, 6]
                     },
                     className: 'btn small',
                     title: function() {
@@ -430,7 +431,7 @@ if (!$Settings->hasPermission('projects.view')) {
                     extend: 'csvHtml5',
                     exportOptions: {
                         // columns: ':visible'
-                        columns: [0, 5, 6, 9, 10, 11, 12, 13]
+                        columns: [0, 5, 6]
                     },
                     className: 'btn small',
                     title: function() {

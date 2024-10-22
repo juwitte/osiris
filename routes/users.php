@@ -75,29 +75,6 @@ Route::get('/user/edit/(.*)', function ($user) {
     include BASEPATH . "/footer.php";
 }, 'login');
 
-
-Route::get('/user/edit-bio/(.*)', function ($user) {
-    include_once BASEPATH . "/php/init.php";
-
-    // $id = $DB->to_ObjectID($id);
-
-    $data = $DB->getPerson($user);
-    if (empty($data)) {
-        header("Location: " . ROOTPATH . "/user/browse");
-        die;
-    }
-    $breadcrumb = [
-        ['name' => lang('Users', 'Personen'), 'path' => "/user/browse"],
-        ['name' => $data['name'], 'path' => "/profile/$user"],
-        ['name' => lang("Edit Biography", "Biographie bearbeiten")]
-    ];
-
-    include BASEPATH . "/header.php";
-    include BASEPATH . "/pages/user-edit-bio.php";
-    include BASEPATH . "/footer.php";
-}, 'login');
-
-
 Route::get('/user/visibility/(.*)', function ($user) {
     include_once BASEPATH . "/php/init.php";
     // include_once BASEPATH . "/php/Document.php";
@@ -434,6 +411,21 @@ Route::post('/crud/users/update/(.*)', function ($user) {
             return strnatcmp($b, $a);
         });
         $person['cv'] = $cv;
+    }
+
+    
+    // if new password is set, update password
+    if (isset($_POST['password'])) {
+        // check if passwords match
+        if ($_POST['password'] != $_POST['password2']) {
+            $_SESSION['msg'] = lang("Passwords do not match.", "Passwörter stimmen nicht überein.");
+        } else {
+            $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+            $osiris->accounts->updateOne(
+                ['username' => $user],
+                ['$set' => ['password' => $password]]
+            );
+        }
     }
 
     $updateResult = $osiris->persons->updateOne(

@@ -1,10 +1,17 @@
 # Neuigkeiten
 
 
-<span class="badge float-right">02.10.2024</span>
-<a class="anchor" href="#version-1.3.7" id="version-1.3.7"></a>
 
-## Version 1.3.7
+<span class="badge float-right">XX.XX.2024</span>
+<a class="anchor" href="#version-1.4.0" id="version-1.4.0"></a>
+
+## Version 1.4.0
+
+#### Forschungsbereiche
+
+
+#### Anmeldung von Gästen
+
 
 #### <i class="ph ph-text-aa"></i> Rich Text-Editoren und mehr Übersetzungen
 - Mehr Felder lassen sich jetzt zweisprachig definieren:
@@ -16,12 +23,30 @@
   - Bilder können darüber direkt eingefügt werden (bitte auf die Größe achten)
   - Links und Formatierungen lassen sich jetzt einfacher bearbeiten
 
+#### Verbesserung von Projekten
+- Die Projektseite ist überarbeitet worden
+- Filtermöglichkeiten wurden deutlich verbessert und erweitert
+- Projekte lassen sich jetzt als Excel herunterladen
+
+#### Verbesserte Nutzereinstellungen
+Die Nutzereinstellungen sind in den letzten Monaten gewachsen und sehr unübersichtlich geworden. Deshalb wude das ganze Interface stark überarbeitet.
+- Die einzelnen Abschnitte sind jetzt in einzelne Reiter unterteilt
+- Hier ist jetzt auch die Biographie (CV) und die Forschungsinteressen zu finden, die vorher etwas ausgegliedert waren.
+- Das Interface zur Bearbeitung der Organisationseinheiten wurde grundlegend überarbeitet und enorm verbessert. Vorher musste man sich durch ewig lange Listen scrollen und mit gedrückter Strg-Taste die Gruppen auswählen. Jetzt handelt es sich um einen sogenannten Checkbox-Tree, der deutlich intuitiver zu bedienen ist.
+- Die Forschungsbereiche wurden im Reiter "Organisation" hinzugefügt
+- Im Reiter "Account" kann jetzt zudem das Password geändert werden
+
+
 #### <i class="ph ph-presentation-chart"></i> Konferenzen
 - Es wurde eine eigene Seite für Konferenzen hinzugefügt
 
 #### <i class="ph ph-input"></i> Custom Fields
 - Custom Fields können jetzt auch auf Englisch übersetzt werden
 - Es ist nun möglich, Custom Fields im Nachhinein zu bearbeiten  
+
+#### Sicherheit
+- Für den Nutzen des User-Auth Addons (das ursprünglich nicht für Live gedacht war, aber doch von einigen genutzt wird), wird das Password jetzt getrennt von den Nutzerinfos gespeichert. Das führt zu höherer Sicherheit, da diese Collection für keine anderen Seiten sonst verwendet werden und auch nicht API-Reachable sind. Bitte unbedingt migrieren, damit das Feature in Kraft tritt.
+
 
 #### <i class="ph ph-code"></i> Bug Fixes und UI Verbesserungen
 - Es werden jetzt alle Namen einer Person bei der Suche in der Personenliste berücksichtigt  
