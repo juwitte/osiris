@@ -81,7 +81,7 @@ $issues = $DB->getUserIssues($user);
             <a href="#close-modal" class="close" role="button" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </a>
-            <h5 class="title"><?= lang('Why do I have to review Epubs?', 'Warum muss ich Epubs reviewen?') ?></h5>
+            <h5 class="title"><?= lang('Why do I have to review <q>Online ahead of print</q> Articles?', 'Warum muss ich <q>Online ahead of print</q>-Artikel reviewen?') ?></h5>
             <p>
                 <?= lang('
                     [Online ahead of print] means that the publication is already available online, but the actual publication in an issue is still pending. 
@@ -109,10 +109,10 @@ $issues = $DB->getUserIssues($user);
             </p>
             <p>
                 <?= lang('
-                    <b>The bibliographic data must be checked again.</b> The check mark for "Epub" must be removed and the publication date is usually also adjusted. 
+                    <b>The bibliographic data must be checked again.</b> The check mark for <q>Online ahead of print</q> must be removed and the publication date is usually also adjusted. 
                     Furthermore, it also happens that something changes in the bibliographic data itself. Therefore, please check carefully if all data is correct.
                     ', '
-                    <b>Die bibliographischen Daten müssen dazu erneut überprüft werden.</b> Dabei muss der Haken bei "Epub" entfernt werden und i.d.R. wird
+                    <b>Die bibliographischen Daten müssen dazu erneut überprüft werden.</b> Dabei muss der Haken bei <q>Online ahead of print</q> entfernt werden und i.d.R. wird
                     auch das Veröffentlichungsdatum angepasst. 
                     Des Weiteren passiert es auch, dass sich an den bibliographischen Daten selbst noch etwas ändert. Deshalb überprüft bitte sorgfältig, 
                     ob alle Daten stimmen.
@@ -348,8 +348,8 @@ if (array_sum($a) === 0) {
     <?php if (!empty($issues['epub'])) { ?>
         <h2 class="mb-0">
             <?= lang(
-                'Please review the following Epubs:',
-                'Bitte überprüfe die folgenden Epubs:'
+                'Please review the following <q>Online ahead of print</q> articles:',
+                'Bitte überprüfe die folgenden <q>Online ahead of print</q>-Artikel:'
             ) ?>
         </h2>
         <p class="mt-0">
@@ -379,20 +379,20 @@ if (array_sum($a) === 0) {
                                 <input type="hidden" name="values[epub-delay]" value="<?= endOfCurrentQuarter(true) ?>" class="hidden">
                                 <button class="btn small">
                                     <i class="ph ph-check"></i>
-                                    <?= lang('Yes, still epub (ask again later).', 'Ja, noch immer Epub (frag später noch mal).') ?>
+                                    <?= lang('Yes, still <q>Online ahead of print</q> (ask again later).', 'Ja, noch immer <q>Online ahead of print</q> (frag später noch mal).') ?>
                                 </button>
                             </form>
 
 
                             <a href="<?= ROOTPATH ?>/activities/edit/<?= $id ?>?epub=true" class="btn small">
-                                <?= lang('No longer Epub (Review)', 'Nicht länger Epub (Review)') ?>
+                                <?= lang('No longer <q>Online ahead of print</q> (Review)', 'Nicht länger <q>Online ahead of print</q> (Review)') ?>
                             </a>
                             <!-- <div class="input-group sm w-500 d-inline-flex">
                             <input type="date" class="form-control" value="<?= valueFromDateArray(["year" => $doc['year'], "month" => $doc['month'], "day" => $doc['day'] ?? 1]) ?>">
                             <div class="input-group-append">
                                 <button class="btn" type="button" onclick="todo()">
                                     <i class="ph ph-x"></i>
-                                    <?= lang('No longer Epub and officially issued under this date.', 'Kein Epub mehr und unter diesem Datum offiziell veröffentlicht.') ?>
+                                    <?= lang('No longer <q>Online ahead of print</q> and officially issued under this date.', 'Kein <q>Online ahead of print</q> mehr und unter diesem Datum offiziell veröffentlicht.') ?>
                                 </button>
                             </div>
                         </div> -->

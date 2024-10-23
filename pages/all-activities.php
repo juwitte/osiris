@@ -193,7 +193,7 @@ $user = $user ?? $_SESSION['username'];
             <h6><?= lang('More', 'Weiteres') ?></h6>
             <div class="custom-switch">
                 <input type="checkbox" id="epub-switch" value="" onchange="filterEpub(this)">
-                <label for="epub-switch"><?= lang('without Epub', 'ohne Epub') ?></label>
+                <label for="epub-switch"><?= lang('without Online ahead of print', 'ohne <em>Online ahead of print</em>') ?></label>
             </div>
 
         </div>
