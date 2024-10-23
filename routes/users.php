@@ -415,16 +415,17 @@ Route::post('/crud/users/update/(.*)', function ($user) {
 
     
     // if new password is set, update password
-    if (isset($_POST['password'])) {
+    if (isset($_POST['password']) && !empty($_POST['password'])) {
         // check if passwords match
         if ($_POST['password'] != $_POST['password2']) {
             $_SESSION['msg'] = lang("Passwords do not match.", "Passwörter stimmen nicht überein.");
         } else {
             $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-            $osiris->accounts->updateOne(
-                ['username' => $user],
-                ['$set' => ['password' => $password]]
-            );
+            $osiris->accounts->deleteOne(['username' => $user]);
+            $osiris->accounts->insertOne([
+                'username' => $user,
+                'password' => $password
+            ]);
         }
     }
 

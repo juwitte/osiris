@@ -618,7 +618,7 @@ Route::get('/migrate', function () {
         echo "<p>Migrating account settings if necessary</p>";
 
         // empty accounts 
-        $osiris->accounts->deleteMany([]);
+        // $osiris->accounts->deleteMany([]);
         // use password hashes to encrypt passwords
         $cursor = $osiris->persons->find(['password' => ['$exists' => true]]);
         foreach ($cursor as $doc) {
