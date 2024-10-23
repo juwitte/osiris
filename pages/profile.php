@@ -341,6 +341,10 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
                     <i class="ph ph-calendar ph-fw"></i>
                     <!-- <?= lang('My Year', 'Mein Jahr') ?> -->
                 </a>
+                <a href="<?= ROOTPATH ?>/claim" class="btn text-primary border-primary" data-toggle="tooltip" data-title="<?= lang('Claim activities', 'Aktivitäten beanspruchen') ?>">
+                    <i class="ph ph-hand ph-fw"></i>
+                    <!-- <?= lang('Claim activities', 'Aktivitäten beanspruchen') ?> -->
+                </a>
 
                 <?php if ($Settings->featureEnabled('portal')) { ?>
                     <a class="btn text-primary border-primary" href="<?= ROOTPATH ?>/preview/person/<?= $user ?>" data-toggle="tooltip" data-title="<?= lang('Preview', 'Vorschau') ?>">
