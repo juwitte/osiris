@@ -315,31 +315,15 @@ $pageactive = function ($p) use ($page) {
                             <?= $USER["displayname"] ?? 'User' ?>
                         </a>
 
-                        <?php if ($Settings->hasPermission('report.queue')) { ?>
-                            <?php
-                            $n_queue = $osiris->queue->count(['declined' => ['$ne' => true]]);
-                            ?>
-
-                            <a href="<?= ROOTPATH ?>/queue/editor" class="sidebar-link with-icon sidebar-link-osiris <?= $pageactive('queue/editor') ?>">
-                                <i class="ph ph-queue" aria-hidden="true"></i>
-                                <?= lang('Queue', 'Warteschlange') ?>
-                                <span class="badge secondary badge-pill ml-10" id="cart-counter">
-                                    <?= $n_queue ?>
-                                </span>
-                            </a>
-                        <?php } ?>
-
-
-
                         <?php if ($Settings->hasPermission('scientist')) { ?>
                             <a href="<?= ROOTPATH ?>/my-year" class="with-icon <?= $pageactive('my-year') ?>">
                                 <i class="ph ph-calendar" aria-hidden="true"></i>
                                 <?= lang('My year', 'Mein Jahr') ?>
                             </a>
-                            <!-- <a href="<?= ROOTPATH ?>/my-activities" class="with-icon <?= $pageactive('my-activities') ?>">
+                            <a href="<?= ROOTPATH ?>/my-activities" class="with-icon <?= $pageactive('my-activities') ?>">
                             <i class="ph ph-folder-user" aria-hidden="true"></i>
                             <?= lang('My activities', 'Meine Aktivitäten') ?>
-                        </a> -->
+                        </a>
                         <?php } ?>
 
 
@@ -508,6 +492,22 @@ $pageactive = function ($p) use ($page) {
                             <i class="ph ph-upload" aria-hidden="true"></i>
                             <?= lang('Import') ?>
                         </a>
+
+                        
+                        <?php if ($Settings->hasPermission('report.queue')) { ?>
+                            <?php
+                            $n_queue = $osiris->queue->count(['declined' => ['$ne' => true]]);
+                            ?>
+
+                            <a href="<?= ROOTPATH ?>/queue/editor" class="sidebar-link with-icon sidebar-link-osiris <?= $pageactive('queue/editor') ?>">
+                                <i class="ph ph-queue" aria-hidden="true"></i>
+                                <?= lang('Queue', 'Warteschlange') ?>
+                                <span class="badge secondary badge-pill ml-10" id="cart-counter">
+                                    <?= $n_queue ?>
+                                </span>
+                            </a>
+                        <?php } ?>
+
 
                         <?php if ($Settings->hasPermission('report.generate')) { ?>
 
