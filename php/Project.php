@@ -156,6 +156,7 @@ class Project
         'scholar' => 'Stipediat:in',
         'supervisor' => 'Betreuer:in',
         'associate' => 'Beteiligte Person',
+        'coordinator' => 'Wiss. Koordinator:in'
     ];
 
     public const COLLABORATOR = [
@@ -384,6 +385,8 @@ class Project
                 return ['en'=>'Scholar', 'de'=> 'Stipediat:in'];
             case 'supervisor':
                 return ['en'=>'Supervisor', 'de'=> 'Betreuer:in'];
+            case 'coordinator':
+                return ['en'=> 'Scientific Coordinator', 'de' => 'Wiss. Koordinator:in'];
             default:
                 return ['en'=>'Associate', 'de'=> 'Beteiligte Person'];
         }

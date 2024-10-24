@@ -180,9 +180,10 @@ function validateValues($values, $DB)
 
 function get_preview($html, $length = 150) {
     // 1. Entferne HTML-Tags
+    if (empty($html)) return '';
     $text = strip_tags($html);
 
-    if (empty($text)) return null;
+    if (empty($text)) return '';
 
     // 2. Kürze den Text auf die gewünschte Länge
     if (strlen($text) > $length) {

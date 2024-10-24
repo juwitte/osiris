@@ -482,6 +482,7 @@ $institute = $Settings->get('affiliation_details');
                                                                     <option value="applicant" <?= $con['role'] == 'applicant' ? 'selected' : '' ?>><?= Project::personRole('applicant') ?></option>
                                                                     <option value="PI" <?= $con['role'] == 'PI' ? 'selected' : '' ?>><?= Project::personRole('PI') ?></option>
                                                                     <option value="worker" <?= $con['role'] == 'worker' ? 'selected' : '' ?>><?= Project::personRole('worker') ?></option>
+                                                                    <option value="coordinator" <?= $con['role'] == 'coordinator' ? 'selected' : '' ?>><?= Project::personRole('coordinator') ?></option>
                                                                 <?php } ?>
                                                                 <option value="associate" <?= $con['role'] == 'associate' ? 'selected' : '' ?>><?= Project::personRole('associate') ?></option>
                                                             </select>

@@ -1298,6 +1298,7 @@ function projectTimeline(selector, data = {}) {
                 'applicant': { color: '#B61F29', label: lang('Applicant', 'Antragsteller:in') },
                 'worker': { color: '#008083', label: lang('Worker', 'Projektmitarbeiter:in') },
                 'associate': { color: '#AAAAAA', label: lang('Associate', 'Beteiligte Person') },
+                'coordinator': { color: '#AAAAAA', label: lang('Scientific Coordinator', 'Wiss. Koordinator:in') },
                 'scholar': { color: '#008083', label: lang('Scholar', 'Stipenidat') },
                 'supervisor': { color: '#f78104', label: lang('Supervisor', 'Betreuende Person') },
             }
