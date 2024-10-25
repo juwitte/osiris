@@ -623,6 +623,8 @@ Route::get('/migrate', function () {
         $cursor = $osiris->persons->find(['password' => ['$exists' => true]]);
         foreach ($cursor as $doc) {
             $hash = password_hash($doc['password'], PASSWORD_DEFAULT);
+            // remove existing password
+            $osiris->accounts->deleteOne(['username' => $doc['username']]);
             // move to a new collection
             $osiris->accounts->insertOne([
                 'username' => $doc['username'],
@@ -655,4 +657,106 @@ Route::get('/migrate', function () {
         ['upsert' => true]
     );
     include BASEPATH . "/footer.php";
+});
+
+
+Route::post('/migrate/custom-fields-to-topics', function () {
+    include_once BASEPATH . "/php/init.php";
+
+    /**
+     * 1. The selected custom field is used to create new research areas on this basis. Don\'t worry, you can still edit them later.
+     * 2. All activities for which the custom field was completed are assigned to the respective research areas.
+     * 3. The custom field is then deleted, i.e. the field itself, the assignment to forms and the values set for the activities are removed.
+     */
+    include BASEPATH . "/header.php";
+    if (!isset($_POST['field'])) die('No field selected.');
+    $field = $_POST['field'];
+
+    // 1. 
+    $fieldArr = $osiris->adminFields->findOne(['id' => $field]);
+    if (empty($fieldArr) || empty($fieldArr['values'])) die('Field not found.');
+    $values = $fieldArr['values'];
+
+    $topics = [];
+    foreach ($values as $value) {
+        if ($value instanceof \MongoDB\BSON\Document) {
+            $value = DB::doc2Arr($value);
+        }
+        // dump type of value
+        if (is_array($value) || is_object($value)) {
+            $de = $value[1] ?? $value[0];
+            $en = $value[0];
+        } else {
+            $en = $value;
+            $de = $value;
+        }
+        // add topic
+        // generate random soft color
+        $color = '#' . str_pad(dechex(mt_rand(0, 0xFFFFFF)), 6, '0', STR_PAD_LEFT);
+        $id = str_replace(' ', '-', strtolower($en));
+        
+        $topic = [
+            "id" => $id,
+            "color" => $color,
+            "name" => $en,
+            "subtitle" => null,
+            "name_de" => $de,
+            "subtitle_de" => null,
+            "description" => null,
+            "description_de" => null,
+            "created" => date('Y-m-d'),
+            "created_by" => $_SESSION['username'],
+        ];
+        $osiris->topics->insertOne($topic);
+
+        $topics[$en] = $id;
+    }
+    echo count($topics) . " topics created. Colors have been chosen randomly, you can edit them later if you have the permission to do so. <br>";
+
+    // 2. All activities for which the custom field was completed are assigned to the respective research areas.
+    $docs = $osiris->activities->find([$field => ['$exists' => true]], ['project'=> [$field => 1]])->toArray();
+    foreach ($docs as $doc) {
+        $id = $doc['_id'];
+        $value = $doc[$field];
+        
+        if (!array_key_exists($value, $topics)) {
+            echo "Topic not found: $value <br>";
+            continue;
+        }
+        $topic = $topics[$value];
+        // dump($topic, true);
+        $osiris->activities->updateOne(
+            ['_id' => $id],
+            ['$set' => ['topics' => [$topic]]]
+        );
+    }
+    echo count($docs) . " activities has been assigned to topics. <br>";
+
+    // 3. The custom field is then deleted, i.e. the field itself, the assignment to forms and the values set for the activities are removed.
+    $osiris->adminFields->deleteOne(['id' => $field]);
+    echo "The Custom Field was deleted. <br>";
+
+    $res = $osiris->adminTypes->updateMany(
+        ['modules' => $field],
+        ['$pull' => ['modules' => $field]]
+    );
+    $N = $res->getModifiedCount();
+    
+    $res = $osiris->adminTypes->updateMany(
+        ['modules' => $field.'*'],
+        ['$pull' => ['modules' => $field.'*']]
+    );
+    $N += $res->getModifiedCount();
+    echo "The field has been removed from $N activity forms. <br>";
+
+    $res = $osiris->activities->updateMany(
+        [$field => ['$exists' => true]],
+        ['$unset' => [$field => '']]
+    );
+    echo "The field has been removed from ". $res->getModifiedCount() . " activities. <br>";
+
+include BASEPATH . "/footer.php";
+    
+
+
 });
