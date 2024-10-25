@@ -140,7 +140,7 @@ Route::get('/guest-analysis', function () {
 
 
 Route::post('/download', function () {
-    // error_reporting(E_ERROR | E_PARSE);
+    error_reporting(E_ERROR | E_PARSE);
 
     require_once BASEPATH . '/php/init.php';
     require_once BASEPATH . '/php/Document.php';

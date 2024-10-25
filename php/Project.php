@@ -256,6 +256,12 @@ class Project
 <?php }
     }
 
+    public function getRoleRaw(){
+        if (($this->project['role'] ?? '') == 'coordinator')
+            return lang('Coordinator', 'Koordinator');
+        return 'Partner';
+    }
+
     public function getRole()
     {
         if (($this->project['role'] ?? '') == 'coordinator') {
@@ -348,6 +354,16 @@ class Project
     {
         return sprintf('%02d', $this->project['end']['month']) . "/" . $this->project['end']['year'];
     }
+    public function getDuration()
+    {
+        $year1 = $this->project['start']['year'];
+        $year2 = $this->project['end']['year'];
+
+        $month1 = $this->project['start']['month'];
+        $month2 = $this->project['end']['month'];
+
+        return (($year2 - $year1) * 12) + ($month2 - $month1) +1;
+    }
     public function getProgress()
     {
         $end = new DateTime();
@@ -376,19 +392,19 @@ class Project
     {
         switch ($role) {
             case 'PI':
-                return ['en'=>'Project lead', 'de'=> 'Projektleitung'];
+                return ['en' => 'Project lead', 'de' => 'Projektleitung'];
             case 'applicant':
-                return ['en'=>'Applicant', 'de'=> 'Antragsteller:in'];
+                return ['en' => 'Applicant', 'de' => 'Antragsteller:in'];
             case 'worker':
-                return ['en'=>'Project member', 'de'=> 'Projektmitarbeiter:in'];
+                return ['en' => 'Project member', 'de' => 'Projektmitarbeiter:in'];
             case 'scholar':
-                return ['en'=>'Scholar', 'de'=> 'Stipediat:in'];
+                return ['en' => 'Scholar', 'de' => 'Stipediat:in'];
             case 'supervisor':
-                return ['en'=>'Supervisor', 'de'=> 'Betreuer:in'];
+                return ['en' => 'Supervisor', 'de' => 'Betreuer:in'];
             case 'coordinator':
-                return ['en'=> 'Scientific Coordinator', 'de' => 'Wiss. Koordinator:in'];
+                return ['en' => 'Scientific Coordinator', 'de' => 'Wiss. Koordinator:in'];
             default:
-                return ['en'=>'Associate', 'de'=> 'Beteiligte Person'];
+                return ['en' => 'Associate', 'de' => 'Beteiligte Person'];
         }
     }
 
@@ -509,7 +525,8 @@ class Project
         $continents = array_unique($continents);
         return $continents;
     }
-    public function getUnits($depts_only = false){
+    public function getUnits($depts_only = false)
+    {
         // get units based on project persons
         $units = [];
         $Groups = new Groups();
@@ -520,13 +537,12 @@ class Project
                 $p = $this->db->persons->findOne(['username' => $person['user']]);
                 $u = DB::doc2Arr($p['depts'] ?? []);
             }
-            
+
             if (!empty($u)) {
                 $units = array_merge($units, $u);
             }
         }
         if (!$depts_only) return $units;
         return $Groups->personDepts($units);
-        
     }
 }

@@ -125,6 +125,12 @@ $institute = $Settings->get('affiliation_details');
             <br />
             <b><?= $Project->getDateRange() ?></b>
         </div>
+
+        <div class="mr-10 badge bg-white">
+            <small><?= lang('Duration', 'Dauer') ?>: </small>
+            <br />
+            <b><?= $Project->getDuration() ?> <?= lang('Month', 'Monate') ?></b>
+        </div>
     </div>
 
 
@@ -210,7 +216,29 @@ $institute = $Settings->get('affiliation_details');
                             <i class="ph ph-edit"></i>
                             <?= lang('Edit', 'Bearbeiten') ?>
                         </a>
+                        <!-- dropdown -->
+                        <div class="dropdown">
+                            <button class="btn primary" data-toggle="dropdown" type="button" id="dropdown-download" aria-haspopup="true" aria-expanded="false">
+                                <i class="ph ph-download"></i>
+                                <?= lang('Download', 'Herunterladen') ?>
+                                <i class="ph ph-caret-down ml-5" aria-hidden="true"></i>
+                            </button>
+                            <div class="dropdown-menu p-10" aria-labelledby="dropdown-download">
+                                <form action="<?= ROOTPATH ?>/projects/download/<?= $id ?>" method="post">
+                                    <select name="format" id="download-format" class="form-control mb-10">
+                                        <option value="docx">Word</option>
+                                        <option value="json">JSON</option>
+                                        <!-- <option value="csv">CSV</option> -->
+                                    </select>
+                                    <button class="btn primary" type="submit">
+                                        <i class="ph ph-download"></i>
+                                        <?= lang('Download', 'Herunterladen') ?>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     <?php } ?>
+
                     <?php if ($Settings->hasPermission('projects.delete') || ($Settings->hasPermission('projects.delete-own') && $edit_perm)) { ?>
 
                         <div class="dropdown">
@@ -575,7 +603,7 @@ $institute = $Settings->get('affiliation_details');
                 </table>
 
                 <h3>
-                    <?=lang('Associated units', 'Zugehörige Organisationseinheiten')?>
+                    <?= lang('Associated units', 'Zugehörige Organisationseinheiten') ?>
                 </h3>
                 <table class="table">
                     <tbody>
@@ -588,7 +616,7 @@ $institute = $Settings->get('affiliation_details');
 
                             foreach ($tree as $row) { ?>
                                 <tr>
-                                    <td style="padding-left: <?=($row['indent']*2 + 2). 'rem'?>;">
+                                    <td style="padding-left: <?= ($row['indent'] * 2 + 2) . 'rem' ?>;">
                                         <a href="<?= ROOTPATH ?>/groups/view/<?= $row['id'] ?>">
                                             <?= lang($row['name_en'], $row['name_de'] ?? null) ?>
                                         </a>

@@ -136,6 +136,7 @@ if (
     isset($_SESSION['username']) && !empty($_SESSION['username'])
 ) {
     include_once BASEPATH . "/routes/components.php";
+    include_once BASEPATH . "/routes/export.php";
     include_once BASEPATH . "/routes/controlling.php";
     include_once BASEPATH . "/routes/database.php";
     include_once BASEPATH . "/routes/docs.php";
@@ -151,7 +152,6 @@ if (
     include_once BASEPATH . "/routes/users.php";
     include_once BASEPATH . "/routes/visualize.php";
     include_once BASEPATH . "/routes/activities.php";
-    include_once BASEPATH . "/routes/export.php";
     include_once BASEPATH . "/routes/reports.php";
     include_once BASEPATH . "/routes/concepts.php";
     include_once BASEPATH . "/routes/admin.php";

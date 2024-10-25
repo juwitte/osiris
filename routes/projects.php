@@ -204,6 +204,116 @@ Route::get('/projects/subproject/(.*)', function ($id) {
     include BASEPATH . "/footer.php";
 }, 'login');
 
+function getTemplatePlaceholders($templatePath)
+{
+    // Die DOCX-Datei als ZIP öffnen
+    $zip = new \ZipArchive;
+    if ($zip->open($templatePath) === true) {
+        // Die Datei word/document.xml aus dem ZIP-Archiv holen
+        $content = $zip->getFromName('word/document.xml');
+        $zip->close();
+
+        // Mit einer regulären Expression alle Platzhalter finden (z.B. {Platzhalter})
+        preg_match_all('/\{(.*?)\}/', $content, $matches);
+
+        // Alle Platzhalter zurückgeben
+        return $matches[1]; // Gibt eine Liste von Platzhaltern zurück
+    } else {
+        return [];
+    }
+}
+
+
+// projects/download/:id
+Route::post('/projects/download/(.*)', function ($id) {
+    include_once BASEPATH . "/php/init.php";
+    include_once BASEPATH . "/php/Project.php";
+    error_reporting(E_ERROR | E_PARSE);
+    // Lade das Template
+
+    $user = $_SESSION['username'];
+    $format = $_POST['format'] ?? 'word';
+
+    $mongo_id = $DB->to_ObjectID($id);
+    $project = $osiris->projects->findOne(['_id' => $mongo_id]);
+    if (empty($project)) {
+        header("Location: " . ROOTPATH . "/projects?msg=not-found");
+        die;
+    }
+    $project = DB::doc2Arr($project);
+    $Project = new Project($project);
+
+    $filename = $project['name'];
+
+    if ($format == 'json') {
+        $filename .= ".json";
+        header('Content-Type: application/json');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        echo json_encode($project, JSON_PRETTY_PRINT);
+        die;
+    }
+
+    $templatePath = BASEPATH . "/templates/project-template.docx";
+    $filename .= ".docx";
+
+    $templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor($templatePath);
+    $abstract = clean_comment_export(strip_tags($project['abstract'] ?? 'NA'), false);
+    $res = $project['ressources'] ?? [];
+    $persons = [];
+    foreach ($project['persons'] as $p) {
+        $persons[] = $p['name'];
+    }
+    $persons = implode(', ', $persons);
+    // dump($project['abstract']);
+    $projectValues = [
+        "contact" => $DB->getNameFromId($project['contact']),
+        "name" => $project['name'],
+        "title" => $project['title'],
+        "funder" => $project['funder'],
+        "funding_organization" => $project['funding_organization'] ?? $project['funder'] ?? null,
+        "role" => $Project->getRoleRaw(),
+        "duration" => $Project->getDuration() . lang(" months", " Monate"),
+        "start" => $Project->getStartDate(),
+        "end" => $Project->getEndDate(),
+        "grant_sum_proposed" => $project['grant_sum_proposed'] ?? 0,
+        "grant_income_proposed" => $project['grant_income_proposed'] ?? 0,
+        "abstract" => $abstract,
+        "personnel" => $project['personnel'] ?? 'NA',
+        "countries" => isset($project['countries']) ? implode(', ', $project['countries']) : 'NA',
+        "in-kind" => $project['in-kind'] ?? 'NA',
+        "public" => $project['public'] ? lang("Yes", "Ja") : lang("No", "Nein"),
+        "res:material" => ($res['material'] == 'yes' ? lang("Yes", "Ja") : lang("No", "Nein")),
+        "res:material_details" => $res['material_details'] ?? 'NA',
+        "res:personnel" => ($res['personnel'] == 'yes' ? lang("Yes", "Ja") : lang("No", "Nein")),
+        "res:personnel_details" => $res['personnel_details'] ?? 'NA',
+        "res:room" => ($res['room'] == 'yes' ? lang("Yes", "Ja") : lang("No", "Nein")),
+        "res:room_details" => $res['room_details'] ?? 'NA',
+        "res:other" => ($res['other'] == 'yes' ? lang("Yes", "Ja") : lang("No", "Nein")),
+        "res:other_details" => $res['other_details'] ?? 'NA',
+        "coordinator" => $project['coordinator'] ?? 'NA',
+        "purpose" => $project['purpose'] ?? 'NA',
+        "status" => $project['status'] ?? 'NA',
+        "persons" => $persons,
+        "website" => $project['website'] ?? 'NA',
+    ];
+
+    $templateProcessor->setValues($projectValues);
+    // die;
+    $tempFilePath = 'output.docx';
+    $templateProcessor->saveAs($tempFilePath);
+
+    header("Content-Description: File Transfer");
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    header('Content-Length: ' . filesize($tempFilePath));
+    header('Pragma: public');
+
+    readfile($tempFilePath);
+
+    // Lösche die Datei, falls sie nur temporär ist
+    unlink($tempFilePath);
+}, 'login');
+
 /**
  * CRUD routes
  */
