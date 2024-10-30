@@ -209,6 +209,11 @@ Route::post('/download', function () {
         $filename .= "_" . trim($params['project']);
     }
 
+    if (isset($params['topic']) && !empty($params['topic'])) {
+        $filter['$and'][] = array('topics'=> trim($params['topic']));
+        $filename .= "_" . trim($params['topic']);
+    }
+
     // if (isset($params['year']) && !empty($params['year'])) {
     //     $filter['year'] = intval($params['year']);
     // }
