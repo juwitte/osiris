@@ -12,8 +12,6 @@ function renderActivities($filter = [])
             'depts' => '',
             'icon' => '',
             'type' => '',
-            'start' => null,
-            'end' => null,
         ];
         foreach ($cursor as $doc) {
             $id = $doc['_id'];
@@ -37,13 +35,18 @@ function renderActivities($filter = [])
                 'icon' => trim($Format->activity_icon()),
                 'type' => $Format->activity_type(),
                 'subtype' => $Format->activity_subtype(),
-                'start' => valueFromDateArray($doc['start'] ?? $doc),
-                'end' => valueFromDateArray($doc['end'] ?? $doc['start'] ?? $doc),
                 'title'=> $Format->getTitle(),
                 'authors'=> $Format->getAuthors('authors')
             ];
             $values = ['rendered' => $rendered];
 
+            $values['start_date'] = valueFromDateArray($doc['start'] ?? $doc);
+            if (array_key_exists('end', DB::doc2Arr($doc)) && is_null($doc['end'])){
+                $end = null;
+            } else {
+                $end = valueFromDateArray($doc['end'] ?? $doc['start'] ?? $doc);
+            }
+            $values['end_date'] = $end;
 
             if ($doc['type'] == 'publication' && isset($doc['journal'])) {
                 // update impact if necessary

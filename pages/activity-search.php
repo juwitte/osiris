@@ -20,13 +20,14 @@ $Format = new Document(true);
 ?>
 
 <link rel="stylesheet" href="<?= ROOTPATH ?>/css/query-builder.default.min.css">
-<script src="<?= ROOTPATH ?>/js/query-builder.standalone.js"></script>
+<script src="<?= ROOTPATH ?>/js/query-builder.standalone.js?v=date"></script>
 <script src="<?= ROOTPATH ?>/js/datatables/jszip.min.js"></script>
 <script src="<?= ROOTPATH ?>/js/datatables/dataTables.buttons.min.js"></script>
 <script src="<?= ROOTPATH ?>/js/datatables/buttons.html5.min.js"></script>
 
 <script>
     var RULES;
+    var EXPERT = <?= isset($_GET['expert']) ? 'true' : 'false' ?>;
 </script>
 
 
@@ -207,6 +208,18 @@ $Format = new Document(true);
                 id: 'title',
                 label: lang('Title', 'Titel'),
                 type: 'string'
+            },
+            {
+                id: 'start_date',
+                label: lang('Start date', 'Startdatum'),
+                type: 'datetime',
+                input: 'date'
+            },
+            {
+                id: 'end_date',
+                label: lang('End date', 'Enddatum'),
+                type: 'datetime',
+                input: 'date'
             },
             {
                 id: 'abstract',
@@ -762,7 +775,12 @@ $Format = new Document(true);
         });
 
         function saveQuery() {
-            var rules = $('#builder').queryBuilder('getRules')
+            if (EXPERT) {
+                var rules =  $('#expert').val()
+                rules = JSON.parse(rules)
+            } else {
+                var rules = $('#builder').queryBuilder('getRules')
+            }
             var name = $('#query-name').val()
             if (name == "") {
                 toastError('Please provide a name for your query.')
@@ -773,7 +791,8 @@ $Format = new Document(true);
                 rules: rules,
                 user: '<?= $_SESSION['username'] ?>',
                 created: new Date(),
-                aggregate: $('#aggregate').val()
+                aggregate: $('#aggregate').val(),
+                expert: EXPERT
             }
             $.post(ROOTPATH + '/crud/queries', query, function(data) {
                 // reload
@@ -809,6 +828,22 @@ $Format = new Document(true);
             RULES = rules
             dataTable.ajax.reload()
         }
+        function applyFilterExpert(id, aggregate) {
+            console.log((id));
+            var filter = queries[id];
+            if (!filter) {
+                toastError('Query not found.')
+                return
+            }
+            $('#aggregate').val(aggregate)
+            $('#expert').val(filter)
+           
+            // $('#builder').queryBuilder('setRules', parsedFilter);
+            // var rules = $('#builder').queryBuilder('getMongo')
+            RULES = rules
+            dataTable.ajax.reload()
+        }
+
 
         function deleteQuery(id) {
             $.ajax({

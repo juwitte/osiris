@@ -637,6 +637,7 @@ Route::get('/migrate', function () {
                 ['$unset' => ['password' => '']]
             );
         }
+
     }
 
 

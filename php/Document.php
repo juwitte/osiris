@@ -714,9 +714,7 @@ class Document extends Settings
                 return $this->fromToDate($this->getVal('start', $this->doc), $this->getVal('end', null));
             case "date-range-ongoing":
                 if (!empty($this->doc['start'])) {
-                    if (!empty($this->doc['end'])) { {
-                            return Document::format_month($this->doc['start']['month']) . ' ' . $this->doc['start']['year'];
-                        }
+                    if (!empty($this->doc['end'])) { 
                         $start = Document::format_month($this->doc['start']['month']) . ' ' . $this->doc['start']['year'];
                         $end = Document::format_month($this->doc['end']['month']) . ' ' . $this->doc['end']['year'];
                         if ($start == $end) return $start;
