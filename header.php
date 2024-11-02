@@ -568,7 +568,7 @@ $pageactive = function ($p) use ($page) {
                             </a>
                         <?php } ?>
                         <?php if ($Settings->hasPermission('user.synchronize')) { ?>
-                            <a href="<?= ROOTPATH ?>/admin/users" class="with-icon <?= $pageactive('admin/reports') ?>">
+                            <a href="<?= ROOTPATH ?>/admin/users" class="with-icon <?= $pageactive('admin/users') ?>">
                                 <i class="ph ph-users"></i>
                                 <?= lang('Users', 'Nutzer') ?>
                             </a>

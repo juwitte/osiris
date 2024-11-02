@@ -98,6 +98,13 @@ class DB
         return false;
     }
 
+    public static function getDate($doc){
+        $date = $doc['year'] ?? '';
+        if (isset($doc['month'])) $date .= '-' . $doc['month'];
+        if (isset($doc['day'])) $date .= '-' . $doc['day'];
+        return $date;
+    }
+
     /**
      * Convert MongoDB document to array.
      *
