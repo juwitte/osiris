@@ -40,7 +40,9 @@ if (!$Settings->hasPermission('projects.view')) {
         '$or' => [
             ['persons.user' => $_SESSION['username']],
             ['created_by' => $_SESSION['username']],
-            ['contact' => $_SESSION['username']]
+            ['contact' => $_SESSION['username']],
+            ['supervisor' => $_SESSION['username']],
+            ['status' => ['$nin' => ['applied', 'rejected', 'expired']]]
         ]
     ];
     $pagetitle = lang('My projects', 'Meine Projekte');
@@ -152,9 +154,6 @@ if (!$Settings->hasPermission('projects.view')) {
                     </tr>
                     <tr style="--highlight-color: var(--danger-color)">
                         <td> <a onclick="filterProjects(this, 'rejected', 6)" class="item text-danger"><?= lang('rejected', 'abgelehnt') ?></a></td>
-                    </tr>
-                    <tr style="--highlight-color: var(--dark-color)">
-                        <td> <a onclick="filterProjects(this, 'expired', 6)" class="item text-dark"><?= lang('expired', 'abgelaufen') ?></a></td>
                     </tr>
                 </table>
             </div>
@@ -305,6 +304,10 @@ if (!$Settings->hasPermission('projects.view')) {
         {
             title: lang('Topics', 'Themen'),
             key: 'topics'
+        },
+        {
+            title: lang('Persons', 'Personen'),
+            key: 'persons'
         }
     ]
 
@@ -381,11 +384,23 @@ if (!$Settings->hasPermission('projects.view')) {
             data.forEach(function(topic) {
                 topics += `<a href="<?= ROOTPATH ?>/topics/view/${topic}" class="topic-icon topic-${topic}"></a> `
             })
-            topics += '</span>' + data
+            topics += '</span>'
         }
         return topics;
     }
 
+    // function renderPersons(data) {
+    //     let persons = '';
+    //     // if (data && data.length > 0) {
+    //     //     persons = '<span class="float-right">'
+    //     //     data.forEach(function(person) {
+    //     //         persons += `<a href="<?= ROOTPATH ?>/profile/${person}" class="badge text-muted">${person}</a> `
+    //     //     })
+    //     //     persons += '</span>'
+    //     // }
+    //     console.log(data);
+    //     return persons;
+    // }
 
     $(document).ready(function() {
         dataTable = new DataTable('#project-table', {
@@ -451,17 +466,29 @@ if (!$Settings->hasPermission('projects.view')) {
                     data: 'name',
                     render: function(data, type, row) {
                         return `
+                        ${renderTopic(row.topics)}
+                        <div class="d-flex flex-column h-full">
                         <h4 class="m-0">
                             <a href="<?= ROOTPATH ?>/projects/view/${row.id}">${data}</a>
-                        </h4><br>
-                        ${row.date_range}
-                        ${renderFunder(row)}
-                        ${renderContact(row)}
-                        ${renderType(row.type)}
-                        ${renderRole(row.role)}
-                        ${renderStatus(row.status)}
-                        ${renderTopic(row.topics)}
+                        </h4>
+                       
+                        <div class="flex-grow-1">
+                         <p class="text-muted mt-0">${row.date_range}</p>
+                        
+                        ${row.persons.join(', ')}
+
+                        </div>
+                        <hr />
+                        
+                        <div class="d-flex justify-content-between">
+                            ${renderType(row.type)}
+                            ${renderStatus(row.status)}
+                        </div>
+                    </div>
                         `
+                        // ${renderFunder(row)}
+                        // ${renderContact(row)}
+                        // ${renderRole(row.role)}
                     }
                 },
                 {
@@ -511,11 +538,14 @@ if (!$Settings->hasPermission('projects.view')) {
                     data: 'topics',
                     searchable: true,
                     visible: false
-                }
+                },
             ],
             order: [
                 [0, 'desc']
-            ]
+            ],
+            paging: true,
+            autoWidth: true,
+            pageLength: 9,
         });
 
         // $('#project-table_wrapper').prepend($('.filters'))
