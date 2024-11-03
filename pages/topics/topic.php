@@ -35,7 +35,7 @@
         <?php if (!empty($topic['image'] ?? null)) : ?>
             <img src="<?= ROOTPATH . '/uploads/' . $topic['image'] ?>" alt="<?= $topic['name'] ?>">
         <?php else : ?>
-            <img src="<?= ROOTPATH ?>/img/osiris-topic-banner.png" alt="No topic image set">
+            <img src="<?= ROOTPATH ?>/img/osiris-topic-banner-trans.png" alt="No topic image set" style="background: var(--topic-color);">
         <?php endif; ?>
         <?php if ($Settings->hasPermission('topics.edit')) { ?>
             <a href="#upload-image" class="btn circle position-absolute bottom-0 right-0 m-10"><i class="ph ph-edit"></i></a>
@@ -117,7 +117,8 @@
 <script>
     initProjects('#project-table', {
         filter: {
-            topics: '<?= $topic['id'] ?>'
+            topics: '<?= $topic['id'] ?>',
+            status: {'$nin': ['applied', 'rejected']}
         }
     });
 </script>

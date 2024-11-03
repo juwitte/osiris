@@ -33,10 +33,16 @@ $topics  = $osiris->topics->find();
         <div class="box padded topic" style="--topic-color: <?= $topic['color'] ?? '#333333' ?>">
             <h4 class="title">
                 <span class="topic-icon"></span>
-                <a href="<?= ROOTPATH ?>/topics/view/<?= $topic['_id'] ?>" class="colorless"><?= $topic['name'] ?></a>
+                <a href="<?= ROOTPATH ?>/topics/view/<?= $topic['_id'] ?>" class="colorless">
+                    <?=lang($topic['name'], $topic['name_de'] ?? null)?>
+                </a>
             </h4>
-            <p class="font-size-12 text-muted">
-                <?= get_preview(lang($topic['description'], $topic['description_de'] ?? null), 400) ?>
+            <p class="text-muted">
+                <?php if (!empty($topic['subtitle'])) { ?>
+                    <?= lang($topic['subtitle'], $topic['subtitle_de'] ?? null) ?>
+                <?php } else { ?>
+                    <?= get_preview(lang($topic['description'], $topic['description_de'] ?? null), 300) ?>
+                <?php } ?>
             </p>
             <?php if ($Settings->hasPermission('topics.edit')) { ?>
                 <a class="btn" href="<?= ROOTPATH ?>/topics/edit/<?= $topic['_id'] ?>">
