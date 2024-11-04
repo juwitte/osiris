@@ -851,9 +851,9 @@ if ($currentuser) { ?>
                         $pubs = $osiris->activities->find(
                             ['authors.aoi' => true, 'type' => 'publication'],
                             [
-                                'sort' => ['year' => -1, 'month' => -1],
+                                'sort' => ['start_date' => -1],
                                 'limit' => 5,
-                                'projection' => ['html' => '$rendered.web', 'date' => '$rendered.start']
+                                'projection' => ['html' => '$rendered.web', 'date' => '$start_date']
                             ]
                         )->toArray();
                         ?>
