@@ -542,6 +542,9 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
             ),
             "status" => ['$in' => ["approved", 'finished']]
         ];
+        if ($currentuser) {
+            $project_filter['status']['$in'][] = 'applied';
+        }
 
         $count_projects = $osiris->projects->count($project_filter);
         if ($count_projects > 0) { ?>
@@ -1524,6 +1527,13 @@ if ($currentuser) { ?>
 
 
         <?php } ?>
+
+        <?php if ($currentuser) { ?>
+            <p class="text-muted font-size-12">
+                <?=lang('Others can not see projects you applied for on your profile page.', 'Andere Nutzende können beantragte Projekte nicht auf deiner Profilseite sehen.')?>
+            </p>
+        <?php } ?>
+        
 
     </section>
 <?php } ?>
