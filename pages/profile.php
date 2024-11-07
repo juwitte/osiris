@@ -273,7 +273,7 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
                         <?= date('d.m.Y', strtotime($scientist['inactivated'])) ?>
                     </small>
                 <?php } ?>
-                
+
             </span>
         <?php } ?>
 
@@ -290,7 +290,7 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
         <?php }
         }
         ?>
-        
+
         <?php foreach (($scientist['roles'] ?? []) as $role) { ?>
             <span class="badge">
                 <?= strtoupper($role) ?>
@@ -310,7 +310,7 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
             ?>
         <?php
         } ?>
-        
+
         <?php if ($showcoins) { ?>
             <p class="lead m-0">
                 <i class="ph ph-lg ph-coin text-signal"></i>
@@ -327,7 +327,7 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
 
 <!-- show research topics -->
 <div class="my-20">
-<?= $Settings->printTopics($scientist['topics'] ?? []) ?>
+    <?= $Settings->printTopics($scientist['topics'] ?? []) ?>
 </div>
 
 <?php if ($currentuser) { ?>
@@ -1486,6 +1486,7 @@ if ($currentuser) { ?>
         if ($count_projects > 0) {
             $projects = $osiris->projects->find($project_filter, ['sort' => ["start" => -1, "end" => -1]]);
 
+            $applied = [];
             $ongoing = [];
             $past = [];
 
@@ -1493,7 +1494,9 @@ if ($currentuser) { ?>
             $Project = new Project();
             foreach ($projects as $project) {
                 $Project->setProject($project);
-                if ($Project->inPast()) {
+                if ($project['status'] == 'applied') {
+                    $applied[] = $Project->widgetLarge($user);
+                } elseif ($Project->inPast()) {
                     $past[] = $Project->widgetLarge($user);
                 } else {
                     $ongoing[] = $Project->widgetLarge($user);
@@ -1513,6 +1516,22 @@ if ($currentuser) { ?>
                 </div>
             <?php } ?>
 
+            <?php if ($currentuser && !empty($applied)) { ?>
+                <h2><?= lang('Proposed projects', 'Beantragte Projekte') ?></h2>
+
+                <div class="row row-eq-spacing my-0">
+                    <?php foreach ($applied as $html) { ?>
+                        <div class="col-md-6">
+                            <?= $html ?>
+                        </div>
+                    <?php } ?>
+                </div>
+
+                <p class="text-muted font-size-12">
+                    <?= lang('Others can not see projects you applied for on your profile page.', 'Andere Nutzende können beantragte Projekte nicht auf deiner Profilseite sehen.') ?>
+                </p>
+            <?php } ?>
+
             <?php if (!empty($past)) { ?>
                 <h2><?= lang('Past projects', 'Vergangene Projekte') ?></h2>
 
@@ -1528,12 +1547,7 @@ if ($currentuser) { ?>
 
         <?php } ?>
 
-        <?php if ($currentuser) { ?>
-            <p class="text-muted font-size-12">
-                <?=lang('Others can not see projects you applied for on your profile page.', 'Andere Nutzende können beantragte Projekte nicht auf deiner Profilseite sehen.')?>
-            </p>
-        <?php } ?>
-        
+
 
     </section>
 <?php } ?>
