@@ -17,6 +17,7 @@
  */
 
 $Format = new Document(true);
+$expert = isset($_GET['expert']) ;
 ?>
 
 <link rel="stylesheet" href="<?= ROOTPATH ?>/css/query-builder.default.min.css">
@@ -27,7 +28,7 @@ $Format = new Document(true);
 
 <script>
     var RULES;
-    var EXPERT = <?= isset($_GET['expert']) ? 'true' : 'false' ?>;
+    var EXPERT = <?= $expert ? 'true' : 'false' ?>;
 </script>
 
 
@@ -46,9 +47,9 @@ $Format = new Document(true);
                 <div class="content">
 
                     <h3 class="title"><?= lang('Filter', 'Filtern') ?></h3>
-                    <div id="builder" class="<?= isset($_GET['expert']) ? 'hidden' : '' ?>"></div>
+                    <div id="builder" class="<?= $expert ? 'hidden' : '' ?>"></div>
 
-                    <?php if (isset($_GET['expert'])) { ?>
+                    <?php if ($expert) { ?>
                         <textarea name="expert" id="expert" cols="30" rows="5" class="form-control"></textarea>
                     <?php } ?>
 
@@ -56,9 +57,11 @@ $Format = new Document(true);
 
                 <div class="content">
                     <!-- Aggregations -->
-                    <h3 class="title"><?= lang('Aggregate', 'Aggregieren') ?></h3>
+                    <a onclick="$('#aggregate-form').slideToggle()">
+                        <?= lang('Aggregate', 'Aggregieren') ?> <i class="ph ph-caret-down"></i>
+                    </a>
 
-                    <div class="input-group">
+                    <div class="input-group" style="display:none;" id="aggregate-form">
                         <select name="aggregate" id="aggregate" class="form-control w-auto">
                             <option value=""><?= lang('Without aggregation (show all)', 'Ohne Aggregation (zeige alles)') ?></option>
                         </select>
@@ -66,7 +69,6 @@ $Format = new Document(true);
                         <!-- remove aggregation -->
                         <div class="input-group-append">
                             <button class="btn text-danger" onclick="$('#aggregate').val(''); getResult()"><i class="ph ph-x"></i></button>
-
                         </div>
                     </div>
                 </div>
@@ -75,7 +77,7 @@ $Format = new Document(true);
 
                     <div class="btn-toolbar">
 
-                        <?php if (isset($_GET['expert'])) { ?>
+                        <?php if ($expert) { ?>
                             <button class="btn secondary" onclick="run()"><i class="ph ph-magnifying-glass"></i> <?= lang('Apply', 'Anwenden') ?></button>
 
                             <script>
@@ -100,9 +102,24 @@ $Format = new Document(true);
             <!-- User saved queries -->
             <div class="box">
                 <div class="content">
-                    <h3 class="title"><?= lang('My saved queries', 'Meine Abfragen') ?></h3>
+                    <h3 class="title">
+                        <?php if ($expert) { ?>
+                            <?= lang('My expert queries', 'Meine Experten-Abfragen') ?>
+                        <?php } else { ?>
+                            <?= lang('My saved queries', 'Meine Abfragen') ?>
+                        <?php } ?>
+                    </h3>
                     <?php
-                    $queries = $osiris->queries->find(['user' => $_SESSION['username']])->toArray();
+                    $filter = ['user' => $_SESSION['username'], 'type' => ['$ne' => 'project']];
+                    if (!$expert) {
+                        $filter['$or'] = [
+                            ['expert' => false],
+                            ['expert' => ['$exists' => false]]
+                        ];
+                    } else {
+                        $filter['expert'] = true;
+                    }
+                    $queries = $osiris->queries->find($filter)->toArray();
                     if (empty($queries)) {
                         echo '<p>' . lang('You have not saved any queries yet.', 'Du hast noch keine Abfragen gespeichert.') . '</p>';
                     } else { ?>
@@ -545,7 +562,8 @@ $Format = new Document(true);
             {
                 id: 'created',
                 label: lang('Created at', 'Erstellt am'),
-                type: 'string'
+                type: 'datetime',
+                input: 'date'
             },
             {
                 id: 'updated_by',
@@ -608,6 +626,36 @@ $Format = new Document(true);
             dataTable.ajax.reload()
         }
 
+        // function rulify(rules){
+        //     // check if there are dot notated queries with more than one element
+        //     // if so, convert to elemMatch
+        //     for (const key in rules) {
+        //         if (Object.prototype.hasOwnProperty.call(rules, key)) {
+        //             const el = rules[key];
+        //             // recursive
+        //             if (typeof el === 'object') {
+        //                 rules[key] = rulify(el)
+        //             } else {
+        //                 if (el.includes('.')) {
+        //                     // check if there are more than one element
+        //                     const parts = el.split('.')
+        //                     if (parts.length > 1) {
+        //                         // convert to elemMatch
+        //                         const field = parts.shift()
+        //                         const value = parts.join('.')
+        //                         rules[key] = {
+        //                             $elemMatch: {
+        //                                 [field]: value
+        //                             }
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     return rules
+        // }
+
 
         $(document).ready(function() {
             var hash = window.location.hash.substr(1);
@@ -648,7 +696,12 @@ $Format = new Document(true);
                         if (rules === null) rules = []
                         // console.log(rules);
 
+                        // TODO: check if there are potential elemMatch queries
+                        // rules = rulify(rules)
+
                         rules = JSON.stringify(rules)
+
+
                         $('#result').html(rules)
                         d.json = rules
                         d.formatted = true
@@ -807,6 +860,10 @@ $Format = new Document(true);
 
         function applyFilter(id, aggregate) {
             console.log((id));
+            if (EXPERT) {
+                applyFilterExpert(id, aggregate)
+                return
+            }
             var filter = queries[id];
             if (!filter) {
                 toastError('Query not found.')
@@ -838,10 +895,7 @@ $Format = new Document(true);
             $('#aggregate').val(aggregate)
             $('#expert').val(filter)
            
-            // $('#builder').queryBuilder('setRules', parsedFilter);
-            // var rules = $('#builder').queryBuilder('getMongo')
-            RULES = rules
-            dataTable.ajax.reload()
+            run();
         }
 
 
