@@ -103,6 +103,7 @@ if (!$Settings->hasPermission('projects.view')) {
     </a>
 <?php } ?>
 
+<!-- TODO: advanced search? -->
 
 <button class="btn primary float-right" onclick="$('.filter-wrapper').slideToggle()">Filter <i class="ph ph-caret-down"></i></button>
 
@@ -174,6 +175,32 @@ if (!$Settings->hasPermission('projects.view')) {
                             <a onclick="filterProjects(this, 'Partner', 4)" class="item colorless"><i class="ph ph-handshake text-muted"></i> <?= lang('Partner') ?></a>
                         </td>
                     </tr>
+                    <tr style="--highlight-color: var(--muted-color)">
+                        <td>
+                            <a onclick="filterProjects(this, 'associated', 4)" class="item colorless"><i class="ph ph-address-book text-muted"></i> <?= lang('Accociate', 'Beteiligt') ?></a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+
+            <h6>
+                <?= lang('By funder', 'Nach Zuwendungsgeber') ?>
+                <a class="float-right" onclick="filterProjects('#filter-funder .active', null, 2)"><i class="ph ph-x"></i></a>
+            </h6>
+            <div class="filter">
+                <table id="filter-funder" class="table small simple">
+                    <?php foreach ($Project::FUNDER as $funder) { ?>
+                        <tr>
+                            <td>
+                                <a data-type="<?= $funder ?>" onclick="filterProjects(this, '<?= $funder ?>', 2)" class="item" id="<?= $id ?>-btn" style="color:inherit;">
+                                    <span>
+                                        <?= $funder ?>
+                                    </span>
+                                </a>
+                            </td>
+                        </tr>
+                    <?php } ?>
                 </table>
             </div>
 
@@ -248,23 +275,6 @@ if (!$Settings->hasPermission('projects.view')) {
 <script>
     var dataTable;
 
-    // // Formatting function for row details - modify as you need
-    // function format(d) {
-    //     // `d` is the original data object for the row
-    //     return (
-    //         `
-    //         <dl>
-    //         <dt>Full name:</dt>
-    //         <dd>${d.title}</dd>
-    //         <dt>Funding numbers:</dt>
-    //         <dd>${d.funding_numbers}</dd>
-    //         <dt>Partners:</dt>
-    //         <dd>${d.collaborators ? d.collaborators.length : 0}</dd>
-    //         </dl>
-    //         `
-    //     );
-    // }
-
     const minEl = document.querySelector('#filter-from');
     const maxEl = document.querySelector('#filter-to');
 
@@ -308,7 +318,19 @@ if (!$Settings->hasPermission('projects.view')) {
         {
             title: lang('Persons', 'Personen'),
             key: 'persons'
-        }
+        },
+        {
+            title: lang('Funding organization', 'Förderorganisation'),
+            key: 'funding_organization'
+        },
+        {
+            title: lang('Project', 'Projekt'),
+            key: 'name'
+        },
+        {
+            title: lang('Title', 'Titel'),
+            key: 'title'
+        },
     ]
 
     function renderType(data) {
@@ -346,6 +368,12 @@ if (!$Settings->hasPermission('projects.view')) {
             return `<span class="badge text-signal">
         <i class="ph ph-crown"></i>
         ${lang('Coordinator', 'Koordinator')}
+        </span>`
+        }
+        if (data == 'associated') {
+            return `<span class="badge text-success">
+        <i class="ph ph-address-book"></i>
+        ${lang('Associated', 'Beteiligt')}
         </span>`
         }
         return `<span class="badge text-muted">
@@ -419,17 +447,15 @@ if (!$Settings->hasPermission('projects.view')) {
                 url: lang(null, ROOTPATH + '/js/datatables/de-DE.json')
             },
             buttons: [
-                // {
-                //     extend: 'copyHtml5',
-                //     exportOptions: {
-                //         columns: [4]
-                //     },
-                //     className: 'btn small'
-                // },
                 {
                     extend: 'excelHtml5',
                     exportOptions: {
-                        columns: [0, 4, 5, 6]
+                        columns: [10, 1, 2, 9, 3, 4, 5, 6, 7],
+                        format: {
+                            header: function(html, index, node) {
+                                return headers[index].title ?? '';
+                            }
+                        }
                     },
                     className: 'btn small',
                     title: function() {
@@ -440,25 +466,17 @@ if (!$Settings->hasPermission('projects.view')) {
                         console.log(filters);
                         if (filters.length == 0) return "OSIRIS All Projects";
                         return 'OSIRIS Projects ' + filters.join('_')
-                    }
+                    },
+                    text: '<i class="ph ph-file-xls"></i> Export'
                 },
+                // custom link button
                 {
-                    extend: 'csvHtml5',
-                    exportOptions: {
-                        // columns: ':visible'
-                        columns: [0, 5, 6]
-                    },
+                    text: '<i class="ph ph-magnifying-glass-plus"></i> <?= lang('Advanced search', 'Erweiterte Suche') ?>',
                     className: 'btn small',
-                    title: function() {
-                        var filters = []
-                        activeFilters.find('.badge').find('span').each(function(i, el) {
-                            filters.push(el.innerHTML)
-                        })
-                        console.log(filters);
-                        if (filters.length == 0) return "OSIRIS All Projects";
-                        return 'OSIRIS Projects ' + filters.join('_')
+                    action: function(e, dt, node, config) {
+                        window.location.href = '<?= ROOTPATH ?>/projects/search';
                     }
-                },
+                }
             ],
             dom: 'fBrtip',
             columnDefs: [{
@@ -495,49 +513,78 @@ if (!$Settings->hasPermission('projects.view')) {
                     target: 1,
                     data: 'type',
                     searchable: true,
-                    visible: false
+                    visible: false,
+                    header: lang('Type', 'Typ')
                 },
                 {
                     target: 2,
                     data: 'funder',
                     searchable: true,
-                    visible: false
+                    visible: false,
+                    header: lang('Funder', 'Drinmmittelgeber')
                 },
                 {
                     target: 3,
                     data: 'date_range',
                     searchable: true,
-                    visible: false
+                    visible: false,
+                    header: lang('Date range', 'Zeitraum')
                 },
                 {
                     target: 4,
                     data: 'role',
                     searchable: true,
-                    visible: false
+                    visible: false,
+                    header: lang('Role', 'Rolle')
                 },
                 {
                     target: 5,
                     data: 'applicant',
                     searchable: true,
-                    visible: false
+                    visible: false,
+                    header: lang('Applicant', 'Antragsteller')
                 },
                 {
                     target: 6,
                     data: 'status',
                     searchable: true,
-                    visible: false
+                    visible: false,
+                    header: lang('Status', 'Status')
                 },
                 {
                     target: 7,
                     data: 'units',
                     searchable: true,
-                    visible: false
+                    visible: false,
+                    header: lang('Units', 'Einheiten')
                 },
                 {
                     target: 8,
                     data: 'topics',
                     searchable: true,
-                    visible: false
+                    visible: false,
+                    header: lang('Topics', 'Forschungsbereiche')
+                },
+                {
+                    target: 9,
+                    data: 'funding_organization',
+                    searchable: true,
+                    visible: false,
+                    header: lang('Funding organization', 'Förderorganisation')
+                },
+                {
+                    target: 10,
+                    data: 'name',
+                    searchable: true,
+                    visible: false,
+                    header: lang('Project', 'Projekt')
+                },
+                {
+                    target: 11,
+                    data: 'title',
+                    searchable: false,
+                    visible: false,
+                    header: lang('Title', 'Titel')
                 },
             ],
             order: [

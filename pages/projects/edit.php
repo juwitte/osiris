@@ -376,6 +376,8 @@ function sel($index, $value)
                             <select class="form-control" name="values[role]" id="role">
                                 <option value="coordinator" <?= sel('role', 'coordinator') ?>><?= lang('Coordinator', 'Koordinator') ?></option>
                                 <option value="partner" <?= sel('role', 'partner') ?>><?= lang('Partner') ?></option>
+                                <option value="associated" <?= sel('role', 'associated') ?>><?= lang('Associated', 'Beteiligt') ?></option>
+
                             </select>
                             <label for="role">
                                 <?= lang('Role of', 'Rolle von') ?> <?= $Settings->get('affiliation') ?>

@@ -139,6 +139,7 @@ class Project
     public const ROLE = [
         'coordinator' => 'Koordinator',
         'partner' => 'Partner',
+        'associated' => 'Beteiligt',
     ];
 
     public const FUNDING = [
@@ -147,6 +148,16 @@ class Project
         'self_funded' => 'Eigenfinanziert',
         'subproject' => 'Teilprojekt',
         'other' => 'Sonstiges',
+    ];
+    public const FUNDER = [
+        'DFG',
+        'Bund',
+        'Bundesländer',
+        'Wirtschaft',
+        'EU',
+        'Stiftungen',
+        'Leibniz Wettbewerb',
+        'Sonstige Drittmittelgeber',
     ];
 
     public const PERSON_ROLE = [
@@ -256,18 +267,25 @@ class Project
 <?php }
     }
 
-    public function getRoleRaw(){
+    public function getRoleRaw()
+    {
         if (($this->project['role'] ?? '') == 'coordinator')
             return lang('Coordinator', 'Koordinator');
+        if (($this->project['role'] ?? '') == 'associated')
+            return lang('Associated', 'Beteiligt');
         return 'Partner';
     }
 
     public function getRole()
     {
+        $label = $this->getRoleRaw();
         if (($this->project['role'] ?? '') == 'coordinator') {
-            return "<span class='badge no-wrap'>" . '<i class="ph ph-crown text-signal"></i> ' . lang('Coordinator', 'Koordinator') . "</span>";
+            return "<span class='badge no-wrap'>" . '<i class="ph ph-crown text-signal"></i> ' . $label . "</span>";
         }
-        return "<span class='badge no-wrap'>" . '<i class="ph ph-handshake text-muted"></i> ' . lang('Partner') . "</span>";
+        if (($this->project['role'] ?? '') == 'associated') {
+            return "<span class='badge no-wrap'>" . '<i class="ph ph-address-book text-muted"></i> ' . $label . "</span>";
+        }
+        return "<span class='badge no-wrap'>" . '<i class="ph ph-handshake text-muted"></i> ' . $label . "</span>";
     }
 
     public static function getCollaboratorIcon($collab, $cls = "")
@@ -362,7 +380,7 @@ class Project
         $month1 = $this->project['start']['month'];
         $month2 = $this->project['end']['month'];
 
-        return (($year2 - $year1) * 12) + ($month2 - $month1) +1;
+        return (($year2 - $year1) * 12) + ($month2 - $month1) + 1;
     }
     public function getProgress()
     {

@@ -375,7 +375,10 @@ Route::get('/api/all-activities', function () {
             'year' => $doc['year'] ?? 0,
             'authors' => $rendered['authors'] ?? '',
             'title' => $rendered['title'] ?? '',
-            'topics' => $doc['topics'] ?? []
+            'topics' => $doc['topics'] ?? [],
+            'raw_type' => $doc['type'],
+            'raw_subtype' => $doc['subtype'],
+
         ];
 
         if ($active) {
@@ -506,9 +509,8 @@ Route::get('/api/users', function () {
         foreach ($result as $user) {
             $subtitle = "";
             if (isset($user['is_active']) && !$user['is_active']) {
-                $subtitle = '<span class="badge text-danger">'. lang('Former employee', 'Ehemalige Beschäftigte') .'</span>';
-            }
-            elseif (isset($_GET['subtitle'])) {
+                $subtitle = '<span class="badge text-danger">' . lang('Former employee', 'Ehemalige Beschäftigte') . '</span>';
+            } elseif (isset($_GET['subtitle'])) {
                 if ($_GET['subtitle'] == 'position') {
                     $subtitle = lang($user['position'] ?? '', $user['position_de'] ?? null);
                 } else {
@@ -745,18 +747,24 @@ Route::get('/api/projects', function () {
         $Project = new Project();
         foreach ($result as $project) {
             $Project->setProject($project);
-            $project['id'] = strval($project['_id']);
-            $project['date_range'] = $Project->getDateRange();
-            $project['start'] = format_date($project['start'] ?? '', 'Y-m-d');
-            // $project['end'] = format_date($project['end'] ?? '', 'Y-m-d');
-            $project['funder'] = $project['funder'] ?? '';
-            $project['funding_numbers'] = $Project->getFundingNumbers('<br />');
-            $project['applicant'] = $DB->getNameFromId($project['contact'] ?? $project['supervisor'] ?? '');
-            $project['activities'] = $osiris->activities->count(['projects' => strval($project['name'])]);
-            $project['role'] = $project['role'] ?? '';
-            $project['topics'] = $project['topics'] ?? array();
-            $project['units'] = $Project->getUnits();
-            $data[] = $project;
+            $data[] = [
+                'id' => strval($project['_id']),
+                'name' => $project['name'],
+                'title' => $project['title'],
+                'type' => $project['type'],
+                'status' => $project['status'],
+                'date_range' => $Project->getDateRange(),
+                'start' => format_date($project['start'] ?? '', 'Y-m-d'),
+                'funder' => $project['funder'] ?? '-',
+                'funding_organization' => ($project['funding_organization'] ?? '-'),
+                'funding_numbers' => $Project->getFundingNumbers('; '),
+                'applicant' => $DB->getNameFromId($project['contact'] ?? $project['supervisor'] ?? ''),
+                'activities' => $osiris->activities->count(['projects' => strval($project['name'])]),
+                'role' => $project['role'] ?? '',
+                'topics' => $project['topics'] ?? array(),
+                'units' => $Project->getUnits(true),
+                'persons' => array_column(DB::doc2Arr($project['persons'] ?? []), 'name')
+            ];
         }
         $result = $data;
     }

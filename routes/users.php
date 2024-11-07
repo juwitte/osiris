@@ -621,11 +621,6 @@ Route::post('/crud/users/approve', function () {
 
 Route::post('/crud/queries', function () {
     include_once BASEPATH . "/php/init.php";
-    // name: name,
-    // rules: rules,
-    // user: $_SESSION['username'] 
-    // created: new Date(),
-    // aggregate: $('#aggregate').val()
     if (isset($_POST['id'])) {
         // delete query with _id
         $deleteResult = $osiris->queries->deleteOne(['_id' => DB::to_ObjectID($_POST['id'])]);
@@ -640,7 +635,9 @@ Route::post('/crud/queries', function () {
         'rules' => json_encode($_POST['rules']),
         'user' => $_SESSION['username'],
         'created' => date('Y-m-d'),
-        'aggregate' => $_POST['aggregate'] ?? null
+        'aggregate' => $_POST['aggregate'] ?? null,
+        'type' => $_POST['type'] ?? 'activity',
+        'expert' => (($_POST['expert'] ?? 'false') == 'true')
     ]);
     return $updateResult->getInsertedId();
 });

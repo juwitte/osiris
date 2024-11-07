@@ -141,6 +141,7 @@ function addCollabRow(data = {}) {
             <select name="values[role][]" type="text" class="form-control " required>
                 <option value="partner">Partner</option>
                 <option value="coordinator">Coordinator</option>
+                <option value="associated">Associated</option>
             </select>
         </td>
         <td>

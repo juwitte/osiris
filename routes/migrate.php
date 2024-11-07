@@ -17,7 +17,13 @@
 
 Route::get('/migrate/test', function () {
     include_once BASEPATH . "/php/init.php";
-
+    $cursor = $osiris->projects->find(['start_date' => ['$exists' => false]]);
+    foreach ($cursor as $doc) {
+        $osiris->projects->updateOne(
+            ['_id' => $doc['_id']],
+            ['$set' => ['start_date' => format_date($doc['start'] ?? '', 'Y-m-d'), 'end_date' => format_date($doc['end'] ?? '', 'Y-m-d')]]
+        );
+    }
     // $filter = "$and":[{"authors.last":"Eberth"},{"authors.user":{"$ne":"seb14"}}];
     // $filter = ['authors.last' => 'Eberth', 'authors.user' => ['$ne' => 'seb14']];
     // $cursor = $osiris->activities->find($filter);
@@ -637,6 +643,15 @@ Route::get('/migrate', function () {
                 ['$unset' => ['password' => '']]
             );
         }
+
+        $cursor = $osiris->projects->find(['start_date' => ['$exists' => false]]);
+        foreach ($cursor as $doc) {
+            $osiris->projects->updateOne(
+                ['_id' => $doc['_id']],
+                ['$set' => ['start_date' => format_date($doc['start'] ?? '', 'Y-m-d'), 'end_date' => format_date($doc['end'] ?? '', 'Y-m-d')]]
+            );
+        }
+        echo "<p>Migrated project date time for better search.</p>";
 
     }
 

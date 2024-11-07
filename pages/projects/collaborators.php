@@ -60,8 +60,10 @@ if (!isset($project['collaborators']) || empty($project['collaborators'])) {
                 </div>
                 <small>
                     <?= lang('The file should contain a column with the header "ROR" and the ROR-IDs in the following rows.', 'Die Datei sollte eine Spalte mit der Überschrift "ROR" und den ROR-IDs in den folgenden Zeilen enthalten.') ?>
-                    <?=lang('The following other column names are supported and will be filled if they exist: "name", "latitude", "longitude", "coordinator" (please enter any value, e.g. 1, for yes and leave blank for no), "country" (ISO 2 letter code), "location".', 
-                    'Die folgenden anderen Spaltennamen werden unterstützt und werden ausgefüllt, wenn sie vorhanden sind: "name", "latitude", "longitude", "coordinator" (bitte geben Sie für "ja" einen beliebigen Wert ein, z. B. 1 und lassen Sie ihn für "nein" leer), "country" (ISO-Code mit zwei Buchstaben), "location".')?>
+                    <?= lang(
+                        'The following other column names are supported and will be filled if they exist: "name", "latitude", "longitude", "coordinator" (please enter any value, e.g. 1, for yes and leave blank for no), "country" (ISO 2 letter code), "location".',
+                        'Die folgenden anderen Spaltennamen werden unterstützt und werden ausgefüllt, wenn sie vorhanden sind: "name", "latitude", "longitude", "coordinator" (bitte geben Sie für "ja" einen beliebigen Wert ein, z. B. 1 und lassen Sie ihn für "nein" leer), "country" (ISO-Code mit zwei Buchstaben), "location".'
+                    ) ?>
                 </small>
             </div>
         </div>
@@ -96,26 +98,26 @@ if (!isset($project['collaborators']) || empty($project['collaborators'])) {
 
 <div class="bg-white px-10 py-5 rounded mb-20">
     <b>
-    <?= lang('Add new partner', 'Neuen Partner hinzufügen') ?>
+        <?= lang('Add new partner', 'Neuen Partner hinzufügen') ?>
     </b>
-<div class="btn-toolbar">
-    <a href="#collaborators-ror" class="btn primary">
-        <i class="ph ph-plus"></i>
-        <?= lang('Add via ROR-ID', 'Mittels ROR-ID hinzufügen') ?>
-    </a>
-    <a href="#collaborators-select" class="btn primary">
-        <i class="ph ph-search"></i>
-        <?= lang('Search by name/location', 'Suche via Name/Ort') ?>
-    </a>
-    <a href="#" class="btn primary" onclick="addCollabRow()">
-        <i class="ph ph-edit"></i>
-        <?= lang('Add manually', 'Manuell hinzufügen') ?>
-    </a>
-    <a href="#collaborators-upload" class="btn primary">
-        <i class="ph ph-upload"></i>
-        <?= lang('Upload', 'Hochladen') ?>
-    </a>
-</div>
+    <div class="btn-toolbar">
+        <a href="#collaborators-ror" class="btn primary">
+            <i class="ph ph-plus"></i>
+            <?= lang('Add via ROR-ID', 'Mittels ROR-ID hinzufügen') ?>
+        </a>
+        <a href="#collaborators-select" class="btn primary">
+            <i class="ph ph-search"></i>
+            <?= lang('Search by name/location', 'Suche via Name/Ort') ?>
+        </a>
+        <a href="#" class="btn primary" onclick="addCollabRow()">
+            <i class="ph ph-edit"></i>
+            <?= lang('Add manually', 'Manuell hinzufügen') ?>
+        </a>
+        <a href="#collaborators-upload" class="btn primary">
+            <i class="ph ph-upload"></i>
+            <?= lang('Upload', 'Hochladen') ?>
+        </a>
+    </div>
 </div>
 
 <form action="<?= ROOTPATH ?>/crud/projects/update-collaborators/<?= $id ?>" method="POST">
@@ -178,6 +180,7 @@ if (!isset($project['collaborators']) || empty($project['collaborators'])) {
                         <select name="values[role][]" type="text" class="form-control " required>
                             <option <?= $t == 'partner' ? 'selected' : '' ?> value="partner">Partner</option>
                             <option <?= $t == 'coordinator' ? 'selected' : '' ?> value="coordinator">Coordinator</option>
+                            <option <?= $t == 'associated' ? 'selected' : '' ?> value="associated"><?= lang('Associated', 'Beteiligt') ?></option>
                         </select>
                     </td>
                     <td>
