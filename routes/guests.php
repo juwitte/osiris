@@ -13,6 +13,20 @@ Route::get('/guests/?', function () {
 }, 'login');
 
 
+Route::get('/guests/overview', function () {
+    include_once BASEPATH . "/php/init.php";
+
+    $breadcrumb = [
+        ['name' => lang('Guests', 'Gäste'), 'path' => "/guests"],
+        ['name' => lang("Overview", "Überblick")]
+    ];
+
+    include BASEPATH . "/header.php";
+    include BASEPATH . "/pages/guests/overview.php";
+    include BASEPATH . "/footer.php";
+}, 'login');
+
+
 Route::get('/guests/new', function () {
     include_once BASEPATH . "/php/init.php";
 
@@ -29,7 +43,6 @@ Route::get('/guests/new', function () {
     include BASEPATH . "/pages/guests/form.php";
     include BASEPATH . "/footer.php";
 }, 'login');
-
 
 Route::get('/guests/edit/([a-z0-9]*)', function ($id) {
     include_once BASEPATH . "/php/init.php";
