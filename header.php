@@ -440,10 +440,10 @@ $pageactive = function ($p) use ($page) {
                         <?= lang('Tools', 'Werkzeuge') ?>
                     </div>
                     <nav>
-                        <a href="<?= ROOTPATH ?>/search/activities" class="with-icon <?= $pageactive('search') ?>">
+                        <!-- <a href="<?= ROOTPATH ?>/activities/search" class="with-icon <?= $pageactive('search') ?>">
                             <i class="ph ph-magnifying-glass-plus" aria-hidden="true"></i>
                             <?= lang('Advanced search', 'Erweiterte Suche') ?>
-                        </a>
+                        </a> -->
 
                         <a href="<?= ROOTPATH ?>/dashboard" class="with-icon <?= $pageactive('dashboard') ?>">
                             <i class="ph ph-chart-line" aria-hidden="true"></i>

@@ -417,19 +417,6 @@ if (!$Settings->hasPermission('projects.view')) {
         return topics;
     }
 
-    // function renderPersons(data) {
-    //     let persons = '';
-    //     // if (data && data.length > 0) {
-    //     //     persons = '<span class="float-right">'
-    //     //     data.forEach(function(person) {
-    //     //         persons += `<a href="<?= ROOTPATH ?>/profile/${person}" class="badge text-muted">${person}</a> `
-    //     //     })
-    //     //     persons += '</span>'
-    //     // }
-    //     console.log(data);
-    //     return persons;
-    // }
-
     $(document).ready(function() {
         dataTable = new DataTable('#project-table', {
             ajax: {
@@ -447,6 +434,13 @@ if (!$Settings->hasPermission('projects.view')) {
                 url: lang(null, ROOTPATH + '/js/datatables/de-DE.json')
             },
             buttons: [
+                {
+                    text: '<i class="ph ph-magnifying-glass-plus"></i> <?= lang('Advanced search', 'Erweiterte Suche') ?>',
+                    className: 'btn small text-primary mr-10',
+                    action: function(e, dt, node, config) {
+                        window.location.href = '<?= ROOTPATH ?>/projects/search';
+                    }
+                },
                 {
                     extend: 'excelHtml5',
                     exportOptions: {
@@ -470,13 +464,6 @@ if (!$Settings->hasPermission('projects.view')) {
                     text: '<i class="ph ph-file-xls"></i> Export'
                 },
                 // custom link button
-                {
-                    text: '<i class="ph ph-magnifying-glass-plus"></i> <?= lang('Advanced search', 'Erweiterte Suche') ?>',
-                    className: 'btn small',
-                    action: function(e, dt, node, config) {
-                        window.location.href = '<?= ROOTPATH ?>/projects/search';
-                    }
-                }
             ],
             dom: 'fBrtip',
             columnDefs: [{

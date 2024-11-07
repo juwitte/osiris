@@ -41,7 +41,7 @@ Route::get('/(activities|my-activities)', function ($page) {
 }, 'login');
 
 
-Route::get('/search/activities', function () {
+Route::get('/activities/search', function () {
     include_once BASEPATH . "/php/init.php";
     $user = $_SESSION['username'];
     $breadcrumb = [

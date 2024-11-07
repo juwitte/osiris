@@ -6,7 +6,7 @@
  * This file is part of the OSIRIS package.
  * Copyright (c) 2024 Julia Koblitz, OSIRIS Solutions GmbH
  * 
- * @link /search/activities
+ * @link /activities/search
  *
  * @package OSIRIS
  * @since 1.0 
@@ -32,7 +32,6 @@ $expert = isset($_GET['expert']);
 </script>
 
 
-
 <div class="container">
     <a href="<?= ROOTPATH ?>/docs/search" class="btn tour float-sm-right"><i class="ph ph-question"></i> <?= lang('Manual', 'Anleitung') ?></a>
     <h1>
@@ -40,7 +39,7 @@ $expert = isset($_GET['expert']);
         <?= lang('Advanced project search', 'Erweiterte Projekt-Suche') ?>
     </h1>
 
-    <div class="row row-eq-spacing">
+    <div class="row row-eq-spacing mt-0">
         <div class="col-md-8">
 
             <div class="box">

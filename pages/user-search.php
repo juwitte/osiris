@@ -22,7 +22,7 @@ $Format = new Document(true);
 
 <div class="content">
     <div class="btn-group float-right">
-        <a href="<?= ROOTPATH ?>/search/activities" class="btn osiris">
+        <a href="<?= ROOTPATH ?>/activities/search" class="btn osiris">
             <i class="ph ph-magnifying-glass-plus"></i> <?= lang('Activities', 'Aktivitäten') ?>
         </a>
         <a href="#close-modal" class="btn osiris active">
