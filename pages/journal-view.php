@@ -188,10 +188,9 @@
                     }
                 },
             ],
-            <?php if (isset($_GET['q'])) { ?> "oSearch": {
-                    "sSearch": "<?= $_GET['q'] ?>"
-                }
-            <?php } ?>
+            "order": [
+                [1, 'desc'],
+            ],
         });
     });
 </script>
