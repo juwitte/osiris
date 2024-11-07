@@ -1,16 +1,37 @@
 # Neuigkeiten
 
 
+<span class="badge float-right">07.11.2024</span>
+<a class="anchor" href="#version-1.4.0" id="version-1.4.0-beta"></a>
 
-<span class="badge float-right">XX.XX.2024</span>
-<a class="anchor" href="#version-1.4.0" id="version-1.4.0"></a>
+## Version 1.4.0 <span class="badge danger">BETA</span>
 
-## Version 1.4.0
+**Achtung: Beta-Version**. Neue Features können sich eventuell noch ändern und sind teilweise noch nicht zu ihrer Endversion ausgebaut.
 
-#### Forschungsbereiche
+#### <i class="ph ph-siren"></i> Wichtige Änderungen am Interface
+- Das Menü wurde etwas umstrukturiert: Aktivitäten, Projekte, und Personen wurden mitsamt zugehörigen Daten in eigene Kategorien gepackt
+- Der Menüpunkt "Meine Aktivitäten" ist zurück (nur Wissenschaftler-Ansicht)
+- Die "Erweiterte Suche" ist jetzt nicht mehr im Seitenmenü zu finden. Um die erweiterte Suche (Aktivitäten) zu sinden, klickt bitte auf "Alle Aktivitäten" und dann neben der Suche auf "Erweiterte Suche" (**Achtung**: die URL hat sich geändert, evtl. Bookmarks müssen also neu gesetzt werden)
+
+#### <i class="ph ph-puzzle-piece"></i> Forschungsbereiche
+- Forschungsbereiche wurden als neue Entität hinzugefügt
+- Forschungsbereiche können zentral eingeschaltet, definiert und danach zu anderen Entitäten hinzugefügt werden, z.B. zu Aktivitäten, Projekten und Personen
+- Es wurden Detailseiten für alle Forschungsbereiche hinzugefügt, auf denen alle Informationen und verlinkte Details dargestellt sind
+- Es wurden zu allen verlinkbaren Aktivitäten Filter hinzugefügt
+
+<!-- #### Anmeldung von Gästen -->
 
 
-#### Anmeldung von Gästen
+#### <i class="ph ph-magnifying-glass-plus"></i> Verbesserungen bei der Suche von Aktivitäten
+**Alle Aktivitäten**
+- Die Kategorien lassen sich nach dem Auswählen jetzt noch weiter als Typen differenziert filtern
+
+**Erweiterten Suche**
+- Ein Fehler wurde behoben, durch den die Experten-Suche nicht gespeichert werden konnte
+- Das Interface wurde etwas verbessert
+- Es wurde ein neuer Filter für das Start- und Enddatum hinzugefügt, durch den sich Zeiträume jetzt auch leicht mit "größer" und "kleiner" definieren lassen 
+- Die Suche ist jetzt über die Seite "Alle Aktivitäten" erreichbar
+
 
 
 #### <i class="ph ph-text-aa"></i> Rich Text-Editoren und mehr Übersetzungen
@@ -23,30 +44,64 @@
   - Bilder können darüber direkt eingefügt werden (bitte auf die Größe achten)
   - Links und Formatierungen lassen sich jetzt einfacher bearbeiten
 
-#### Verbesserung von Projekten
-- Die Projektseite ist überarbeitet worden
-- Filtermöglichkeiten wurden deutlich verbessert und erweitert
-- Projekte lassen sich jetzt als Excel herunterladen
+#### <i class="ph ph-newspaper-clipping"></i> Metriken von Journalen
+- Die Metriken (z.B. 2-Jahres-Impact Faktor) können jetzt über die neue zentrale OSIRIS-API abgerufen werden
+- TODO: das muss zurzeit noch manuell für jedes Journal gemacht werden. Eine Lösung ist in Arbeit.
 
-#### Verbesserte Nutzereinstellungen
+
+#### <i class="ph ph-tree-structure"></i> Verbesserung von Projekten
+- Beantragte Projekte sind jetzt auf dem eigenen Profil zu sehen
+
+**Projektübersicht**
+- In der Projektübersicht sieht man jetzt nicht nur die eigenen sondern auch noch alle anderen bewilligten Projekte
+- Die Ansicht ist komplett überarbeitet worden 
+- Filtermöglichkeiten wurden deutlich verbessert und erweitert
+- Forschungsbereiche wurden hinzugefügt
+- Eine Liste aller Projekte lässt sich jetzt als Excel-Datei herunterladen
+- Ein Link zur erweiterten Suche wurde hinzugefügt
+
+**Projektübersicht**
+- Die Dauer und öffentliche Sichtbarkeit werden jetzt bei den Metadaten dargestellt
+- Eine Übersicht über alle beteiligten Orga-Einheiten wurde hinzugefügt
+- Das Projekt kann jetzt **als Word-Datei exportiert** werden. Wie man als Admin das Word-Template anpasst, findet ihr in den Konfigurationsanweisungen auf der OSIRIS-Webseite.
+
+**Kooperationspartner**
+- Es wurden zwei weitere Möglichkeiten hinzugefügt, um Partner anzulegen: entweder direkt über die ROR-ID oder durch den Upload von CSV-Dateien
+
+**Erweiterte Suche**
+- Eine komplett neue erweiterte Suche wurde hinzugefügt
+- Unterstützung für alle Funktionen, die die Aktivitäten-Suche ebenfalls bietet, inkl. Speichern von Abfragen und der Experten-Suche
+
+#### <i class="ph ph-gear"></i> Verbesserte Nutzereinstellungen
 Die Nutzereinstellungen sind in den letzten Monaten gewachsen und sehr unübersichtlich geworden. Deshalb wude das ganze Interface stark überarbeitet.
 - Die einzelnen Abschnitte sind jetzt in einzelne Reiter unterteilt
 - Hier ist jetzt auch die Biographie (CV) und die Forschungsinteressen zu finden, die vorher etwas ausgegliedert waren.
 - Das Interface zur Bearbeitung der Organisationseinheiten wurde grundlegend überarbeitet und enorm verbessert. Vorher musste man sich durch ewig lange Listen scrollen und mit gedrückter Strg-Taste die Gruppen auswählen. Jetzt handelt es sich um einen sogenannten Checkbox-Tree, der deutlich intuitiver zu bedienen ist.
 - Die Forschungsbereiche wurden im Reiter "Organisation" hinzugefügt
-- Im Reiter "Account" kann jetzt zudem das Password geändert werden
+- Im Reiter "Account" kann jetzt zudem das Password geändert werden (nur bei Auth-Addon)
 
 
 #### <i class="ph ph-presentation-chart"></i> Konferenzen
 - Es wurde eine eigene Seite für Konferenzen hinzugefügt
 
-#### <i class="ph ph-input"></i> Custom Fields
+#### <i class="ph ph-textbox"></i> Custom Fields
 - Custom Fields können jetzt auch auf Englisch übersetzt werden
 - Es ist nun möglich, Custom Fields im Nachhinein zu bearbeiten  
 
-#### Sicherheit
+#### <i class="ph ph-lock"></i> Sicherheit
 - Für den Nutzen des User-Auth Addons (das ursprünglich nicht für Live gedacht war, aber doch von einigen genutzt wird), wird das Password jetzt getrennt von den Nutzerinfos gespeichert. Das führt zu höherer Sicherheit, da diese Collection für keine anderen Seiten sonst verwendet werden und auch nicht API-Reachable sind. Bitte unbedingt migrieren, damit das Feature in Kraft tritt.
 
+
+#### <i class="ph ph-clipboard-text"></i> Report Templates
+- Die Berichte-Templates wurden weiter ausgebaut
+- Die Vorschau wurde verbessert und das Vorschau-Jahr lässt sich jetzt auswählen
+- Der Export als Word-Dokumente wurde gefixt
+- TODO: Das Interface braucht immer noch ein bisschen Liebe.
+
+
+#### <i class="ph ph-gear"></i> Admin-Bereich
+- Es wurde eine Möglichkeit hinzugefügt, User zentral anzulegen (nur Auth-Addon)
+- Es ist jetzt möglich, eigene Rollen anzulegen
 
 #### <i class="ph ph-code"></i> Bug Fixes und UI Verbesserungen
 - Es werden jetzt alle Namen einer Person bei der Suche in der Personenliste berücksichtigt  
@@ -56,6 +111,7 @@ Die Nutzereinstellungen sind in den letzten Monaten gewachsen und sehr unübersi
 - Ein Fehler wurde behoben, durch den einige Infos (z.B. Forschungsinteressen und Links von Projekten) nicht zu Portfolio ausgeliefert wurden
 - Es wurde das Coin Icon gefixt
 - Es wurde ein Fehler behoben, durch den Template-Bausteine im Berichte-Editor nicht löschbar waren
+- Die Bezeichnung "Epub" wurde überall einheitlich in "Online ahead of Print" umbenannt
 - Untereinheiten können jetzt sortiert werden
 
 
@@ -817,7 +873,7 @@ OSIRIS geht damit in die Version 1.0 über und verlässt die Betaphase. Wir werd
 
 **18.12.22**
 
-- Neues "Experten-Tool": mit der [erweiterten Suche](search/activities) können jetzt alle Aktivitäten detailliert durchsucht werden. 45 Datenfelder sind mit unterschieldichen Optionen durchsuchbar. Ein Anleitungsvideo folgt in Kürze.
+- Neues "Experten-Tool": mit der [erweiterten Suche](activities/search) können jetzt alle Aktivitäten detailliert durchsucht werden. 45 Datenfelder sind mit unterschieldichen Optionen durchsuchbar. Ein Anleitungsvideo folgt in Kürze.
 - In der Übersicht einer Aktivität sind nun alle Autoren aufgeführt
 - Bei Autoren ohne Vornamen (z.B. "The Microbiome Consortium") wird nun kein Komma mehr angezeigt
 - Bug Fixes im Report:
