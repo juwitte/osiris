@@ -507,7 +507,7 @@ function sel($index, $value)
                         <div class="custom-checkbox">
                             <input type="checkbox" id="public-check" <?= val('public', false) ? 'checked' : '' ?> name="values[public]">
                             <label for="public-check">
-                                Zustimmung zur Internetpräsentation des bewilligten Vorhabens
+                                <?=lang('Approval of the internet presentation of the approved project', 'Zustimmung zur Internetpräsentation des bewilligten Vorhabens')?>
                             </label>
                         </div>
                     </div>

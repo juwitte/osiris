@@ -86,7 +86,7 @@ $institute = $Settings->get('affiliation_details');
 </style>
 
 
-<?php if ($Settings->featureEnabled('portal')) { ?>
+<?php if ($Settings->featureEnabled('portal') && $project['public']) { ?>
     <a class="btn float-right" href="<?= ROOTPATH ?>/preview/project/<?= $id ?>">
         <i class="ph ph-eye ph-fw"></i>
         <?= lang('Preview', 'Vorschau') ?>
@@ -131,6 +131,23 @@ $institute = $Settings->get('affiliation_details');
             <br />
             <b><?= $Project->getDuration() ?> <?= lang('Month', 'Monate') ?></b>
         </div>
+
+        <?php if ($Settings->featureEnabled('portal')) { ?>
+            <?php if ($project['public']) { ?>
+                <div class="mr-10 badge success" data-toggle="tooltip" data-title="<?= lang('The approved project is shown in OSIRIS Portfolio.', 'Das bewilligte Projekt wird in OSIRIS Portfolio gezeigt.') ?>">
+                    <small><?= lang('Visibility', 'Sichtbarkeit') ?>: </small>
+                    <br />
+                    <i class="ph ph-globe m-0"></i> <?= lang('Shown', 'Gezeigt') ?>
+                </div>
+            <?php } else { ?>
+                <div class="mr-10 badge danger" data-toggle="tooltip" data-title="<?= lang('This project is not shown in OSIRIS Portfolio.', 'Dieses Projekt wird nicht in OSIRIS Portfolio gezeigt.') ?>">
+                    <small><?= lang('Visibility', 'Sichtbarkeit') ?>: </small>
+                    <br />
+                    <i class="ph ph-globe-x m-0"></i>
+                    <?= lang('Not shown', 'Nicht gezeigt') ?>
+                </div>
+            <?php } ?>
+        <?php } ?>
     </div>
 
 

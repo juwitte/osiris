@@ -1,7 +1,7 @@
 <?php
 $institute = $Settings->get('affiliation_details');
 $institute['role'] = $project['role'];
-if (!isset($project['collaborators']) || empty($project['collaborators'])){
+if (!isset($project['collaborators']) || empty($project['collaborators'])) {
     $collaborators = [];
 } else {
     $collaborators = $project['collaborators'];
@@ -39,15 +39,83 @@ if (!isset($project['collaborators']) || empty($project['collaborators'])){
 </div>
 
 
-<div class="btn-toolbar mb-10">
-    <a href="#collaborators-select" class="btn secondary">
-        <i class="ph ph-edit"></i>
-        <?= lang('Add new partner', 'Neuen Partner hinzufügen') ?>
+
+<div class="modal" id="collaborators-upload" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <a data-dismiss="modal" href="#close-modal" class="btn float-right" role="button" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </a>
+
+            <div class="content">
+                <h3>
+                    <?= lang('Import ROR from CSV', 'ROR aus CSV-Datei importieren') ?>
+                </h3>
+                <p>
+                    <?= lang('Upload a CSV file containing ROR to import multiple collaborators at once.', 'Lade eine CSV-Datei mit ROR-IDs hoch, um mehrere Kooperationspartner auf einmal zu importieren.') ?>
+                </p>
+                <div class="custom-file">
+                    <input type="file" id="ror-file">
+                    <label for="ror-file"><?= lang('Select file', 'Datei auswählen') ?></label>
+                </div>
+                <small>
+                    <?= lang('The file should contain a column with the header "ROR" and the ROR-IDs in the following rows.', 'Die Datei sollte eine Spalte mit der Überschrift "ROR" und den ROR-IDs in den folgenden Zeilen enthalten.') ?>
+                    <?=lang('The following other column names are supported and will be filled if they exist: "name", "latitude", "longitude", "coordinator" (please enter any value, e.g. 1, for yes and leave blank for no), "country" (ISO 2 letter code), "location".', 
+                    'Die folgenden anderen Spaltennamen werden unterstützt und werden ausgefüllt, wenn sie vorhanden sind: "name", "latitude", "longitude", "coordinator" (bitte geben Sie für "ja" einen beliebigen Wert ein, z. B. 1 und lassen Sie ihn für "nein" leer), "country" (ISO-Code mit zwei Buchstaben), "location".')?>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="collaborators-ror" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <a data-dismiss="modal" href="#close-modal" class="btn float-right" role="button" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </a>
+
+            <div class="content">
+                <h3>
+                    <?= lang('Add via ROR-ID', 'Mittels ROR-ID hinzufügen') ?>
+                </h3>
+                <p>
+                    <?= lang('Enter the ROR-ID of the collaborator you want to add.', 'Geben Sie die ROR-ID des Kooperationspartners ein, den Sie hinzufügen möchten.') ?>
+                </p>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="collaborators-ror-id" onchange="addCollaboratorROR(this.value)">
+                    <div class="input-group-append">
+                        <button class="btn" onclick="addCollaboratorROR($('#collaborators-ror-id').val())"><i class="ph ph-magnifying-glass"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="bg-white px-10 py-5 rounded mb-20">
+    <b>
+    <?= lang('Add new partner', 'Neuen Partner hinzufügen') ?>
+    </b>
+<div class="btn-toolbar">
+    <a href="#collaborators-ror" class="btn primary">
+        <i class="ph ph-plus"></i>
+        <?= lang('Add via ROR-ID', 'Mittels ROR-ID hinzufügen') ?>
     </a>
-    <a href="#" class="btn link text-muted" onclick="addCollabRow()">
+    <a href="#collaborators-select" class="btn primary">
+        <i class="ph ph-search"></i>
+        <?= lang('Search by name/location', 'Suche via Name/Ort') ?>
+    </a>
+    <a href="#" class="btn primary" onclick="addCollabRow()">
         <i class="ph ph-edit"></i>
         <?= lang('Add manually', 'Manuell hinzufügen') ?>
     </a>
+    <a href="#collaborators-upload" class="btn primary">
+        <i class="ph ph-upload"></i>
+        <?= lang('Upload', 'Hochladen') ?>
+    </a>
+</div>
 </div>
 
 <form action="<?= ROOTPATH ?>/crud/projects/update-collaborators/<?= $id ?>" method="POST">
@@ -69,35 +137,35 @@ if (!isset($project['collaborators']) || empty($project['collaborators'])){
             </tr>
         </thead>
         <tbody id="collaborators">
-        <tr id="collab-<?= $i ?>">
-                    <td>
-                        <span data-toggle="tooltip" data-title="<?=lang('This is your institute.', 'Dies ist dein Institut.')?>"><i class="ph ph-info text-muted"></i></span>
-                        <?= $institute['name'] ?? '' ?>
-                    </td>
-                    <td>
-                        <?= ucfirst($institute['role'] ?? '') ?>
-                    </td>
-                    <td>
-                        <?=$institute['type'] ?? ''?>
-                    </td>
-                    <td class="hidden">
-                        <?= $institute['ror'] ?? '' ?>
-                    </td>
-                    <td>
-                        <?= $institute['location'] ?? '' ?>
-                    </td>
-                    <td>
-                        <?= $institute['country'] ?? '' ?>
-                    </td>
-                    <td>
-                        <?= $institute['lat'] ?? '' ?>
-                    </td>
-                    <td>
-                        <?= $institute['lng'] ?? '' ?>
-                    </td>
-                    <td>
-                    </td>
-                </tr>
+            <tr id="collab-<?= $i ?>">
+                <td>
+                    <span data-toggle="tooltip" data-title="<?= lang('This is your institute.', 'Dies ist dein Institut.') ?>"><i class="ph ph-info text-muted"></i></span>
+                    <?= $institute['name'] ?? '' ?>
+                </td>
+                <td>
+                    <?= ucfirst($institute['role'] ?? '') ?>
+                </td>
+                <td>
+                    <?= $institute['type'] ?? '' ?>
+                </td>
+                <td class="hidden">
+                    <?= $institute['ror'] ?? '' ?>
+                </td>
+                <td>
+                    <?= $institute['location'] ?? '' ?>
+                </td>
+                <td>
+                    <?= $institute['country'] ?? '' ?>
+                </td>
+                <td>
+                    <?= $institute['lat'] ?? '' ?>
+                </td>
+                <td>
+                    <?= $institute['lng'] ?? '' ?>
+                </td>
+                <td>
+                </td>
+            </tr>
             <?php
             foreach ($collaborators as $i => $con) {
             ?>
@@ -154,12 +222,5 @@ if (!isset($project['collaborators']) || empty($project['collaborators'])){
     </button>
 </form>
 
-<!-- 
-<small class="text-muted">
-    <?=lang('Your institute is shown for , it will automatically appear in the ', 'de')?>
-</small> -->
-
-
-
-
-<script src="<?= ROOTPATH ?>/js/collaborators.js"></script>
+<script src="<?= ROOTPATH ?>/js/papaparse.min.js"></script>
+<script src="<?= ROOTPATH ?>/js/collaborators.js?v=2"></script>
