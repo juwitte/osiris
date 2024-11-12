@@ -402,6 +402,11 @@ $pageactive = function ($p) use ($page) {
                             <i class="ph ph-users-three" aria-hidden="true"></i>
                             <?= lang('Organisational Units', 'Organisationseinh.') ?>
                         </a>
+                        
+                        <a href="<?= ROOTPATH ?>/expertise" class="with-icon <?= $pageactive('expertise') ?>">
+                            <i class="ph ph-barbell" aria-hidden="true"></i>
+                            <?= lang('Expertise search', 'Expertise-Suche') ?>
+                        </a>
 
                         <?php if ($Settings->featureEnabled('guests')) { ?>
                             <a href="<?= ROOTPATH ?>/guests" class="with-icon <?= $pageactive('guests') ?>">
@@ -437,7 +442,7 @@ $pageactive = function ($p) use ($page) {
 
 
                     <div class="title collapse open" onclick="toggleSidebar(this);" id="sidebar-tools">
-                        <?= lang('Tools', 'Werkzeuge') ?>
+                        <?= lang('Visualization', 'Visualisierungen') ?>
                     </div>
                     <nav>
                         <!-- <a href="<?= ROOTPATH ?>/activities/search" class="with-icon <?= $pageactive('search') ?>">
@@ -453,11 +458,6 @@ $pageactive = function ($p) use ($page) {
                         <a href="<?= ROOTPATH ?>/visualize" class="with-icon <?= $pageactive('visualize') ?>">
                             <i class="ph ph-graph" aria-hidden="true"></i>
                             <?= lang('Visualizations', 'Visualisierung') ?>
-                        </a>
-
-                        <a href="<?= ROOTPATH ?>/expertise" class="with-icon <?= $pageactive('expertise') ?>">
-                            <i class="ph ph-barbell" aria-hidden="true"></i>
-                            <?= lang('Expertise search', 'Expertise-Suche') ?>
                         </a>
 
                     </nav>
