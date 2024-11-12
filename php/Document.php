@@ -1202,6 +1202,7 @@ class Document extends Settings
         $line = preg_replace('/\(:\s*/', '(', $line);
         $line = preg_replace('/\s+/', ' ', $line);
         $line = preg_replace('/,\s*$/', '', $line);
+        $line = preg_replace('/<br *\/?>,\s*/', '<br />', $line);
 
         return $line;
     }
