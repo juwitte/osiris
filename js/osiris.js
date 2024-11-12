@@ -1715,3 +1715,7 @@ function userTable(selector, data = {}) {
         pageLength: 18,
     });
 }
+
+function iconTest(icon){
+    $('#test-icon').attr('class', 'ph ph-'+icon);
+}
