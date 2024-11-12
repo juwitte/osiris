@@ -119,13 +119,20 @@ function sel($index, $value)
                 <?php } ?>
 
                 <div class="col-sm">
-                    <label for="icon" class="required">ID</label>
+                    <label for="id" class="required">ID</label>
                     <input type="text" class="form-control" name="values[id]" required value="<?= $type['id'] ?? '' ?>" oninput="sanitizeID(this)">
                     <small><a href="#unique"><i class="ph ph-info"></i> <?= lang('Must be unqiue', 'Muss einzigartig sein') ?></a></small>
                 </div>
                 <div class="col-sm">
                     <label for="icon" class="required element-time"><a href="https://phosphoricons.com/" class="link" target="_blank" rel="noopener noreferrer">Icon</a> </label>
-                    <input type="text" class="form-control" name="values[icon]" required value="<?= $type['icon'] ?? 'placeholder' ?>">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="values[icon]" required value="<?= $type['icon'] ?? 'placeholder' ?>" onchange="iconTest(this.value)">
+                        <div class="input-group-append">
+                            <span class="input-group-text">
+                                <i class="ph ph-<?= $type['icon'] ?? 'placeholder' ?>" id="test-icon"></i>
+                            </span>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-sm">
                     <label for="name_de" class="">Color</label>

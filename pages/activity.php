@@ -264,7 +264,7 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
         <div class="p-10">
             <b><?= lang('Portfolio visibility', 'Sichtbarkeit in Portfolio') ?></b>
             <div class="mt-10 d-flex">
-                <?php if (in_array($doc['type'], ['publication', 'poster', 'lecture', 'awards', 'software'])) { ?>
+                <?php if (in_array($doc['subtype'], $Settings->getActivitiesPortfolio(true))) { ?>
                     <?php if ($user_activity) { ?>
                         <div class="custom-switch ml-10">
                             <input type="checkbox" id="highlight" <?= ($highlighted) ? 'checked' : '' ?> name="values[highlight]" onchange="fav()">

@@ -16,18 +16,6 @@
         "lat": null,
         "lng": null
     },
-    "departments": [
-        {
-            "id": "SCIENCE",
-            "color": "#d31e25",
-            "name": "Science Department"
-        },
-        {
-            "id": "ADMIN",
-            "color": "#afafaf",
-            "name": "Verwaltung"
-        }
-    ],
     "activities": {
         "publication": {
             "id": "publication",
@@ -39,6 +27,7 @@
                 "article": {
                     "id": "article",
                     "icon": "file-text",
+                    "portfolio": true,
                     "name": "Journal Article",
                     "name_de": "Journal Article",
                     "modules": [
@@ -64,6 +53,7 @@
                 "magazine": {
                     "id": "magazine",
                     "icon": "newspaper",
+                    "portfolio": true,
                     "name": "Non-Refereed",
                     "name_de": "Non-refereed",
                     "modules": [
@@ -84,6 +74,7 @@
                 "book": {
                     "id": "book",
                     "icon": "book",
+                    "portfolio": true,
                     "name": "Book",
                     "name_de": "Buch",
                     "modules": [
@@ -110,6 +101,7 @@
                 "chapter": {
                     "id": "chapter",
                     "icon": "book-bookmark",
+                    "portfolio": true,
                     "name": "Book chapter",
                     "name_de": "Buchkapitel",
                     "modules": [
@@ -137,6 +129,7 @@
                 "preprint": {
                     "id": "preprint",
                     "icon": "paper-plane-tilt",
+                    "portfolio": true,
                     "name": "Preprint",
                     "name_de": "Preprint",
                     "modules": [
@@ -157,6 +150,7 @@
                 "dissertation": {
                     "id": "dissertation",
                     "icon": "graduation-cap",
+                    "portfolio": true,
                     "name": "Thesis",
                     "name_de": "Abschlussarbeit",
                     "modules": [
@@ -180,6 +174,7 @@
                 "others": {
                     "id": "others",
                     "icon": "notebook",
+                    "portfolio": true,
                     "name": "Other publication",
                     "name_de": "Weitere Publikationen",
                     "modules": [
@@ -208,6 +203,7 @@
                 "poster": {
                     "id": "poster",
                     "icon": "presentation-chart",
+                    "portfolio": true,
                     "name": "Poster",
                     "name_de": "Poster",
                     "modules": [
@@ -229,6 +225,7 @@
         "lecture": {
             "id": "lecture",
             "icon": "chalkboard-teacher",
+            "portfolio": true,
             "color": "#ecaf00",
             "name": "Lectures",
             "name_de": "Vortr\u00e4ge",
@@ -335,6 +332,7 @@
         "teaching": {
             "id": "teaching",
             "icon": "chalkboard-simple",
+            "portfolio": true,
             "color": "#5f272a",
             "name": "Teaching course",
             "name_de": "Lehrveranstaltung",
@@ -382,6 +380,7 @@
         "software": {
             "id": "software",
             "icon": "desktop-tower",
+            "portfolio": true,
             "color": "#9a499c",
             "name": "Software & Data",
             "name_de": "Software & Daten",

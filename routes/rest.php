@@ -258,7 +258,7 @@ Route::get('/portfolio/unit/([^/]*)/numbers', function ($id) {
 
     $activities_filter = [
         'authors.user' => ['$in' => $users],
-        'type' => ['$in' => ['poster', 'lecture', 'award', 'software']],
+        'subtype' => ['$in' => $Settings->getActivitiesPortfolio()],
         'hide' => ['$ne' => true]
     ];
     $result['activities'] = $osiris->activities->count($activities_filter);
@@ -355,9 +355,9 @@ Route::get('/portfolio/(unit|person|project)/([^/]*)/(publications|activities|al
     if ($type == 'publications') {
         $filter['type'] = 'publication';
     } else if ($type == 'activities') {
-        $filter['type'] = ['$in' => ['poster', 'lecture', 'award', 'software']];
+        $filter['subtype'] = ['$in' => $Settings->getActivitiesPortfolio(false)];
     } else {
-        $filter['type'] = ['$in' => ['poster', 'lecture', 'award', 'software', 'publication']];
+        $filter['subtype'] = ['$in' => $Settings->getActivitiesPortfolio(true)];
     }
 
     $options = [
@@ -958,7 +958,7 @@ Route::get('/portfolio/person/([^/]*)', function ($id) {
 
     $result['numbers'] = [
         'publications' => $osiris->activities->count(['authors.user' => $person['username'], 'type' => 'publication', 'hide' => ['$ne' => true]]),
-        'activities' => $osiris->activities->count(['authors.user' => $person['username'], 'type' => ['$in' => ['poster', 'lecture', 'award', 'software']], 'hide' => ['$ne' => true]]),
+        'activities' => $osiris->activities->count(['authors.user' => $person['username'], 'subtype' => ['$in' => $Settings->getActivitiesPortfolio()], 'hide' => ['$ne' => true]]),
         'teaching' => $osiris->activities->count(['authors.user' => $person['username'], 'type' => 'teaching', 'module_id' => ['$ne' => null], 'hide' => ['$ne' => true]]),
         'projects' => $osiris->projects->count(['persons.user' => $person['username'], "public" => true, "status" => ['$in' => ["approved", 'finished']]]),
     ];
@@ -1182,4 +1182,13 @@ Route::get('/portfolio/unit/([^/]*)/cooperation', function ($id) {
         'labels' => $labels,
         // 'warnings' => $warnings
     ], count($labels));
+});
+
+
+
+
+Route::get('/portfolio/test', function () {
+    include(BASEPATH . '/php/init.php');
+    $test = $Settings->getActivitiesPortfolio(false);
+    dump($test);
 });

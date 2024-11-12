@@ -122,13 +122,21 @@ if (!empty($form) && isset($form['_id'])) {
                 <?php } ?>
 
                 <div class="col-sm-2">
-                    <label for="icon" class="required">ID</label>
+                    <label for="id" class="required">ID</label>
                     <input type="text" class="form-control" name="values[id]" required value="<?= $type['id'] ?>" oninput="sanitizeID(this)">
                     <small><a href="#unique"><i class="ph ph-info"></i> <?= lang('Must be unqiue', 'Muss einzigartig sein') ?></a></small>
                 </div>
                 <div class="col-sm-2">
                     <label for="icon" class="required element-time"><a href="https://phosphoricons.com/" class="link" target="_blank" rel="noopener noreferrer">Icon</a> </label>
-                    <input type="text" class="form-control" name="values[icon]" required value="<?= $type['icon'] ?? 'placeholder' ?>">
+
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="values[icon]" required value="<?= $type['icon'] ?? 'placeholder' ?>" onchange="iconTest(this.value)">
+                        <div class="input-group-append">
+                            <span class="input-group-text">
+                                <i class="ph ph-<?= $type['icon'] ?? 'placeholder' ?>" id="test-icon"></i>
+                            </span>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-sm">
                     <label for="name" class="required ">Name (en)</label>
@@ -153,13 +161,26 @@ if (!empty($form) && isset($form['_id'])) {
             </div>
 
             <div class="mt-20">
+                <input type="hidden" name="values[guests]" value="">
                 <div class="custom-checkbox">
-                    <input type="checkbox" id="guest-question" value="1" name="values[guests]" <?=($type['guests'] ?? false) ? 'checked': ''?>>
+                    <input type="checkbox" id="guest-question" value="1" name="values[guests]" <?= ($type['guests'] ?? false) ? 'checked' : '' ?>>
                     <label for="guest-question">
                         <?= lang('Guests should be registered for this activity', 'Gäste sollen zu dieser Aktivität angemeldet werden können?') ?>
                     </label>
                 </div>
             </div>
+            <?php if ($Settings->featureEnabled('portal')) { ?>
+                <div class="mt-20">
+                    <input type="hidden" name="values[portfolio]" value="">
+                    <div class="custom-checkbox">
+                        <input type="checkbox" id="portfolio-question" value="1" name="values[portfolio]" <?= ($type['portfolio'] ?? $type['parent'] == 'publication') ? 'checked' : '' ?>>
+                        <label for="portfolio-question">
+                            <?= lang('This type of activity should be visible in OSIRIS Portfolio.', 'Diese Art von Aktivität sollte in OSIRIS Portfolio sichtbar sein.') ?>
+                        </label>
+                    </div>
+                </div>
+            <?php } ?>
+
         </div>
         <hr>
 
