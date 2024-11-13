@@ -418,6 +418,11 @@ class Modules
             "name" => "Version",
             "name_de" => "Version"
         ],
+        "venue" => [
+            "fields" => ["venue" => 'ARD'],
+            "name" => 'Publisher / Place of publication',
+            "name_de" => 'Herausgeber / Ort der Veröffentlichung'
+        ],
         "volume" => [
             "fields" => ["volume" => 51],
             "name" => "Volume",
@@ -1262,6 +1267,15 @@ class Modules
             <?php
                 break;
 
+            case "venue":
+            ?>
+                <div class="data-module floating-form col-sm-6" data-module="software-venue">
+                    <input type="text" class="form-control" <?= $required ?> name="values[venue]" id="venue" value="<?= $this->val('venue') ?>" placeholder="venue">
+                    <label class="element-other <?= $required ?>" for="venue"><?= lang('Publisher / Place of publication', 'Herausgeber / Ort der Veröffentlichung') ?>
+                    </label>
+                </div>
+            <?php
+                break;
             case "software-link":
             ?>
                 <div class="data-module floating-form col-sm-6" data-module="software-link">
