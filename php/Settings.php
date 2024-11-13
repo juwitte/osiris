@@ -276,7 +276,60 @@ class Settings
             }
             ";
         }
+
+        $colors = $this->get('colors');
+        if (!empty($colors)) {
+            $primary = $colors['primary'] ?? '#008083';
+            $secondary = $colors['secondary'] ?? '#f78104';
+            $primary_hex = sscanf($primary, "#%02x%02x%02x");
+            $secondary_hex = sscanf($secondary, "#%02x%02x%02x");
+
+            $style .= "
+            :root {
+                --primary-color: $primary;
+                --primary-color-light: ".adjustBrightness($primary, 20).";
+                --primary-color-very-light: ".adjustBrightness($primary, 200).";
+                --primary-color-dark: ".adjustBrightness($primary, -20).";
+                --primary-color-very-dark: ".adjustBrightness($primary, -200).";
+                --primary-color-20: rgba($primary_hex[0], $primary_hex[1], $primary_hex[2], 0.2);
+                --primary-color-30: rgba($primary_hex[0], $primary_hex[1], $primary_hex[2], 0.3);
+                --primary-color-60: rgba($primary_hex[0], $primary_hex[1], $primary_hex[2], 0.6);
+
+                --secondary-color: $secondary;
+                --secondary-color-light: ".adjustBrightness($secondary, 20).";
+                --secondary-color-very-light: ".adjustBrightness($secondary, 200).";
+                --secondary-color-dark: ".adjustBrightness($secondary, -20).";
+                --secondary-color-very-dark: ".adjustBrightness($secondary, -200).";
+                --secondary-color-20: rgba($secondary_hex[0], $secondary_hex[1], $secondary_hex[2], 0.2);
+                --secondary-color-30: rgba($secondary_hex[0], $secondary_hex[1], $secondary_hex[2], 0.3);
+                --secondary-color-60: rgba($secondary_hex[0], $secondary_hex[1], $secondary_hex[2], 0.6);
+            }";
+        }
+
         return "<style>$style</style>";
+    }
+
+    private function adjustBrightness($hex, $steps) {
+        // Steps should be between -255 and 255. Negative = darker, positive = lighter
+        $steps = max(-255, min(255, $steps));
+    
+        // Normalize into a six character long hex string
+        $hex = str_replace('#', '', $hex);
+        if (strlen($hex) == 3) {
+            $hex = str_repeat(substr($hex,0,1), 2).str_repeat(substr($hex,1,1), 2).str_repeat(substr($hex,2,1), 2);
+        }
+    
+        // Split into three parts: R, G and B
+        $color_parts = str_split($hex, 2);
+        $return = '#';
+    
+        foreach ($color_parts as $color) {
+            $color   = hexdec($color); // Convert to decimal
+            $color   = max(0,min(255,$color + $steps)); // Adjust color
+            $return .= str_pad(dechex($color), 2, '0', STR_PAD_LEFT); // Make two char hex code
+        }
+    
+        return $return;
     }
 
     function topicChooser($selected = [])

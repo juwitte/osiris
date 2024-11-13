@@ -126,7 +126,7 @@ if ($N > 0) {
                 </label>
                 <input type="text" class="form-control" name="general[affiliation][openalex]" value="<?= $affiliation['openalex'] ?? '' ?>">
                 <small class="text-primary">
-                    <?=lang('Needed for OpenAlex imports!', 'Diese ID ist notwendig um OpenAlex-Importe zu ermöglichen!')?>
+                    <?= lang('Needed for OpenAlex imports!', 'Diese ID ist notwendig um OpenAlex-Importe zu ermöglichen!') ?>
                 </small>
             </div>
             <div class="row row-eq-spacing">
@@ -196,6 +196,60 @@ if ($N > 0) {
         </div>
     </div>
 </form>
+
+<!-- Color settings -->
+<form action="<?= ROOTPATH ?>/crud/admin/general" method="post" id="colors-form">
+    <?php
+    $colors = $Settings->get('colors');
+    ?>
+
+    <div class="box success">
+        <h2 class="header">
+            <?= lang('Color Settings', 'Farbeinstellungen') ?>
+        </h2>
+        <div class="content">
+            <div class="form-group">
+                <label for="color"><?= lang('Primary Color', 'Primärfarbe') ?></label>
+                <input type="color" class="form-control" name="general[colors][primary]" value="<?= $colors['primary'] ?? '#008083' ?>" id="primary-color">
+                <span class="text-muted">
+                    <?= lang(
+                        'The primary color is used for the main elements of the website.',
+                        'Die Primärfarbe wird für die Hauptelemente der Website verwendet.'
+                    ) ?>
+                </span>
+            </div>
+            <div class="form-group">
+                <label for="color"><?= lang('Secondary Color', 'Sekundärfarbe') ?></label>
+                <input type="color" class="form-control" name="general[colors][secondary]" value="<?= $colors['secondary'] ?? '#f78104' ?>" id="secondary-color">
+                <span class="text-muted">
+                    <?= lang(
+                        'The secondary color is used for the secondary elements of the website.',
+                        'Die Sekundärfarbe wird für die sekundären Elemente der Website verwendet.'
+                    ) ?>
+                </span>
+            </div>
+
+            <!-- reset -->
+            <button type="button" class="btn danger" onclick="resetColors()">
+                <i class="ph ph-trash"></i>
+                <?= lang('Reset to default colors', 'Setze Farben auf Standard zurück') ?>
+            </button>
+
+            <button class="btn primary">
+                <i class="ph ph-floppy-disk"></i>
+                Save
+            </button>
+
+            <script>
+                function resetColors() {
+                    $('#primary-color').val('#008083');
+                    $('#secondary-color').val('#f78104');
+                }
+            </script>
+        </div>
+    </div>
+</form>
+
 
 <!-- Email settings -->
 <form action="<?= ROOTPATH ?>/crud/admin/general" method="post" id="modules-form">
