@@ -417,8 +417,30 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
                 <small class="text-muted">
                     <?= lang('Not the URL! Only the bold part: https://scholar.google.com/citations?user=<b>2G1YzvwAAAAJ</b>&hl=de ', 'Nicht die URL! Nur der fettgedruckte Teil: https://scholar.google.com/citations?user=<b>2G1YzvwAAAAJ</b>&hl=de') ?>
                 </small>
+                <div class="text-danger" id="google-scholar-wrong" style="display: none;">
+                    <?= lang('Please enter a valid Google Scholar ID.', 'Bitte gib eine gültige Google Scholar ID ein.') ?>
+                </div>
             </div>
         </div>
+
+        <script>
+            // validate google scholar id on change
+            $('#google_scholar').on('change', function() {
+                var id = $(this).val();
+                // regex for google scholar id
+                var regex = /^[a-zA-Z0-9_-]{12}$/;
+                if (id === ''){
+                    $('#google_scholar').removeClass('is-invalid');
+                    $('#google-scholar-wrong').hide();
+                } else if (!regex.test(id)) {
+                    $('#google_scholar').addClass('is-invalid');
+                    $('#google-scholar-wrong').show();
+                } else {
+                    $('#google_scholar').addClass('is-valid');
+                    $('#google-scholar-wrong').hide();
+                }
+            });
+        </script>
 
     </section>
 
