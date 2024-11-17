@@ -714,6 +714,20 @@ if ($currentuser) { ?>
                             <?= lang('Here you can find the latest news about OSIRIS and your activities.', 'Hier findest du die neuesten Nachrichten über OSIRIS und deine Aktivitäten.') ?>
                         </p>
 
+                        <?php
+                        if (isset($scientist['new']) && defined('USER_MANAGEMENT') && USER_MANAGEMENT == 'AUTH') { ?>
+                            <!-- print message to change password -->
+                            <div class="alert danger mt-10">
+                                <a class="link text-danger" href='<?= ROOTPATH ?>/user/edit/<?= $user ?>#section-account'>
+                                    <?= lang(
+                                        "You have not yet set a password. Please change your password now.",
+                                        "Du hast noch kein Passwort gesetzt. Bitte ändere jetzt dein Passwort."
+                                    ) ?>
+                                </a>
+                            </div>
+                        <?php  }
+                        ?>
+
 
                         <?php
                         $issues = $DB->getUserIssues($user);

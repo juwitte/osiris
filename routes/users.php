@@ -413,11 +413,14 @@ Route::post('/crud/users/update/(.*)', function ($user) {
         $person['cv'] = $cv;
     }
 
-    
+
     // if new password is set, update password
     if (isset($_POST['password']) && !empty($_POST['password'])) {
-        // check if passwords match
-        if ($_POST['password'] != $_POST['password2']) {
+        // check if old password matches
+        $account = $osiris->accounts->findOne(['username' => $user]);
+        if (!password_verify($_POST['old_password'], $account['password'])) {
+            $_SESSION['msg'] = lang("Old password is incorrect.", "Vorheriges Passwort ist falsch.");
+        } else if ($_POST['password'] != $_POST['password2']) {
             $_SESSION['msg'] = lang("Passwords do not match.", "Passwörter stimmen nicht überein.");
         } else {
             $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
@@ -426,6 +429,10 @@ Route::post('/crud/users/update/(.*)', function ($user) {
                 'username' => $user,
                 'password' => $password
             ]);
+            $osiris->persons->updateOne(
+                ['username' => $user],
+                ['$unset' => ['new' => '']]
+            );
         }
     }
 

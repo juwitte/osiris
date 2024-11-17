@@ -228,6 +228,8 @@ Route::post('/user/login', function () {
 
 Route::get('/user/logout', function () {
     unset($_SESSION["username"]);
+    unset($_SESSION["name"]);
+    unset($_SESSION["realuser"]);
     $_SESSION['loggedin'] = false;
     header("Location: " . ROOTPATH . "/");
 }, 'login');

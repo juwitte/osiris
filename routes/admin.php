@@ -579,7 +579,13 @@ Route::post('/crud/admin/add-user', function () {
 
     $person = $_POST['values'];
     $person['username'] = $_POST['username'];
-    $person['password'] = $_POST['password'];
+
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $osiris->accounts->insertOne([
+        'username' => $person['username'],
+        'password' => $password
+    ]);
+
     $person['displayname'] = "$person[first] $person[last]";
     $person['formalname'] = "$person[last], $person[first]";
     $person['first_abbr'] = "";
@@ -589,6 +595,7 @@ Route::post('/crud/admin/add-user', function () {
     $person['created'] = date('d.m.Y');
     $person['roles'] = array_keys($person['roles'] ?? []);
     
+    $person['new'] = true;
     $person['is_active'] = true;
 
     $osiris->persons->insertOne($person);
