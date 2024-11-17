@@ -71,6 +71,7 @@ include_once BASEPATH . "/php/Route.php";
 Route::get('/', function () {
     if (isset($_GET['code']) && defined('USER_MANAGEMENT') && strtoupper(USER_MANAGEMENT) == 'OAUTH') {
         header("Location: " . ROOTPATH . "/user/oauth-callback?code=" . $_GET['code']);
+        exit();
     }
     include_once BASEPATH . "/php/init.php";
     if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] === false) {
