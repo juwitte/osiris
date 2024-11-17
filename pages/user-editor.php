@@ -429,7 +429,7 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
                 var id = $(this).val();
                 // regex for google scholar id
                 var regex = /^[a-zA-Z0-9_-]{12}$/;
-                if (id === ''){
+                if (id === '') {
                     $('#google_scholar').removeClass('is-invalid');
                     $('#google-scholar-wrong').hide();
                 } else if (!regex.test(id)) {
@@ -467,7 +467,13 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
         <?php if (
             USER_MANAGEMENT == 'AUTH' &&
             $data['username'] == ($_SESSION['realuser'] ?? $_SESSION['username'])
-            ) { ?>
+        ) { ?>
+
+            <div class="form-group">
+                <label for="old_password"><?= lang('Old password', 'Vorheriges Password') ?></label>
+                <input type="password" name="old_password" id="old_password" class="form-control">
+            </div>
+
             <div class="form-row row-eq-spacing">
                 <div class="col-sm-6">
                     <label for="password"><?= lang('New password', 'Neues Passwort') ?></label>
