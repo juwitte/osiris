@@ -33,6 +33,103 @@ Route::get('/user/login', function () {
 });
 
 
+Route::get('/user/oauth', function () {
+    include_once BASEPATH . "/php/init.php";
+    $authorizationUrl = AUTHORITY . '/oauth2/v2.0/authorize' .
+        '?client_id=' . CLIENT_ID .
+        '&response_type=code' .
+        '&redirect_uri=' . urlencode(REDIRECT_URI) .
+        '&response_mode=query' .
+        '&scope=' . urlencode(SCOPES);
+    header("Location: $authorizationUrl");
+    exit();
+});
+
+
+Route::get('/user/oauth-callback', function () {
+    include_once BASEPATH . "/php/init.php";
+    // dump($_SESSION);
+    // die;
+    if (isset($_GET['code'])) {
+        $code = $_GET['code'];
+        $tokenUrl = AUTHORITY . '/oauth2/v2.0/token';
+        $postData = [
+            'client_id' => CLIENT_ID,
+            'scope' => SCOPES,
+            'code' => $code,
+            'redirect_uri' => REDIRECT_URI,
+            'grant_type' => 'authorization_code',
+            'client_secret' => CLIENT_SECRET
+        ];
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $tokenUrl);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $response = curl_exec($ch);
+        curl_close($ch);
+        $data = json_decode($response, true);
+        if (isset($data['access_token'])) {
+            // Zugangstoken verwenden, um Benutzerinformationen zu erhalten
+            $accessToken = $data['access_token'];
+            $userInfoUrl = 'https://graph.microsoft.com/v1.0/me';
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $userInfoUrl);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer $accessToken"]);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            $userInfoResponse = curl_exec($ch);
+            curl_close($ch);
+            $user = json_decode($userInfoResponse, true);
+            // session_start();
+
+            // username not supported by Microsoft
+            // take username from mail
+            $username = explode('@', $user['mail'])[0];
+
+            // check if user exists in our database
+            $USER = $DB->getPerson($username);
+            if (empty($USER)) {
+                // create user from LDAP
+                $new_user = array(
+                    'username' => $username,
+                    'displayname' => $user['displayName'],
+                    'first' => $user['givenName'],
+                    'last' => $user['surname'],
+                    'mail' => $user['mail'],
+                    'position' => $user['jobTitle'],
+                    'telephone' => $user['businessPhones'][0],
+                    'lastlogin' => date('d.m.Y'),
+                    'created' => date('d.m.Y'),
+                );
+                $osiris->persons->insertOne($new_user);
+
+                $USER = $DB->getPerson($username);
+            } else {
+                $updateResult = $osiris->persons->updateOne(
+                    ['username' => $USER['username']],
+                    ['$set' => ["lastlogin" => date('d.m.Y')]]
+                );
+            }
+
+            $_SESSION['username'] = $USER['username'];
+            $_SESSION['name'] = $USER['displayname'];
+            $_SESSION['loggedin'] = true;
+
+            if (isset($_GET['redirect'])) {
+                header("Location: " . $_GET['redirect']);
+                die();
+            }
+            header("Location: " . ROOTPATH . "/");
+
+            exit();
+        } else {
+            echo "Error getting access token.";
+        }
+    } else {
+        echo "No authorization code returned.";
+    }
+});
+
 Route::post('/user/login', function () {
     include_once BASEPATH . "/php/init.php";
     $page = "userlogin";
@@ -78,7 +175,7 @@ Route::post('/user/login', function () {
                     }
                     $osiris->persons->insertOne($new_user);
 
-                    $user = $new_user['account']['username'];
+                    $user = $new_user['username'];
 
                     $USER = $DB->getPerson($user);
 
@@ -134,7 +231,6 @@ Route::get('/user/logout', function () {
     $_SESSION['loggedin'] = false;
     header("Location: " . ROOTPATH . "/");
 }, 'login');
-
 
 
 Route::get('/user/test', function () {

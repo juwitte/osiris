@@ -69,11 +69,12 @@ function lang($en, $de = null)
 include_once BASEPATH . "/php/Route.php";
 
 Route::get('/', function () {
+    if (isset($_GET['code']) && defined('USER_MANAGEMENT') && strtoupper(USER_MANAGEMENT) == 'OAUTH') {
+        header("Location: " . ROOTPATH . "/user/oauth-callback?code=" . $_GET['code']);
+    }
     include_once BASEPATH . "/php/init.php";
     if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] === false) {
-        include BASEPATH . "/header.php";
-        include BASEPATH . "/pages/userlogin.php";
-        include BASEPATH . "/footer.php";
+        header("Location: " . ROOTPATH . "/user/login");
     } else {
         $path = ROOTPATH . "/profile/" . $_SESSION['username'];
         if (!empty($_SERVER['QUERY_STRING'])) $path .= "?" . $_SERVER['QUERY_STRING'];
