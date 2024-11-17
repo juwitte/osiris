@@ -180,6 +180,17 @@ if (!empty($form) && isset($form['_id'])) {
                     </div>
                 </div>
             <?php } ?>
+            <?php if ($Settings->featureEnabled('topics')) { ?>
+                <div class="mt-20">
+                    <input type="hidden" name="values[topics-required]" value="">
+                    <div class="custom-checkbox">
+                        <input type="checkbox" id="topics-question" value="1" name="values[topics-required]" <?= ($type['topics-required'] ?? false) ? 'checked' : '' ?>>
+                        <label for="topics-question">
+                            <?= lang('Research Topics are a required field for this activity', 'Forschungsbereiche sind für diese Aktivität ein Pflichtfeld') ?>
+                        </label>
+                    </div>
+                </div>
+            <?php } ?>
 
         </div>
         <hr>

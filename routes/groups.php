@@ -21,7 +21,7 @@ Route::get('/groups', function () {
         ['name' => lang("Groups", "Gruppen")]
     ];
     include BASEPATH . "/header.php";
-    include BASEPATH . "/pages/groups.php";
+    include BASEPATH . "/pages/groups/groups.php";
     include BASEPATH . "/footer.php";
 }, 'login');
 
@@ -33,7 +33,7 @@ Route::get('/groups/new', function () {
         ['name' => lang("New", "Neu")]
     ];
     include BASEPATH . "/header.php";
-    include BASEPATH . "/pages/groups-add.php";
+    include BASEPATH . "/pages/groups/add.php";
     include BASEPATH . "/footer.php";
 }, 'login');
 
@@ -61,7 +61,7 @@ Route::get('/groups/view/(.*)', function ($id) {
     ];
 
     include BASEPATH . "/header.php";
-    include BASEPATH . "/pages/group.php";
+    include BASEPATH . "/pages/groups/group.php";
     include BASEPATH . "/footer.php";
 }, 'login');
 
@@ -80,19 +80,13 @@ Route::get('/groups/(edit|public)/(.*)', function ($page, $id) {
     ];
     if ($page == 'edit') {
         $breadcrumb[] = ['name' => lang("Edit", "Bearbeiten")];
-    } else {
-        $breadcrumb[] = ['name' => lang("Public", "Öffentlich")];
     }
 
     global $form;
     $form = DB::doc2Arr($group);
 
     include BASEPATH . "/header.php";
-    if ($page == 'edit') {
-        include BASEPATH . "/pages/groups-add.php";
-    } else {
-        include BASEPATH . "/pages/group-public.php";
-    }
+    include BASEPATH . "/pages/groups/edit.php";
     include BASEPATH . "/footer.php";
 }, 'login');
 
@@ -268,23 +262,31 @@ Route::post('/crud/groups/delete/([A-Za-z0-9]*)', function ($id) {
 
 Route::post('/crud/groups/addperson/(.*)', function ($id) {
     include_once BASEPATH . "/php/init.php";
-    // select the right collection
 
     // add id to person dept
-    // $person = $osiris->persons->findOne(['username' => $_POST['username']]);
     $updateResult = $osiris->persons->updateOne(
         ['username' => $_POST['username']],
         ['$push' => ["depts" => $id]]
     );
 
-    // addUserActivity('delete');
-    header("Location: " . ROOTPATH . "/groups/view/$id?msg=added-person#add-person-modal");
+    header("Location: " . ROOTPATH . "/groups/edit/$id?msg=added-person#section-personnel");
+});
+
+Route::post('/crud/groups/removeperson/(.*)', function ($id) {
+    include_once BASEPATH . "/php/init.php";
+    // add id to person dept
+    $updateResult = $osiris->persons->updateOne(
+        ['username' => $_POST['username']],
+        ['$pull' => ["depts" => $id]]
+    );
+
+    header("Location: " . ROOTPATH . "/groups/edit/$id?msg=removed-person#section-personnel");
 });
 
 
 Route::post('/crud/groups/reorder/(.*)', function ($id) {
     include_once BASEPATH . "/php/init.php";
-    
+
     $order = $_POST['order'];
     $i = 0;
     foreach ($order as $o) {

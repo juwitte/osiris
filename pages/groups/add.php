@@ -16,51 +16,15 @@
  * @license     MIT
  */
 
- $heads = $form['head'] ?? [];
- if (is_string($heads)) $heads = [$heads];
- else $heads = DB::doc2Arr($heads);
-
-
-$edit_perm = ( $Settings->hasPermission('units.add') || $Groups->editPermission($id));
-
-if (!$edit_perm) {
+if (!$Settings->hasPermission('units.add')) {
     echo "You have no right to be here.";
     die;
 }
 
-$Format = new Document(true);
-$form = $form ?? array();
-
-$level = 0;
-
-$formaction = ROOTPATH;
-if (!empty($form) && isset($form['_id'])) {
-    $formaction .= "/crud/groups/update/" . $form['_id'];
-    $btntext = '<i class="ph ph-check"></i> ' . lang("Update", "Aktualisieren");
-    $url = ROOTPATH . "/groups/view/" . $form['_id'];
-    $title = lang('Edit group: ', 'Gruppe bearbeiten: ') . $id;
-
-    $level = $Groups->getLevel($id);
-} else {
-    $formaction .= "/crud/groups/create";
-    $btntext = '<i class="ph ph-check"></i> ' . lang("Save", "Speichern");
-    $url = ROOTPATH . "/groups/view/*";
-    $title = lang('New group', 'Neue Gruppe');
-}
-
-function val($index, $default = '')
-{
-    $val = $GLOBALS['form'][$index] ?? $default;
-    if (is_string($val)) {
-        return htmlspecialchars($val);
-    }
-    return $val;
-}
-
-function sel($index, $value)
-{
-    return val($index) == $value ? 'selected' : '';
-}
+$formaction = ROOTPATH . "/crud/groups/create";
+$btntext = '<i class="ph ph-check"></i> ' . lang("Save", "Speichern");
+$url = ROOTPATH . "/groups/view/*";
+$title = lang('New group', 'Neue Gruppe');
 
 ?>
 
@@ -78,7 +42,7 @@ function sel($index, $value)
                 <label for="id" class="required">
                     <?= lang('Acronym', 'Abkürzung') ?>
                 </label>
-                <input type="text" class="form-control" name="values[id]" id="id" required value="<?= val('id') ?>" maxlength="8">
+                <input type="text" class="form-control" name="values[id]" id="id" required maxlength="8">
             </div>
 
 
@@ -88,8 +52,10 @@ function sel($index, $value)
                 </label>
                 <select class="form-control" name="values[parent]" id="parent" onchange="deptSelect(this.value)">
                     <option value="" data-level="99"><?= lang('!!!Attention: No parent group chosen', '!!! Achtung: Keine übergeordnete Gruppe gewählt') ?></option>
-                    <?php foreach ($Groups->groups as $d => $dept) { ?>
-                        <option value="<?= $d ?>" <?= sel('parent', $d) ?> data-level="<?= $dept['level'] ?? $Groups->getLevel($d) ?>">
+                    <?php foreach ($Groups->groups as $d => $dept) {
+                        $level = $dept['level'] ?? $Groups->getLevel($d);
+                    ?>
+                        <option value="<?= $d ?>" data-level="<?= $level ?>" <?= $level == 0 ? 'selected' : '' ?>>
                             <?= $dept['name'] != $d ? "$d: " : '' ?><?= $dept['name'] ?>
                         </option>
                     <?php } ?>
@@ -101,13 +67,13 @@ function sel($index, $value)
                 <label for="unit" class="required">
                     <?= lang('Type of group', 'Art der Gruppe') ?>
                 </label>
-                <input type="text" class="form-control" name="values[unit]" id="unit" required value="<?= val('unit') ?>" placeholder="<?= lang('Double click to see suggestions', 'Doppelklick für Vorschläge') ?>" list="unit-list">
+                <input type="text" class="form-control" name="values[unit]" id="unit" required placeholder="<?= lang('Double click to see suggestions', 'Doppelklick für Vorschläge') ?>" list="unit-list">
             </div>
 
         </div>
         <div class="form-group" id="color-row" <?= $level != 1 ? 'style="display:none;"' : '' ?>>
             <label for="color" class=""><?= lang('Color', 'Farbe') ?></label>
-            <input type="color" class="form-control w-50" name="values[color]" required value="<?= val('color') ?>">
+            <input type="color" class="form-control w-50" name="values[color]" required>
             <span><?= lang('Note that only level 1 groups can have a color.', 'Bitte beachte, dass nur Level 1-Gruppen eine eigene Farbe haben können.') ?></span>
         </div>
     </fieldset>
@@ -117,32 +83,23 @@ function sel($index, $value)
     <div class="row row-eq-spacing mb-0">
         <div class="col-md-6">
             <fieldset>
-                <legend><?= lang('German', 'Deutsch') ?></legend>
+                <legend class="d-flex"><?= lang('English', 'Englisch') ?> <img src="<?= ROOTPATH ?>/img/gb.svg" alt="EN" class="flag"></legend>
                 <div class="form-group">
-                    <label for="name_de" class="required">
-                        <?= lang('Full Name', 'Voller Name') ?> (DE)
+                    <label for="name" class="required">
+                        <?= lang('Full Name', 'Voller Name') ?> (EN)
                     </label>
-                    <input type="text" class="form-control" name="values[name_de]" id="name_de" required value="<?= val('name_de') ?>">
-                </div>
-                <div class="form-group">
-                    <label for="description_de"><?= lang('Description', 'Beschreibung') ?> (DE)</label>
-                    <textarea name="values[description_de]" id="description_de" cols="30" rows="10" class="form-control"><?= val('description_de') ?></textarea>
+                    <input type="text" class="form-control" name="values[name]" id="name" required>
                 </div>
             </fieldset>
         </div>
         <div class="col-md-6">
             <fieldset>
-                <legend><?= lang('English', 'Englisch') ?></legend>
+                <legend class="d-flex"><?= lang('German', 'Deutsch') ?> <img src="<?= ROOTPATH ?>/img/de.svg" alt="DE" class="flag"></legend>
                 <div class="form-group">
-                    <label for="name" class="required">
-                        <?= lang('Full Name', 'Voller Name') ?> (EN)
+                    <label for="name_de" class="required">
+                        <?= lang('Full Name', 'Voller Name') ?> (DE)
                     </label>
-                    <input type="text" class="form-control" name="values[name]" id="name" required value="<?= val('name') ?>">
-                </div>
-
-                <div class="form-group">
-                    <label for="description"><?= lang('Description', 'Beschreibung') ?> (EN)</label>
-                    <textarea name="values[description]" id="description" cols="30" rows="10" class="form-control"><?= val('description') ?></textarea>
+                    <input type="text" class="form-control" name="values[name_de]" id="name_de" required>
                 </div>
             </fieldset>
         </div>
@@ -159,18 +116,6 @@ function sel($index, $value)
             </label>
             <div class="author-widget">
                 <div class="author-list p-10">
-                    <?php
-                    foreach ($heads as $h) {
-                        $person = $osiris->persons->findOne(['username' => $h]);
-                        if (empty($person)) continue;
-                        $name = $person['last'] . ', ' . $person['first'];
-                    ?>
-                        <div class='author'>
-                            <?= $name ?>
-                            <input type='hidden' name='values[head][]' value='<?= $h ?>'>
-                            <a onclick='$(this).parent().remove()'>&times;</a>
-                        </div>
-                    <?php } ?>
 
                 </div>
                 <div class="footer">
@@ -178,9 +123,8 @@ function sel($index, $value)
                         <select class="head-input form-control">
                             <option value="" disabled selected><?= lang('Add head ...', 'Füge leitende Person hinzu ...') ?></option>
                             <?php
-                            $userlist = $osiris->persons->find(['username' => ['$ne' => null]], ['sort' => ["last" => 1]]);
+                            $userlist = $osiris->persons->find(['username' => ['$ne' => null], 'is_active'=>['$ne'=>false]], ['sort' => ["last" => 1]]);
                             foreach ($userlist as $j) {
-                                if (in_array($j['username'], $heads) || empty($j['last'])) continue;
                             ?>
                                 <option value="<?= $j['username'] ?>"><?= $j['last'] ?>, <?= $j['first'] ?></option>
                             <?php } ?>
@@ -221,20 +165,6 @@ function sel($index, $value)
     </datalist>
 </form>
 
-
-
-
-<?php if (!empty($form) && isset($form['_id'])) { ?>
-
-
-    <div class="alert danger mt-20">
-        <form action="<?= ROOTPATH ?>/crud/groups/delete/<?= $group['_id'] ?>" method="post">
-            <input type="hidden" class="hidden" name="redirect" value="<?= ROOTPATH ?>/groups">
-            <button class="btn danger"><i class="ph ph-trash"></i> <?= lang('Delete', 'Löschen') ?></button>
-            <span class="ml-20"><?= lang('Warning! Cannot be undone.', 'Warnung, kann nicht rückgängig gemacht werden!') ?></span>
-        </form>
-    </div>
-<?php } ?>
 
 <script>
     function deptSelect(val) {

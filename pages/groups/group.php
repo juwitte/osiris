@@ -103,27 +103,6 @@ $edit_perm = ($Settings->hasPermission('units.add') || $Groups->editPermission($
     }
 </style>
 
-<!-- modal to add person -->
-<div id="add-person-modal" class="modal">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2><?= lang('Add person', 'Person hinzufügen') ?></h2>
-            <form action="<?= ROOTPATH ?>/crud/groups/addperson/<?= $id ?>" method="post">
-                <div class="form-group">
-                    <label for="username"><?= lang('Username', 'Benutzername') ?></label>
-                    <!-- select for distinct user names from DB -->
-                    <select name="username" id="username" class="form-control">
-                        <?php foreach ($osiris->persons->find(['is_active' => true], ['sort' => ['last' => 1]]) as $person) { ?>
-                            <option value="<?= $person['username'] ?>"><?= $person['last'] . ', ' . $person['first'] ?></option>
-                        <?php } ?>
-                    </select>
-                </div>
-                <button type="submit" class="btn"><?= lang('Add', 'Hinzufügen') ?></button>
-            </form>
-        </div>
-    </div>
-</div>
 
 <div <?= $Groups->cssVar($id) ?> class="">
     <div class="btn-toolbar">
@@ -134,23 +113,16 @@ $edit_perm = ($Settings->hasPermission('units.add') || $Groups->editPermission($
                     <i class="ph ph-note-pencil ph-fw"></i>
                     <?= lang('Edit', 'Bearbeiten') ?>
                 </a>
-                <a class="btn" href="#add-person-modal">
+                <!-- <a class="btn" href="#add-person-modal">
                     <i class="ph ph-user-plus ph-fw"></i>
                     <?= lang('Add person', 'Person hinzufügen') ?>
-                </a>
+                </a> -->
             </div>
         <?php } ?>
 
 
         <?php if ($Settings->featureEnabled('portal')) { ?>
             <div class="btn-group">
-
-                <?php if ($edit_perm) { ?>
-                    <a class="btn" href="<?= ROOTPATH ?>/groups/public/<?= $id ?>">
-                        <i class="ph ph-note-pencil ph-fw"></i>
-                        <?= lang('Public', 'Öffentliche Darstellung') ?>
-                    </a>
-                <?php } ?>
                 <a class="btn" href="<?= ROOTPATH ?>/preview/group/<?= $id ?>">
                     <i class="ph ph-eye ph-fw"></i>
                     <?= lang('Preview', 'Vorschau') ?>
