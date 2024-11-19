@@ -566,6 +566,12 @@ $expert = isset($_GET['expert']) ;
                 input: 'date'
             },
             {
+                id: 'imported',
+                label: lang('Imported at', 'Importiert am'),
+                type: 'datetime',
+                input: 'date'
+            },
+            {
                 id: 'updated_by',
                 label: lang('Updated by (Abbreviation)', 'Aktualisiert von (Kürzel)'),
                 type: 'string'

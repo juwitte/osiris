@@ -1010,10 +1010,18 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                     <h5 class="m-0">
                         <?php if ($h['type'] == 'created') {
                             echo lang('Created by ', 'Erstellt von ');
-                        } else {
+                        } else if ($h['type'] == 'edited') {
                             echo lang('Edited by ', 'Bearbeitet von ');
+                        } else if ($h['type'] == 'imported') {
+                            echo lang('Imported by ', 'Importiert von ');
+                        } else {
+                            echo $h['type']. lang(' by ', ' von ');
                         }
-                        echo $DB->getNameFromId($h['user']);
+                        if (isset($h['user']) && !empty($h['user'])) {
+                            echo '<a href="' . ROOTPATH . '/profile/' . $h['user'] . '">'.$DB->getNameFromId($h['user']).'</a>';
+                        } else {
+                            echo "System";
+                        }
                         ?>
                     </h5>
 
