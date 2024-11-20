@@ -1055,22 +1055,24 @@ if ($currentuser) { ?>
                                 <?= $scientist['first'] ?? '' ?>
                             </td>
                         </tr>
+                        <?php if (!empty($scientist['academic_title'] ?? '')) { ?>                       
                         <tr>
                             <td>
                                 <span class="key"><?= lang('Academic title', 'Akademischer Titel') ?></span>
                                 <?= $scientist['academic_title'] ?? '' ?>
                             </td>
                         </tr>
+                        <?php } ?>
                         <tr>
                             <td>
                                 <span class="key">Email</span>
-                                <?= $scientist['mail'] ?? '' ?>
+                                <?= $scientist['mail'] ?? '-' ?>
                             </td>
                         </tr>
                         <tr>
                             <td>
                                 <span class="key"><?= lang('Telephone', 'Telefon') ?></span>
-                                <?= $scientist['telephone'] ?? '' ?>
+                                <?= $scientist['telephone'] ?? '-' ?>
                             </td>
                         </tr>
                         <?php if (!empty($scientist['twitter'] ?? null)) { ?>
