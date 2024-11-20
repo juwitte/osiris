@@ -1,11 +1,12 @@
 <?php
+
 /**
  * Page to search users
  * 
  * This file is part of the OSIRIS package.
  * Copyright (c) 2024 Julia Koblitz, OSIRIS Solutions GmbH
  * 
- * @link        /search/user
+ * @link        /user/search
  *
  * @package     OSIRIS
  * @since       1.0.0
@@ -45,8 +46,14 @@ $Format = new Document(true);
     <table class="table" id="activity-table">
         <thead>
             <th>User</th>
-            <th>Name</th>
+            <th><?= lang('First', 'Vorname') ?></th>
+            <th><?= lang('Last', 'Nachname') ?></th>
+            <th><?= lang('Title', 'Titel') ?></th>
+            <th><?= lang('Email', 'Email') ?></th>
+            <th><?= lang('Telephone', 'Telefon') ?></th>
+            <th><?= lang('Position', 'Position') ?></th>
             <th><?= lang('Department', 'Abteilung') ?></th>
+            <th><?= lang('ORCID', 'ORCID') ?></th>
         </thead>
         <tbody>
         </tbody>
@@ -111,6 +118,40 @@ $Format = new Document(true);
                     input: 'radio',
                     default_value: true
                 },
+                {
+                    id: 'position',
+                    label: lang('Position', 'Position'),
+                    type: 'string'
+                },
+                {
+                    id: 'orcid',
+                    label: lang('ORCID', 'ORCID'),
+                    type: 'string'
+                },
+                {
+                    id: 'created',
+                    label: lang('Created at', 'Angelegt am'),
+                    type: 'datetime',
+                    input: 'date'
+                },
+                {
+                    id: 'updated',
+                    label: lang('Updated at', 'Geändert am'),
+                    type: 'datetime',
+                    input: 'date'
+                },
+                {
+                    id: 'gender',
+                    label: lang('Gender', 'Geschlecht'),
+                    type: 'string',
+                    input: 'select',
+                    values: {
+                        'm': lang('male', 'männlich'),
+                        'f': lang('female', 'weiblich'),
+                        'd': lang('non-binary', 'divers'),
+                        'n': lang('not specified', 'nicht angegeben')
+                    }
+                }
 
             ],
 
@@ -127,6 +168,7 @@ $Format = new Document(true);
         });
 
         var dataTable;
+
         function getResult() {
             dataTable.ajax.reload()
         }
@@ -172,12 +214,44 @@ $Format = new Document(true);
                         }
                     },
                     {
-                        targets: 1,
-                        data: 'displayname'
+                        target: 1,
+                        data: 'first',
+                        defaultContent: ''
                     },
                     {
-                        targets: 2,
-                        data: 'dept'
+                        target: 2,
+                        data: 'last',
+                        defaultContent: ''
+                    },
+                    {
+                        target: 3,
+                        data: 'academic_title',
+                        defaultContent: ''
+                    },
+                    {
+                        target: 4,
+                        data: 'mail',
+                        defaultContent: ''
+                    },
+                    {
+                        target: 5,
+                        data: 'telephone',
+                        defaultContent: ''
+                    },
+                    {
+                        target: 6,
+                        data: 'position',
+                        defaultContent: ''
+                    },
+                    {
+                        targets: 7,
+                        data: 'dept',
+                        defaultContent: ''
+                    },
+                    {
+                        target: 8,
+                        data: 'orcid',
+                        defaultContent: ''
                     },
                 ]
             });

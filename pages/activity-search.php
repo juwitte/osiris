@@ -489,7 +489,7 @@ $expert = isset($_GET['expert']) ;
             },
             {
                 id: 'conference',
-                label: lang('Conference', 'Konferenz'),
+                label: lang('Event'),
                 type: 'string'
             },
             {

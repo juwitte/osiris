@@ -26,7 +26,7 @@ Route::get('/user/browse', function () {
 }, 'login');
 
 
-Route::get('/search/user', function () {
+Route::get('/user/search', function () {
     include_once BASEPATH . "/php/init.php";
     $user = $_SESSION['username'];
     $breadcrumb = [

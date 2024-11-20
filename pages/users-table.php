@@ -79,8 +79,8 @@
 
             <?php if ($Settings->featureEnabled('topics')) { ?>
                 <h6><?= lang('Research Topics', 'Forschungsbereiche') ?>
-                <a class="float-right" onclick="filterUsers('#filter-unit .active', null, 5)"><i class="ph ph-x"></i></a>
-            </h6>
+                    <a class="float-right" onclick="filterUsers('#filter-unit .active', null, 5)"><i class="ph ph-x"></i></a>
+                </h6>
 
                 <div class="filter">
                     <table id="filter-type" class="table small simple">
@@ -112,9 +112,12 @@
 </div>
 
 
-<script>
+<script src="<?= ROOTPATH ?>/js/datatables/jszip.min.js"></script>
+<script src="<?= ROOTPATH ?>/js/datatables/dataTables.buttons.min.js"></script>
+<script src="<?= ROOTPATH ?>/js/datatables/buttons.html5.min.js"></script>
 
-const headers = [{
+<script>
+    const headers = [{
             title: lang('Image', 'Bild'),
             'key': 'img'
         },
@@ -137,24 +140,194 @@ const headers = [{
         {
             title: lang('Research topics', 'Forschungsbereiche'),
             'key': 'topics'
+        },
+        {
+            title: lang('First name', 'Vorname'),
+            'key': 'first'
+        },
+        {
+            title: lang('Last name', 'Nachname'),
+            'key': 'last'
+        },
+        {
+            title: lang('Academic title', 'Akad. Titel'),
+            'key': 'academic_title'
+        },
+        {
+            title: lang('Email', 'Email'),
+            'key': 'mail'
+        },
+        {
+            title: lang('Telephone', 'Telefon'),
+            'key': 'telephone'
+        },
+        {
+            title: lang('Position', 'Position'),
+            'key': 'position'
+        },
+        {
+            title: lang('ORCID', 'ORCID'),
+            'key': 'orcid'
+        },
+        {
+            title: lang('Username', 'Kürzel'),
+            'key': 'username'
         }
     ]
 
     var dataTable;
     const activeFilters = $('#active-filters')
     $(document).ready(function() {
-        dataTable = userTable('#user-table', {
-            subtitle: 'position',
-        })
-        
+        dataTable = $('#user-table').DataTable({
+            "ajax": {
+                "url": ROOTPATH + '/api/users',
+                "data": {
+                    table: true,
+                    subtitle: 'position'
+                },
+                dataSrc: 'data'
+            },
+            deferRender: true,
+            responsive: true,
+            language: {
+                url: lang(null, ROOTPATH + '/js/datatables/de-DE.json')
+            },
+            buttons: [
+                // custom link button
+                {
+                    text: '<i class="ph ph-magnifying-glass-plus"></i> <?= lang('Advanced search', 'Erweiterte Suche') ?>',
+                    className: 'btn small text-primary ',
+                    action: function(e, dt, node, config) {
+                        window.location.href = '<?= ROOTPATH ?>/user/search';
+                    }
+                },
+                {
+                    text: '<i class="ph ph-barbell"></i> <?= lang('Expertise search', 'Expertise-Suche') ?>',
+                    className: 'btn small text-primary mr-10',
+                    action: function(e, dt, node, config) {
+                        window.location.href = '<?= ROOTPATH ?>/expertise';
+                    }
+                },
+                {
+                    extend: 'excelHtml5',
+                    exportOptions: {
+                        columns: [6,7,8,9,10,11,12,2,3,4,13],
+                        format: {
+                            header: function(html, index, node) {
+                                return headers[index].title ?? '';
+                            }
+                        }
+                    },
+                    className: 'btn small',
+                    title: 'OSIRIS Users',
+                    text: '<i class="ph ph-file-xls"></i> <?= lang('Excel', 'Excel') ?>',
+                }                
+            ],
+            dom: 'fBrtip',
+            columnDefs: [{
+                    targets: 0,
+                    data: 'img',
+                    searchable: false,
+                    sortable: false,
+                    visible: true
+                },
+                {
+                    targets: 1,
+                    data: 'html',
+                    className: 'flex-grow-1'
+                },
+                {
+                    targets: 2,
+                    data: 'dept',
+                    searchable: true,
+                    sortable: false,
+                    visible: false
+                },
+                {
+                    targets: 3,
+                    data: 'active',
+                    searchable: true,
+                    sortable: false,
+                    visible: false
+                },
+                {
+                    target: 4,
+                    data: 'names',
+                    searchable: true,
+                    visible: false
+                },
+                {
+                    target: 5,
+                    data: 'topics',
+                    searchable: true,
+                    visible: false
+                },
+                {
+                    target: 6,
+                    data: 'first',
+                    visible: false,
+                    defaultContent: ''
+                },
+                {
+                    target: 7,
+                    data: 'last',
+                    visible: false,
+                    defaultContent: ''
+                },
+                {
+                    target: 8,
+                    data: 'academic_title',
+                    visible: false,
+                    defaultContent: ''
+                },
+                {
+                    target: 9,
+                    data: 'mail',
+                    visible: false,
+                    defaultContent: ''
+                },
+                {
+                    target: 10,
+                    data: 'telephone',
+                    visible: false,
+                    defaultContent: ''
+                },
+                {
+                    target: 11,
+                    data: 'position',
+                    visible: false,
+                    defaultContent: ''
+                },
+                {
+                    target: 12,
+                    data: 'orcid',
+                    visible: false,
+                    defaultContent: ''
+                },
+                {
+                    target: 13,
+                    data: 'username',
+                    visible: false,
+                    defaultContent: ''
+                }
+            ],
+            "order": [
+                [1, 'asc'],
+            ],
+
+            paging: true,
+            autoWidth: true,
+            pageLength: 18,
+        });
+
         var hash = readHash();
-        
+
         $('#active-switch').prop('checked', hash.active === 'yes')
         filterActive()
 
         if (hash === undefined)
             return;
-        
+
         if (hash.unit !== undefined) {
             filterUsers(document.getElementById(hash.unit + '-btn'), hash.unit, 2)
         }
@@ -163,7 +336,7 @@ const headers = [{
         }
     });
 
-    
+
     function filterUsers(btn, attr = null, column = 2) {
         var tr = $(btn).closest('tr')
         var table = tr.closest('table')
@@ -210,5 +383,4 @@ const headers = [{
         }
         writeHash(hash)
     }
-
 </script>

@@ -177,41 +177,48 @@ Route::get('/api/activities', function () {
         $aggregate[] = ['$project' => ['_id' => 0, 'activity' => 1, 'count' => 1]];
         // $aggregate = array_merge($filter);
 
-
         $result = $osiris->activities->aggregate(
             $aggregate
         )->toArray();
         echo return_rest($result, count($result));
         die;
     }
-    $result = $osiris->activities->find($filter, ['sort' => ['year' => -1]])->toArray();
 
     if (isset($_GET['full'])) {
+        $result = $osiris->activities->find(
+            $filter,
+            ['sort' => ['year' => -1]]
+        )->toArray();
         echo return_rest($result, count($result));
         die;
     }
-    $table = [];
-    foreach ($result as $doc) {
-        if (isset($doc['rendered'])) {
-            $rendered = $doc['rendered'];
-        } else {
-            $rendered = renderActivities(['_id' => $doc['_id']]);
-        }
 
-        $table[] = [
-            'id' => strval($doc['_id']),
-            'activity' => $rendered['web'],
-            'print' => $rendered['print'],
-            'icon' => $rendered['icon'] ?? '',
-            'type' => $rendered['type'] ?? '',
-            'subtype' => $rendered['subtype'] ?? '',
-            'year' => $doc['year'] ?? 0,
-            'authors' => $rendered['authors'] ?? '',
-            'title' => $rendered['title'] ?? '',
-            'departments' => $rendered['depts'],
-        ];
+    $pipeline = [];
+    // Nur `$match` hinzufügen, wenn `$filter` nicht leer ist
+    if (!empty($filter)) {
+        $pipeline[] = ['$match' => $filter];
     }
-    echo return_rest($table, count($table));
+    // Füge das Sortieren und die Projektion hinzu
+    $pipeline[] = ['$sort' => ['year' => -1]];
+    $pipeline[] = [
+        '$project' => [
+            '_id' => ['$toString' => '$_id'],
+            'activity' => '$rendered.web',
+            'print' => '$rendered.print',
+            'icon' => '$rendered.icon',
+            'type' => '$rendered.type',
+            'subtype' => '$rendered.subtype',
+            'year' => '$year',
+            'authors' => '$rendered.authors',
+            'title' => '$rendered.title',
+            'departments' => '$rendered.depts'
+        ]
+    ];
+
+    // Führe die Aggregation aus
+    $result = $osiris->activities->aggregate($pipeline)->toArray();
+
+    echo return_rest($result, count($result));
 });
 
 
@@ -551,7 +558,10 @@ Route::get('/api/users', function () {
                 'names' => !empty($user['names'] ?? null) ? implode(', ', DB::doc2Arr($user['names'])) : '',
                 'first' => $user['first'],
                 'last' => $user['last'],
-                'email' => $user['email'],
+                'position' => $user['position'] ?? '',
+                'mail' => $user['mail'] ?? '',
+                'telephone' => $user['telephone'] ?? '',
+                'orcid' => $user['orcid'] ?? '',
                 'academic_title' => $user['academic_title'],
                 'dept' => $Groups->personDept($user['depts'], 1)['id'],
                 'active' => ($user['is_active'] ?? true) ? 'yes' : 'no',

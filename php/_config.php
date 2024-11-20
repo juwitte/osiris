@@ -122,6 +122,7 @@ function validateValues($values, $DB)
         } else if ($key == 'start' || $key == 'end') {
             if (DateTime::createFromFormat('Y-m-d', $value) !== FALSE) {
                 $values[$key] = valiDate($value);
+                $values[$key. '_date'] = $value;
                 if ($key == 'start') {
                     if (!isset($values['year']) && isset($values[$key]['year'])) {
                         $values['year'] = $values[$key]['year'];
