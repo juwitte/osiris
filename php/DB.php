@@ -159,6 +159,14 @@ class DB
             $con = $this->db->journals->findOne(['_id' => $id]);
         } elseif ($type == 'teaching') {
             $con = $this->db->teaching->findOne(['_id' => $id]);
+        } elseif ($type == 'project') {
+            $con = $this->db->projects->findOne(['_id' => $id]);
+        } elseif ($type == 'person') {
+            $con = $this->db->persons->findOne(['_id' => $id]);
+        } elseif ($type == 'activity') {
+            $con = $this->db->activities->findOne(['_id' => $id]);
+        } elseif ($type == 'conference') {
+            $con = $this->db->conferences->findOne(['_id' => $id]);
         }
         return $this->doc2Arr($con);
     }

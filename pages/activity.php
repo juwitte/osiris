@@ -541,6 +541,38 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                                 </a>
                             </td>
                         </tr>
+                        <?php elseif ($module == 'conference' && isset($doc['conference_id'])) :
+                        $conference = $DB->getConnected('conference', $doc['conference_id']);
+                    ?>
+
+                        <tr>
+                            <td>
+                                <span class="key">Event</span>
+
+                                <div class="module ">
+                                    <h6 class="m-0">
+                                        <a href="<?= ROOTPATH ?>/conference/view/<?= $doc['conference_id'] ?>">
+                                        <?= $conference['title'] ?>
+                                        </a>
+                                    </h6>
+                                    <div class="text-muted mb-10"><?= $conference['title_full'] ?></div>
+                                    <ul class="horizontal mb-0">
+                                       <li>
+                                         <b><?=lang('Location', 'Ort')?></b>: <?= $conference['location'] ?>
+                                       </li>
+                                        <li>
+                                            <b><?=lang('Date', 'Datum')?></b>: <?= fromToDate($conference['start'], $conference['end']) ?>
+                                        </li>
+                                        <li>
+                                            <a href="<?= $conference['url'] ?>" target="_blank">
+                                                <i class="ph ph-link"></i>
+                                                <?= lang('Website', 'Website') ?>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
                     <?php else : ?>
 
                         <tr>
