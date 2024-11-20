@@ -201,7 +201,7 @@ $participate = in_array($_SESSION['username'], $conference['participants']);
     <form action="<?= ROOTPATH ?>/crud/conferences/delete/<?= $conference['_id'] ?>" method="post">
         <div class="alert danger mt-20">
            <p>
-           <?= lang('Do you want to delete this conference?', 'Möchten Sie diese Konferenz löschen?') ?>
+           <?= lang('Do you want to delete this event?', 'Möchten Sie diese Event löschen?') ?>
            <?=lang('Please note: this cannot be undone.', 'Achtung: dies kann nicht rückgängig gemacht werden.')?>
            </p>
             <button class="btn danger" type="submit"><?= lang('Delete', 'Löschen') ?></button>

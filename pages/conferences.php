@@ -3,7 +3,7 @@ $user = $_SESSION['username'];
 ?>
 
 
-<h1><?= lang('Conferences', 'Konferenzen') ?></h1>
+<h1><?= lang('Events') ?></h1>
 
 
 <!-- modal for adding conference -->
@@ -15,7 +15,7 @@ $user = $_SESSION['username'];
                     <span aria-hidden="true">&times;</span>
                 </a>
                 <h4 class="title mt-0">
-                    <?= lang('Add conference', 'Konferenz hinzufügen') ?>
+                    <?= lang('Add event', 'Event hinzufügen') ?>
                 </h4>
 
                 <form action="<?= ROOTPATH ?>/crud/conferences/add" method="post" id="conference-form">
@@ -51,21 +51,21 @@ $user = $_SESSION['username'];
                         <input type="url" name="url" class="form-control">
                     </div>
 
-                    <button class="btn mb-10" type="submit"><?= lang('Add conference', 'Konferenz hinzufügen') ?></button>
+                    <button class="btn mb-10" type="submit"><?= lang('Add event', 'Event hinzufügen') ?></button>
                 </form>
             </div>
         </div>
     </div>
     <a href="#add-conference" class="float-md-right btn primary">
         <i class="ph ph-plus"></i>
-        <?= lang('Add conference', 'Konferenz hinzufügen') ?>
+        <?= lang('Add event', 'Event hinzufügen') ?>
     </a>
 <?php } ?>
 
 
 
 <p class="text-muted">
-    <small> <?= lang('Conferences were added by users of the OSIRIS system.', 'Konferenzen wurden von Nutzenden des OSIRIS-Systems angelegt.') ?></small>
+    <small> <?= lang('Events were added by users of the OSIRIS system.', 'Events wurden von Nutzenden des OSIRIS-Systems angelegt.') ?></small>
 </p>
 
 <?php

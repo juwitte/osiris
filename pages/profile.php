@@ -905,19 +905,30 @@ if ($currentuser) { ?>
 
                         <h4 class="title">
                             <a href="<?= ROOTPATH ?>/conferences" class="link">
-                                <?= lang('Conferences', 'Konferenzen') ?>
+                                <?= lang('Events') ?>
                             </a>
                         </h4>
                         <p class="text-muted">
-                            <?= lang('Shown are approaching conferences and conferences within the past three month.', 'Gezeigt sind zukünftige Konferenzen und vergangene aus den letzten drei Monaten.') ?>
+                            <?= lang('Shown are approaching events and events you attended within the past six month.', 'Gezeigt sind zukünftige Events und vergangene, an denen du in den letzten sechs Monaten teilgenommen hast.') ?>
                             <br>
-                            <small> <?= lang('Conferences were added by users of the OSIRIS system.', 'Konferenzen wurden von Nutzenden des OSIRIS-Systems angelegt.') ?></small>
+                            <small> <?= lang('Events were added by users of the OSIRIS system.', 'Events wurden von Nutzenden des OSIRIS-Systems angelegt.') ?></small>
                         </p>
 
                         <?php
                         // conferences max past 3 month
                         $conferences = $osiris->conferences->find(
-                            ['start' => ['$gte' => date('Y-m-d', strtotime('-3 month'))]],
+                            [
+                                '$or' => [
+                                    ['end' => ['$gte' => date('Y-m-d', strtotime('-3 days'))]],
+                                    [
+                                        'start' => ['$gte' => date('Y-m-d', strtotime('-6 month'))],
+                                        '$or' => [
+                                            ['participants' => $user],
+                                            ['interests' => $user]
+                                        ]
+                                    ]
+                                ]
+                            ],
                             ['sort' => ['start' => 1]]
                         )->toArray();
                         ?>
