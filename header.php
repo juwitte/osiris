@@ -251,14 +251,40 @@ $pageactive = function ($p) use ($page) {
                 </button>
             </form>
 
-            <form id="navbar-search" action="<?= ROOTPATH ?>/activities" method="get" class="nav-search">
-                <div class="input-group">
-                    <input type="text" name="q" class="form-control border-primary" autocomplete="off" placeholder="<?= lang('Search in activities', 'Suche in Aktivitäten') ?>">
-                    <div class="input-group-append">
-                        <button class="btn primary filled"><i class="ph ph-magnifying-glass"></i></button>
+
+            <?php
+            $realusername = $_SESSION['realuser'] ?? $_SESSION['username'];
+            $maintain = $osiris->persons->find(['maintenance' => $realusername], ['projection' => ['displayname' => 1, 'username' => 1]])->toArray();
+            if (!empty($maintain)) { ?>
+                <form action="" class="nav-search" id="navbar-search">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text border-primary text-primary"><i class="ph ph-user"></i></span>
+                        </div>
+
+                        <select name="OSIRIS-SELECT-MAINTENANCE-USER" id="osiris-select-maintenance-user" class="form-control border-primary bg-white" onchange="$(this).parent().submit()">
+                            <option value="" disabled>
+                                <?= lang('Switch user', 'Benutzer wechseln') ?>
+                            </option>
+                            <option value="<?= $realusername ?>"><?= $DB->getNameFromId($realusername) ?></option>
+                            <?php
+                            foreach ($maintain as $d) { ?>
+                                <option value="<?= $d['username'] ?>" <?= $d['username'] ==  $_SESSION['username'] ? 'selected' : '' ?>><?= $DB->getNameFromId($d['username']) ?></option>
+                            <?php } ?>
+                        </select>
                     </div>
-                </div>
-            </form>
+                </form>
+            <?php } else { ?>
+                <form id="navbar-search" action="<?= ROOTPATH ?>/activities" method="get" class="nav-search">
+                    <div class="input-group">
+                        <input type="text" name="q" class="form-control border-primary" autocomplete="off" placeholder="<?= lang('Search in activities', 'Suche in Aktivitäten') ?>">
+                        <div class="input-group-append">
+                            <button class="btn primary filled"><i class="ph ph-magnifying-glass"></i></button>
+                        </div>
+                    </div>
+                </form>
+            <?php } ?>
+
 
         </nav>
         <!-- Sidebar start -->
@@ -283,33 +309,52 @@ $pageactive = function ($p) use ($page) {
 
                 <?php } else { ?>
 
-                    <?php
-                    $realusername = $_SESSION['realuser'] ?? $_SESSION['username'];
-                    $maintain = $osiris->persons->find(['maintenance' => $realusername], ['projection' => ['displayname' => 1, 'username' => 1]])->toArray();
-                    if (!empty($maintain)) { ?>
-                        <form action="" class="content" style="margin-top:-3rem">
-                            <select name="OSIRIS-SELECT-MAINTENANCE-USER" id="osiris-select-maintenance-user" class="form-control" onchange="$(this).parent().submit()">
-                                <option value="<?= $realusername ?>"><?= $DB->getNameFromId($realusername) ?></option>
-                                <?php
-                                foreach ($maintain as $d) { ?>
-                                    <option value="<?= $d['username'] ?>" <?= $d['username'] ==  $_SESSION['username'] ? 'selected' : '' ?>><?= $DB->getNameFromId($d['username']) ?></option>
-                                <?php } ?>
-                            </select>
-                        </form>
-                    <?php } ?>
 
+                    <!-- search bar -->
+                    <div class="content" style="margin-top:-4rem">
+                        <input type="text" class="form-control small border-primary" autocomplete="off" placeholder="<?= lang('Search', 'Suche') ?>" oninput="searchNavBar(this.value)">
+                    </div>
 
                     <a href="<?= ROOTPATH ?>/add-activity" class="cta with-icon <?= $pageactive('add-activity') ?>">
                         <i class="ph ph-plus-circle mr-10" aria-hidden="true"></i>
                         <?= lang('Add activity', 'Aktivität hinzuf.') ?>
                     </a>
+
+                    <script>
+                        function searchNavBar(value) {
+                            var links = $('.sidebar a');
+                            links.each(function() {
+                                if ($(this).text().toLowerCase().includes(value.toLowerCase())) {
+                                    $(this).css('display', 'flex');
+                                } else {
+                                    $(this).css('display', 'none');
+                                }
+                            });
+
+                            // hide empty header
+                            var titles = $('.sidebar .title');
+                            titles.each(function() {
+                                var nav = $(this).next();
+                                var visible = false;
+                                nav.children().each(function() {
+                                    if ($(this).css('display') == 'flex') {
+                                        visible = true;
+                                    }
+                                });
+                                if (visible) {
+                                    $(this).css('display', 'block');
+                                } else {
+                                    $(this).css('display', 'none');
+                                }
+                            });
+                        }
+                    </script>
+
                     <div class="title collapse open" onclick="toggleSidebar(this);" id="sidebar-user">
-                        <!-- <?= lang('User', 'Nutzer') ?> -->
-                        <?= $USER["displayname"] ?? 'User' ?>
+                        <?= lang('My area', 'Mein Bereich') ?>
                     </div>
 
                     <nav>
-
                         <a href="<?= ROOTPATH ?>/profile/<?= $_SESSION['username'] ?>" class="with-icon <?= $pageactive('profile/' . $_SESSION['username']) ?>">
                             <i class="ph ph-user" aria-hidden="true"></i>
                             <?= $USER["displayname"] ?? 'User' ?>
@@ -321,9 +366,9 @@ $pageactive = function ($p) use ($page) {
                                 <?= lang('My year', 'Mein Jahr') ?>
                             </a>
                             <a href="<?= ROOTPATH ?>/my-activities" class="with-icon <?= $pageactive('my-activities') ?>">
-                            <i class="ph ph-folder-user" aria-hidden="true"></i>
-                            <?= lang('My activities', 'Meine Aktivitäten') ?>
-                        </a>
+                                <i class="ph ph-folder-user" aria-hidden="true"></i>
+                                <?= lang('My activities', 'Meine Aktivitäten') ?>
+                            </a>
                         <?php } ?>
 
 
@@ -335,7 +380,7 @@ $pageactive = function ($p) use ($page) {
                     </nav>
 
                     <div class="title collapse open" onclick="toggleSidebar(this);" id="sidebar-activities">
-                        <?= lang('Activities', 'Aktivitäten') ?>
+                        <?= lang('Data', 'Daten') ?>
                     </div>
 
                     <nav>
@@ -343,6 +388,21 @@ $pageactive = function ($p) use ($page) {
                             <i class="ph ph-folders" aria-hidden="true"></i>
                             <?= lang('All activities', 'Alle Aktivitäten') ?>
                         </a>
+
+                        <?php if ($Settings->featureEnabled('projects')) { ?>
+                            <a href="<?= ROOTPATH ?>/projects" class="with-icon <?= $pageactive('projects') ?>">
+                                <i class="ph ph-tree-structure" aria-hidden="true"></i>
+                                <?= lang('Projects', 'Projekte') ?>
+                            </a>
+
+                            <?php if ($Settings->featureEnabled('nagoya') && $Settings->hasPermission('nagoya.view')) { ?>
+                                <a href="<?= ROOTPATH ?>/nagoya" class="with-icon <?= $pageactive('nagoya') ?>">
+                                    <i class="ph ph-scales" aria-hidden="true"></i>
+                                    <?= lang('Nagoya Protocol', 'Nagoya-Protokoll') ?>
+                                </a>
+                            <?php } ?>
+
+                        <?php } ?>
 
 
                         <a href="<?= ROOTPATH ?>/journal" class="with-icon <?= $pageactive('journal') ?>">
@@ -352,12 +412,12 @@ $pageactive = function ($p) use ($page) {
 
                         <a href="<?= ROOTPATH ?>/conferences" class="with-icon <?= $pageactive('conferences') ?>">
                             <i class="ph ph-presentation-chart" aria-hidden="true"></i>
-                            <?= lang('Conferences', 'Konferenzen') ?>
+                            <?= lang('Events') ?>
                         </a>
 
                         <a href="<?= ROOTPATH ?>/teaching" class="with-icon <?= $pageactive('teaching') ?>">
                             <i class="ph ph-chalkboard-simple" aria-hidden="true"></i>
-                            <?= lang('Teaching modules', 'Lehrveranstaltungen') ?>
+                            <?= lang('Teaching modules', 'Lehrmodule') ?>
                         </a>
 
                         <?php if ($Settings->featureEnabled('topics')) { ?>
@@ -367,10 +427,10 @@ $pageactive = function ($p) use ($page) {
                             </a>
                         <?php } ?>
 
-                        <a href="<?= ROOTPATH ?>/tags" class="with-icon <?= $pageactive('tags') ?>">
+                        <!-- <a href="<?= ROOTPATH ?>/tags" class="with-icon <?= $pageactive('tags') ?>">
                             <i class="ph ph-circles-three-plus" aria-hidden="true"></i>
                             <?= lang('Tags', 'Schlagwörter') ?>
-                        </a>
+                        </a> -->
 
                         <?php if ($Settings->featureEnabled('concepts')) { ?>
                             <a href="<?= ROOTPATH ?>/concepts" class="with-icon <?= $pageactive('concepts') ?>">
@@ -400,13 +460,13 @@ $pageactive = function ($p) use ($page) {
                         </a>
                         <a href="<?= ROOTPATH ?>/groups" class="with-icon <?= $pageactive('groups') ?>">
                             <i class="ph ph-users-three" aria-hidden="true"></i>
-                            <?= lang('Organisational Units', 'Organisationseinh.') ?>
+                            <?= lang('Organisational Units', 'Organisationen') ?>
                         </a>
-                        
-                        <a href="<?= ROOTPATH ?>/expertise" class="with-icon <?= $pageactive('expertise') ?>">
+
+                        <!-- <a href="<?= ROOTPATH ?>/expertise" class="with-icon <?= $pageactive('expertise') ?>">
                             <i class="ph ph-barbell" aria-hidden="true"></i>
                             <?= lang('Expertise search', 'Expertise-Suche') ?>
-                        </a>
+                        </a> -->
 
                         <?php if ($Settings->featureEnabled('guests')) { ?>
                             <a href="<?= ROOTPATH ?>/guests" class="with-icon <?= $pageactive('guests') ?>">
@@ -417,32 +477,8 @@ $pageactive = function ($p) use ($page) {
 
                     </nav>
 
-
-                    <?php if ($Settings->featureEnabled('projects')) { ?>
-                        <div class="title collapse open" onclick="toggleSidebar(this);" id="sidebar-projects">
-                            <?= lang('Projects', 'Projekte') ?>
-                        </div>
-
-                        <nav>
-                            <a href="<?= ROOTPATH ?>/projects" class="with-icon <?= $pageactive('projects') ?>">
-                                <i class="ph ph-tree-structure" aria-hidden="true"></i>
-                                <?= lang('Projects', 'Projekte') ?>
-                            </a>
-
-                            <?php if ($Settings->featureEnabled('nagoya') && $Settings->hasPermission('nagoya.view')) { ?>
-                                <a href="<?= ROOTPATH ?>/nagoya" class="with-icon <?= $pageactive('nagoya') ?>">
-                                    <i class="ph ph-scales" aria-hidden="true"></i>
-                                    <?= lang('Nagoya Protocol', 'Nagoya-Protokoll') ?>
-                                </a>
-                            <?php } ?>
-
-                        </nav>
-                    <?php } ?>
-
-
-
                     <div class="title collapse open" onclick="toggleSidebar(this);" id="sidebar-tools">
-                        <?= lang('Visualization', 'Visualisierungen') ?>
+                        <?= lang('Visualization', 'Visualisierung') ?>
                     </div>
                     <nav>
                         <!-- <a href="<?= ROOTPATH ?>/activities/search" class="with-icon <?= $pageactive('search') ?>">
@@ -493,7 +529,7 @@ $pageactive = function ($p) use ($page) {
                             <?= lang('Import') ?>
                         </a>
 
-                        
+
                         <?php if ($Settings->hasPermission('report.queue')) { ?>
                             <?php
                             $n_queue = $osiris->queue->count(['declined' => ['$ne' => true]]);
