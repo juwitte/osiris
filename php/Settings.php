@@ -113,7 +113,9 @@ class Settings
             if (!$img_exist) {
                 return $default;
             }
-            $img = "$root/img/users/$user.jpg";
+            // make sure that caching is not an issue
+            $v = filemtime(BASEPATH . "/img/users/$user.jpg");
+            $img = "$root/img/users/$user.jpg?v=$v";
             return ' <img src="' . $img . '" alt="Profilbild" class="' . $class . '">';
         }
     }
