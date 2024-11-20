@@ -262,7 +262,7 @@ $pageactive = function ($p) use ($page) {
                             <span class="input-group-text border-primary text-primary"><i class="ph ph-user"></i></span>
                         </div>
 
-                        <select name="OSIRIS-SELECT-MAINTENANCE-USER" id="osiris-select-maintenance-user" class="form-control border-primary bg-white" onchange="$(this).parent().submit()">
+                        <select name="OSIRIS-SELECT-MAINTENANCE-USER" id="osiris-select-maintenance-user" class="form-control border-primary bg-white" onchange="$(this).closest('form').submit()">
                             <option value="" disabled>
                                 <?= lang('Switch user', 'Benutzer wechseln') ?>
                             </option>
