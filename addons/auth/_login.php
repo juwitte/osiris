@@ -12,6 +12,11 @@ function login($username, $password)
         return $return;
     }
 
+    if (empty($USER['password'])) {
+        $return["msg"] = "User has no password.";
+        return $return;
+    }
+
     // check if password is correct
     if (!password_verify($password, $USER['password'])) {
         $return["msg"] = "Login failed.";

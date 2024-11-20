@@ -201,10 +201,13 @@ Route::pathNotFound(function ($path) {
         // Send plain text response for scripts expecting text
         header('Content-Type: text/plain');
         echo "404 Not Found";
+    } elseif (!$_SESSION['loggedin']) {
+        header("Location: " . ROOTPATH . "/user/login?redirect=" . urlencode($_SERVER['REQUEST_URI']));
     } else {
         // Send HTML response for users
         $error = 404;
         include BASEPATH . "/header.php";
+
         include BASEPATH . "/pages/error.php";
         include BASEPATH . "/footer.php";
     }

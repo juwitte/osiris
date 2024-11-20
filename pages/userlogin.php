@@ -29,6 +29,17 @@ if ($version['value'] != OSIRIS_VERSION) { ?>
     die;
 }
 
+
+if (isset($_GET['redirect'])) {?>
+
+<div class="alert danger">
+    <h3 class="title"><?= lang('Access denied', 'Zugriff verweigert') ?></h3>
+    <?= lang('You need to log in to access this page.', 'Du musst dich einloggen, um auf diese Seite zuzugreifen.') ?>
+</div>
+
+<?php
+}
+
 // check user management
 if (!defined('USER_MANAGEMENT')) {
     die('USER_MANAGEMENT not defined in CONFIG.php');

@@ -24,10 +24,6 @@ Route::get('/user/login', function () {
         die;
     }
     include BASEPATH . "/header.php";
-
-    if (isset($_GET['redirect'])) {
-        echo (lang("You need to be logged in to see this page.", "Du musst eingeloggt sein, um diese Seite zu sehen."));
-    }
     include BASEPATH . "/pages/userlogin.php";
     include BASEPATH . "/footer.php";
 });
