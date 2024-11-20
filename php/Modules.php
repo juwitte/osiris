@@ -1327,7 +1327,7 @@ class Modules
                 <div class="data-module floating-form col-sm-6" data-module="conference">
                     <input type="hidden" class="hidden" name="values[conference_id]" id="conference_id" value="<?= $this->val('conference_id', null) ?>">
                     <input type="text" class="form-control" <?= $required ?> name="values[conference]" id="conference" list="conference-list" placeholder="VAAM 2022" value="<?= $this->val('conference') ?>" oninput="$('#conference_id').val('')">
-                    <label for="conference" class="element-other <?= $required ?>"><?= lang('Conference', 'Konferenz') ?></label>
+                    <label for="conference" class="element-other <?= $required ?>"><?= lang('Event', 'Event') ?></label>
                     <p class="m-0 font-size-12 ">
                         <?= lang('Latest', 'Zuletzt') ?>:
                         <?php
@@ -1349,13 +1349,18 @@ class Modules
                     </script>
                 </div>
 
-
                 <datalist id="conference-list">
                     <?php
-                    foreach ($this->DB->db->activities->distinct('conference') as $c) { ?>
+                    foreach ($this->DB->db->conferences->distinct('title') as $c) { ?>
                         <option><?= $c ?></option>
                     <?php } ?>
                 </datalist>
+                <!-- TODO:<datalist id="conference-list">
+                    <?php
+                    foreach ($this->DB->db->conferences->find() as $c) { ?>
+                        <option data-id="<?= $c['_id'] ?>"><?= $c['title'] . ': ' . $c['title_full'] ?></option>
+                    <?php } ?>
+                </datalist> -->
 
             <?php
                 break;

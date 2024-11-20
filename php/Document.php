@@ -735,7 +735,7 @@ class Document extends Settings
                 return $this->getVal('doc_type');
             case "doi": // ["doi"],
                 $val = $this->getVal('doi');
-                if ($val == $default) return '';
+                if ($val == $default || empty($val)) return $default;
                 return "DOI: <a target='_blank' href='https://doi.org/$val'>$val</a>";
             case "edition": // ["edition"],
                 $val = $this->getVal('edition');
