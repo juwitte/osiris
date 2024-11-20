@@ -523,7 +523,7 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
 
                 <?php
                 $selected = $data['maintenance'] ?? '';
-                $all_users = $osiris->persons->find(['is_active' => true], ['sort' => ['last' => 1, 'first' => 1]]);
+                $all_users = $osiris->persons->find(['is_active' => ['$ne'=>false]], ['sort' => ['last' => 1, 'first' => 1]]);
                 foreach ($all_users as $s) { ?>
                     <option value="<?= $s['username'] ?>" <?= $selected == $s['username'] ? 'selected' : '' ?>><?= "$s[last], $s[first] ($s[username])" ?></option>
                 <?php } ?>
