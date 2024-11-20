@@ -512,12 +512,6 @@ Route::post('/crud/users/delete/(.*)', function ($user) {
 Route::post('/crud/users/profile-picture/(.*)', function ($user) {
     include_once BASEPATH . "/php/init.php";
 
-    $target_dir = BASEPATH . "/img/users";
-    if (!is_writable($target_dir)) {
-        die("User image directory is unwritable. Please contact admin.");
-    }
-    $target_dir .= "/";
-    $filename = "$user.jpg";
 
     if (isset($_FILES["file"])) {
         // if ($_FILES['file']['type'] != 'image/jpeg') die('Wrong extension, only JPEG is allowed.');
@@ -552,6 +546,12 @@ Route::post('/crud/users/profile-picture/(.*)', function ($user) {
                     'ext' => $filetype
                 ]);
             } else {
+                $target_dir = BASEPATH . "/img/users";
+                if (!is_writable($target_dir)) {
+                    die("User image directory is unwritable. Please contact admin.");
+                }
+                $target_dir .= "/";
+                $filename = "$user.jpg";
                 // upload to file system
                 if (move_uploaded_file($_FILES["file"]["tmp_name"], $target_dir . $filename)) {
                     header("Location: " . ROOTPATH . "/profile/$user?msg=success");
