@@ -208,7 +208,7 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
     <div class="col flex-grow-0">
         <div class="position-relative">
             <?= $Settings->printProfilePicture($user, 'profile-img') ?>
-            <?php if ($currentuser || $Settings->hasPermission('user.image')) { ?>
+            <?php if ($currentuser && $Settings->hasPermission('user.image-own') || $Settings->hasPermission('user.image')) { ?>
                 <a href="#change-picture" class="position-absolute p-10 bottom-0 right-0 text-white"><i class="ph ph-edit"></i></a>
             <?php } ?>
         </div>

@@ -97,6 +97,11 @@
                 "en": "Upload user picture"
             },
             {
+                "id": "user.image-own",
+                "de": "Eigenes Nutzerbild hochladen",
+                "en": "Change own user picture"
+            },
+            {
                 "id": "user.settings",
                 "de": "Nutzereinstellungen bearbeiten",
                 "en": "Edit user settings"
