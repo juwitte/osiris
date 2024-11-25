@@ -275,10 +275,18 @@ if (array_sum($a) === 0) {
                             <b class="d-block">
                                 <?php if ($h['type'] == 'created') {
                                     echo lang('Created by ', 'Erstellt von ');
-                                } else {
+                                } else if ($h['type'] == 'edited') {
                                     echo lang('Edited by ', 'Bearbeitet von ');
+                                } else if ($h['type'] == 'imported') {
+                                    echo lang('Imported by ', 'Importiert von ');
+                                } else {
+                                    echo $h['type'] . lang(' by ', ' von ');
                                 }
-                                echo $DB->getNameFromId($h['user']);
+                                if (isset($h['user']) && !empty($h['user'])) {
+                                    echo '<a href="' . ROOTPATH . '/profile/' . $h['user'] . '">' . $DB->getNameFromId($h['user']) . '</a>';
+                                } else {
+                                    echo "System";
+                                }
                                 ?>
                             </b>
 
@@ -317,8 +325,8 @@ if (array_sum($a) === 0) {
                                 echo '</table>';
                             } else if (isset($h['data']) && !empty($h['data'])) {
                                 echo '<a class="font-weight-bold mt-10"  onclick="$(this).next().fadeToggle()">' .
-                                        '<i class="ph ph-caret-down"></i> '.
-                                        lang('Status at this time point', 'Status zu diesem Zeitpunkt') .
+                                    '<i class="ph ph-caret-down"></i> ' .
+                                    lang('Status at this time point', 'Status zu diesem Zeitpunkt') .
                                     '</a>';
 
                                 echo '<table class="table simple w-auto small border px-10" style="display:none";>';
@@ -342,52 +350,52 @@ if (array_sum($a) === 0) {
                 </div>
             </div>
         </div>
-        <?php } ?>
     <?php } ?>
+<?php } ?>
 
-    <?php if (!empty($issues['epub'])) { ?>
-        <h2 class="mb-0">
-            <?= lang(
-                'Please review the following <q>Online ahead of print</q> articles:',
-                'Bitte überprüfe die folgenden <q>Online ahead of print</q>-Artikel:'
-            ) ?>
-        </h2>
-        <p class="mt-0">
-            <a href="<?= ROOTPATH ?>/docs/warnings#online-ahead-of-print"><?= lang('What does it mean?', 'Was bedeutet das?') ?></a>
-        </p>
+<?php if (!empty($issues['epub'])) { ?>
+    <h2 class="mb-0">
+        <?= lang(
+            'Please review the following <q>Online ahead of print</q> articles:',
+            'Bitte überprüfe die folgenden <q>Online ahead of print</q>-Artikel:'
+        ) ?>
+    </h2>
+    <p class="mt-0">
+        <a href="<?= ROOTPATH ?>/docs/warnings#online-ahead-of-print"><?= lang('What does it mean?', 'Was bedeutet das?') ?></a>
+    </p>
 
-        <table class="table">
-            <?php
-            foreach ($issues['epub'] as $doc) {
-                $doc = $DB->getActivity($doc);
+    <table class="table">
+        <?php
+        foreach ($issues['epub'] as $doc) {
+            $doc = $DB->getActivity($doc);
 
-                $id = $doc['_id'];
-                $type = $doc['type'];
-            ?>
-                <tr id="tr-<?= $id ?>">
-                    <td class="w-50"><?= $doc['rendered']['icon'] ?></td>
-                    <td>
-                        <?= $doc['rendered']['web'] ?>
-                        <div class='alert mt-10 signal' id="approve-<?= $id ?>">
-                            <?= lang(
-                                'This publication is marked as <q>Online ahead of print</q>. Is it still not officially published?',
-                                'Diese Aktivität ist markiert als <q>Online ahead of print</q>. Ist sie noch nicht offiziell publiziert?'
-                            ) ?>
-                            <br>
-                            <form action="<?= ROOTPATH ?>/crud/activities/update/<?= $id ?>" method="post" class="d-inline mt-5">
-                                <input type="hidden" class="hidden" name="redirect" value="<?= $_SERVER['REDIRECT_URL'] ?? $_SERVER['REQUEST_URI'] ?>">
-                                <input type="hidden" name="values[epub-delay]" value="<?= endOfCurrentQuarter(true) ?>" class="hidden">
-                                <button class="btn small">
-                                    <i class="ph ph-check"></i>
-                                    <?= lang('Yes, still <q>Online ahead of print</q> (ask again later).', 'Ja, noch immer <q>Online ahead of print</q> (frag später noch mal).') ?>
-                                </button>
-                            </form>
+            $id = $doc['_id'];
+            $type = $doc['type'];
+        ?>
+            <tr id="tr-<?= $id ?>">
+                <td class="w-50"><?= $doc['rendered']['icon'] ?></td>
+                <td>
+                    <?= $doc['rendered']['web'] ?>
+                    <div class='alert mt-10 signal' id="approve-<?= $id ?>">
+                        <?= lang(
+                            'This publication is marked as <q>Online ahead of print</q>. Is it still not officially published?',
+                            'Diese Aktivität ist markiert als <q>Online ahead of print</q>. Ist sie noch nicht offiziell publiziert?'
+                        ) ?>
+                        <br>
+                        <form action="<?= ROOTPATH ?>/crud/activities/update/<?= $id ?>" method="post" class="d-inline mt-5">
+                            <input type="hidden" class="hidden" name="redirect" value="<?= $_SERVER['REDIRECT_URL'] ?? $_SERVER['REQUEST_URI'] ?>">
+                            <input type="hidden" name="values[epub-delay]" value="<?= endOfCurrentQuarter(true) ?>" class="hidden">
+                            <button class="btn small">
+                                <i class="ph ph-check"></i>
+                                <?= lang('Yes, still <q>Online ahead of print</q> (ask again later).', 'Ja, noch immer <q>Online ahead of print</q> (frag später noch mal).') ?>
+                            </button>
+                        </form>
 
 
-                            <a href="<?= ROOTPATH ?>/activities/edit/<?= $id ?>?epub=true" class="btn small">
-                                <?= lang('No longer <q>Online ahead of print</q> (Review)', 'Nicht länger <q>Online ahead of print</q> (Review)') ?>
-                            </a>
-                            <!-- <div class="input-group sm w-500 d-inline-flex">
+                        <a href="<?= ROOTPATH ?>/activities/edit/<?= $id ?>?epub=true" class="btn small">
+                            <?= lang('No longer <q>Online ahead of print</q> (Review)', 'Nicht länger <q>Online ahead of print</q> (Review)') ?>
+                        </a>
+                        <!-- <div class="input-group sm w-500 d-inline-flex">
                             <input type="date" class="form-control" value="<?= valueFromDateArray(["year" => $doc['year'], "month" => $doc['month'], "day" => $doc['day'] ?? 1]) ?>">
                             <div class="input-group-append">
                                 <button class="btn" type="button" onclick="todo()">
@@ -396,110 +404,156 @@ if (array_sum($a) === 0) {
                                 </button>
                             </div>
                         </div> -->
-                        </div>
-                    </td>
-                </tr>
-            <?php } ?>
-        </table>
-    <?php } ?>
+                    </div>
+                </td>
+            </tr>
+        <?php } ?>
+    </table>
+<?php } ?>
 
-    <?php if (!empty($issues['students'])) { ?>
-        <h2 class="mb-0">
-            <?= lang(
-                'Please review the following theses:',
-                'Bitte überprüfe die folgenden Abschlussarbeiten:'
-            ) ?>
-        </h2>
-        <p class="mt-0">
-            <a href="<?= ROOTPATH ?>/docs/warnings#studenten-abschluss"><?= lang('What does it mean?', 'Was bedeutet das?') ?></a>
-        </p>
+<?php if (!empty($issues['students'])) { ?>
+    <h2 class="mb-0">
+        <?= lang(
+            'Please review the following theses:',
+            'Bitte überprüfe die folgenden Abschlussarbeiten:'
+        ) ?>
+    </h2>
+    <p class="mt-0">
+        <a href="<?= ROOTPATH ?>/docs/warnings#studenten-abschluss"><?= lang('What does it mean?', 'Was bedeutet das?') ?></a>
+    </p>
 
-        <table class="table">
-            <?php
-            foreach ($issues['students'] as $doc) {
-                $doc = $DB->getActivity($doc);
+    <table class="table">
+        <?php
+        foreach ($issues['students'] as $doc) {
+            $doc = $DB->getActivity($doc);
 
-                $id = $doc['_id'];
-                $type = $doc['type'];
-            ?>
-                <tr id="tr-<?= $id ?>">
-                    <td class="w-50"><?= $doc['rendered']['icon'] ?></td>
-                    <td>
-                        <?= $doc['rendered']['web'] ?>
-                        <div class='alert mt-10 signal' id="approve-<?= $id ?>">
-                            <?= lang(
-                                "The Thesis of $doc[name] has ended. Please confirm if the work has been successfully completed or not or extend the time frame.",
-                                "Die Abschlussarbeit von $doc[name] ist zu Ende. Bitte bestätige den Erfolg/Misserfolg der Arbeit oder verlängere den Zeitraum."
-                            )  ?>
-                            <br>
-                            <form action="<?= ROOTPATH ?>/crud/activities/update/<?= $id ?>" method="post" class="form-inline mt-5">
-                                <input type="hidden" class="hidden" name="redirect" value="<?= $_SERVER['REDIRECT_URL'] ?? $_SERVER['REQUEST_URI'] ?>">
+            $id = $doc['_id'];
+            $type = $doc['type'];
+        ?>
+            <tr id="tr-<?= $id ?>">
+                <td class="w-50"><?= $doc['rendered']['icon'] ?></td>
+                <td>
+                    <?= $doc['rendered']['web'] ?>
+                    <div class='alert mt-10 signal' id="approve-<?= $id ?>">
+                        <?= lang(
+                            "The Thesis of $doc[name] has ended. Please confirm if the work has been successfully completed or not or extend the time frame.",
+                            "Die Abschlussarbeit von $doc[name] ist zu Ende. Bitte bestätige den Erfolg/Misserfolg der Arbeit oder verlängere den Zeitraum."
+                        )  ?>
+                        <br>
+                        <form action="<?= ROOTPATH ?>/crud/activities/update/<?= $id ?>" method="post" class="form-inline mt-5">
+                            <input type="hidden" class="hidden" name="redirect" value="<?= $_SERVER['REDIRECT_URL'] ?? $_SERVER['REQUEST_URI'] ?>">
 
-                                <label class="required" for="end"><?= lang('Ended at / Extend until', 'Geendet am / Verlängern bis') ?>:</label>
-                                <input type="date" class="form-control w-200" name="values[end]" id="date_end" value="<?= valueFromDateArray($doc['end'] ?? '') ?>" required>
-                                <div>
-                                    <div class="custom-radio d-inline">
-                                        <input type="radio" name="values[status]" id="status-in-progress-<?= $id ?>" value="in progress" checked="checked">
-                                        <label for="status-in-progress-<?= $id ?>"><?= lang('In progress', 'In Arbeit') ?></label>
-                                    </div>
-
-                                    <div class="custom-radio d-inline">
-                                        <input type="radio" name="values[status]" id="status-completed-<?= $id ?>" value="completed">
-                                        <label for="status-completed-<?= $id ?>"><?= lang('Completed', 'Abgeschlossen') ?></label>
-                                    </div>
-
-                                    <div class="custom-radio mr-10 d-inline">
-                                        <input type="radio" name="values[status]" id="status-aborted-<?= $id ?>" value="aborted">
-                                        <label for="status-aborted-<?= $id ?>"><?= lang('Aborted', 'Abgebrochen') ?></label>
-                                    </div>
+                            <label class="required" for="end"><?= lang('Ended at / Extend until', 'Geendet am / Verlängern bis') ?>:</label>
+                            <input type="date" class="form-control w-200" name="values[end]" id="date_end" value="<?= valueFromDateArray($doc['end'] ?? '') ?>" required>
+                            <div>
+                                <div class="custom-radio d-inline">
+                                    <input type="radio" name="values[status]" id="status-in-progress-<?= $id ?>" value="in progress" checked="checked">
+                                    <label for="status-in-progress-<?= $id ?>"><?= lang('In progress', 'In Arbeit') ?></label>
                                 </div>
-                                <button class="btn" type="submit"><?= lang('Submit', 'Bestätigen') ?></button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-            <?php } ?>
-        </table>
-    <?php } ?>
+
+                                <div class="custom-radio d-inline">
+                                    <input type="radio" name="values[status]" id="status-completed-<?= $id ?>" value="completed">
+                                    <label for="status-completed-<?= $id ?>"><?= lang('Completed', 'Abgeschlossen') ?></label>
+                                </div>
+
+                                <div class="custom-radio mr-10 d-inline">
+                                    <input type="radio" name="values[status]" id="status-aborted-<?= $id ?>" value="aborted">
+                                    <label for="status-aborted-<?= $id ?>"><?= lang('Aborted', 'Abgebrochen') ?></label>
+                                </div>
+                            </div>
+                            <button class="btn" type="submit"><?= lang('Submit', 'Bestätigen') ?></button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+        <?php } ?>
+    </table>
+<?php } ?>
 
 
 
-    <?php if (!empty($issues['openend'])) { ?>
+<?php if (!empty($issues['openend'])) { ?>
+    <h2 class="mb-0">
+        <?= lang(
+            'Do you still work on the following activities?',
+            'Arbeitest du noch immer an den folgenden Aktivitäten?'
+        ) ?>
+    </h2>
+    <p class="mt-0">
+        <a href="<?= ROOTPATH ?>/docs/warnings#open-end"><?= lang('What does it mean?', 'Was bedeutet das?') ?></a>
+    </p>
+
+    <table class="table">
+        <?php
+        foreach ($issues['openend'] as $doc) {
+            $doc = $DB->getActivity($doc);
+
+            $id = $doc['_id'];
+            $type = $doc['type'];
+        ?>
+            <tr id="tr-<?= $id ?>">
+                <td class="w-50"><?= $doc['rendered']['icon'] ?></td>
+                <td>
+                    <?= $doc['rendered']['web'] ?>
+                    <div class='alert mt-10 signal' id="approve-<?= $id ?>">
+
+                        <form action="<?= ROOTPATH ?>/crud/activities/update/<?= $id ?>" method="post" class="d-inline mt-5">
+                            <input type="hidden" class="hidden" name="redirect" value="<?= $_SERVER['REDIRECT_URL'] ?? $_SERVER['REQUEST_URI'] ?>">
+                            <input type="hidden" name="values[end-delay]" value="<?= endOfCurrentQuarter(true) ?>" class="hidden">
+                            <button class="btn small text-success">
+                                <i class="ph ph-check"></i>
+                                <?= lang('Yes', 'Ja') ?>
+                            </button>
+                        </form>
+
+                        <a href="<?= ROOTPATH ?>/activities/edit/<?= $id ?>" class="btn small text-danger">
+                            <i class="ph ph-x"></i>
+                            <?= lang('No (Edit)', 'Nein (Bearbeiten)') ?>
+                        </a>
+
+                    </div>
+                </td>
+            </tr>
+        <?php } ?>
+    </table>
+<?php } ?>
+
+<?php if ($Settings->hasPermission('projects.edit') || $Settings->hasPermission('projects.edit-own')) { ?>
+
+    <?php if (!empty($issues['project-open']) || !empty($issues['project-end'])) {
+        $projects = array_merge($issues['project-open'] ?? [], $issues['project-end'] ?? [])
+    ?>
         <h2 class="mb-0">
             <?= lang(
-                'Do you still work on the following activities?',
-                'Arbeitest du noch immer an den folgenden Aktivitäten?'
+                'Please have a look at the following projects:',
+                'Bitte schau dir die folgenden Projekte an:'
             ) ?>
         </h2>
-        <p class="mt-0">
-            <a href="<?= ROOTPATH ?>/docs/warnings#open-end"><?= lang('What does it mean?', 'Was bedeutet das?') ?></a>
-        </p>
 
         <table class="table">
             <?php
-            foreach ($issues['openend'] as $doc) {
-                $doc = $DB->getActivity($doc);
-
-                $id = $doc['_id'];
-                $type = $doc['type'];
+            if (isset($issues['project-open']))
+                foreach ($issues['project-open'] as $id) {
+                    $doc = $osiris->projects->findOne(['_id' => DB::to_ObjectID($id)]);
             ?>
                 <tr id="tr-<?= $id ?>">
-                    <td class="w-50"><?= $doc['rendered']['icon'] ?></td>
                     <td>
-                        <?= $doc['rendered']['web'] ?>
+                        <?= lang('The project', 'Das Projekt') ?>
+                        <b><?= $doc['name'] ?></b>
+                        <?= lang('still has the status <q>applied</q>. Is this correct? ', 'hat noch immer den Status <q>beantragt</q>. Ist das noch immer so?') ?>
                         <div class='alert mt-10 signal' id="approve-<?= $id ?>">
 
-                            <form action="<?= ROOTPATH ?>/crud/activities/update/<?= $id ?>" method="post" class="d-inline mt-5">
+                            <form action="<?= ROOTPATH ?>/crud/projects/update/<?= $id ?>" method="post" class="d-inline mt-5">
                                 <input type="hidden" class="hidden" name="redirect" value="<?= $_SERVER['REDIRECT_URL'] ?? $_SERVER['REQUEST_URI'] ?>">
                                 <input type="hidden" name="values[end-delay]" value="<?= endOfCurrentQuarter(true) ?>" class="hidden">
                                 <button class="btn small text-success">
                                     <i class="ph ph-check"></i>
-                                    <?= lang('Yes', 'Ja') ?>
+                                    <?= lang('Yes, ask again later', 'Ja, frag später erneut') ?>
                                 </button>
                             </form>
 
-                            <a href="<?= ROOTPATH ?>/activities/edit/<?= $id ?>" class="btn small text-danger">
-                                <i class="ph ph-x"></i>
+                            <a href="<?= ROOTPATH ?>/projects/edit/<?= $id ?>" class="btn small text-danger">
+                                <i class="ph ph-edit"></i>
                                 <?= lang('No (Edit)', 'Nein (Bearbeiten)') ?>
                             </a>
 
@@ -507,87 +561,41 @@ if (array_sum($a) === 0) {
                     </td>
                 </tr>
             <?php } ?>
+
+            <?php
+            if (isset($issues['project-end']))
+                foreach ($issues['project-end'] as $id) {
+                    $doc = $osiris->projects->findOne(['_id' => DB::to_ObjectID($id)]);
+            ?>
+                <tr id="tr-<?= $id ?>">
+                    <td>
+                        <?= lang('The project', 'Das Projekt') ?>
+                        <b><?= $doc['name'] ?></b>
+                        <?= lang('has ended. You can either prolong it or end it:', 'ist zu Ende. Du kannst es entweder verlängern oder als beendet markieren:') ?>
+                        <div class='alert mt-10 signal' id="approve-<?= $id ?>">
+
+
+                            <form action="<?= ROOTPATH ?>/crud/projects/update/<?= $id ?>" method="post" class="form-inline mt-5">
+                                <input type="hidden" class="hidden" name="redirect" value="<?= $_SERVER['REDIRECT_URL'] ?? $_SERVER['REQUEST_URI'] ?>">
+
+                                <label class="required" for="end"><?= lang('Ended at / Extend until', 'Geendet am / Verlängern bis') ?>:</label>
+                                <input type="date" class="form-control w-200" name="values[end]" id="date_end" value="<?= valueFromDateArray($doc['end'] ?? '') ?>" required>
+                                <div>
+                                    <select class="form-control" id="status-<?= $id ?>" name="values[status]" required>
+                                        <option value="applied"><?= lang('applied', 'beantragt') ?></option>
+                                        <option value="approved" selected><?= lang('approved', 'bewilligt') ?></option>
+                                        <option value="rejected"><?= lang('rejected', 'abgelehnt') ?></option>
+                                        <option value="finished"><?= lang('finished', 'abgeschlossen') ?></option>
+                                    </select>
+                                </div>
+                                <button class="btn ml-10" type="submit"><?= lang('Submit', 'Bestätigen') ?></button>
+                            </form>
+
+                        </div>
+                    </td>
+                </tr>
+            <?php } ?>
         </table>
     <?php } ?>
 
-    <?php if ($Settings->hasPermission('projects.edit') || $Settings->hasPermission('projects.edit-own')) { ?>
-
-        <?php if (!empty($issues['project-open']) || !empty($issues['project-end'])) {
-            $projects = array_merge($issues['project-open'] ?? [], $issues['project-end'] ?? [])
-        ?>
-            <h2 class="mb-0">
-                <?= lang(
-                    'Please have a look at the following projects:',
-                    'Bitte schau dir die folgenden Projekte an:'
-                ) ?>
-            </h2>
-
-            <table class="table">
-                <?php
-                if (isset($issues['project-open']))
-                    foreach ($issues['project-open'] as $id) {
-                        $doc = $osiris->projects->findOne(['_id' => DB::to_ObjectID($id)]);
-                ?>
-                    <tr id="tr-<?= $id ?>">
-                        <td>
-                            <?= lang('The project', 'Das Projekt') ?>
-                            <b><?= $doc['name'] ?></b>
-                            <?= lang('still has the status <q>applied</q>. Is this correct? ', 'hat noch immer den Status <q>beantragt</q>. Ist das noch immer so?') ?>
-                            <div class='alert mt-10 signal' id="approve-<?= $id ?>">
-
-                                <form action="<?= ROOTPATH ?>/crud/projects/update/<?= $id ?>" method="post" class="d-inline mt-5">
-                                    <input type="hidden" class="hidden" name="redirect" value="<?= $_SERVER['REDIRECT_URL'] ?? $_SERVER['REQUEST_URI'] ?>">
-                                    <input type="hidden" name="values[end-delay]" value="<?= endOfCurrentQuarter(true) ?>" class="hidden">
-                                    <button class="btn small text-success">
-                                        <i class="ph ph-check"></i>
-                                        <?= lang('Yes, ask again later', 'Ja, frag später erneut') ?>
-                                    </button>
-                                </form>
-
-                                <a href="<?= ROOTPATH ?>/projects/edit/<?= $id ?>" class="btn small text-danger">
-                                    <i class="ph ph-edit"></i>
-                                    <?= lang('No (Edit)', 'Nein (Bearbeiten)') ?>
-                                </a>
-
-                            </div>
-                        </td>
-                    </tr>
-                <?php } ?>
-
-                <?php
-                if (isset($issues['project-end']))
-                    foreach ($issues['project-end'] as $id) {
-                        $doc = $osiris->projects->findOne(['_id' => DB::to_ObjectID($id)]);
-                ?>
-                    <tr id="tr-<?= $id ?>">
-                        <td>
-                            <?= lang('The project', 'Das Projekt') ?>
-                            <b><?= $doc['name'] ?></b>
-                            <?= lang('has ended. You can either prolong it or end it:', 'ist zu Ende. Du kannst es entweder verlängern oder als beendet markieren:') ?>
-                            <div class='alert mt-10 signal' id="approve-<?= $id ?>">
-
-
-                                <form action="<?= ROOTPATH ?>/crud/projects/update/<?= $id ?>" method="post" class="form-inline mt-5">
-                                    <input type="hidden" class="hidden" name="redirect" value="<?= $_SERVER['REDIRECT_URL'] ?? $_SERVER['REQUEST_URI'] ?>">
-
-                                    <label class="required" for="end"><?= lang('Ended at / Extend until', 'Geendet am / Verlängern bis') ?>:</label>
-                                    <input type="date" class="form-control w-200" name="values[end]" id="date_end" value="<?= valueFromDateArray($doc['end'] ?? '') ?>" required>
-                                    <div>
-                                        <select class="form-control" id="status-<?= $id ?>" name="values[status]" required>
-                                            <option value="applied"><?= lang('applied', 'beantragt') ?></option>
-                                            <option value="approved" selected><?= lang('approved', 'bewilligt') ?></option>
-                                            <option value="rejected"><?= lang('rejected', 'abgelehnt') ?></option>
-                                            <option value="finished"><?= lang('finished', 'abgeschlossen') ?></option>
-                                        </select>
-                                    </div>
-                                    <button class="btn ml-10" type="submit"><?= lang('Submit', 'Bestätigen') ?></button>
-                                </form>
-
-                            </div>
-                        </td>
-                    </tr>
-                <?php } ?>
-            </table>
-        <?php } ?>
-
-    <?php } ?>
+<?php } ?>

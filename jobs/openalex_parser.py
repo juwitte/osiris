@@ -292,16 +292,29 @@ class OpenAlexParser():
                 return
             self.osiris['activities'].insert_one(element)
             print(f'{idtype.upper()} {id} has been added to the database.')
-        
-    def get_works(self):
+    
+    def get_works_dois(self, filters=None):
+        if not filters:
+            filters = {
+                "from_publication_date": self.startyear + "-01-01",
+                "institutions.id": self.inst_id,
+                "has_doi": 'true'
+            }
+        pages_of_works = self.openalex.get_list_of_works(filters=filters, pages=None)
+        for page in pages_of_works:
+            for work in page['results']:
+                yield work['doi']
+                    
+    def get_works(self, filters=None):
         # NOPE: use created_date and updated_date to filter
         # Not possible, needs payed version
 
-        filters = {
-            "from_publication_date": self.startyear + "-01-01",
-            "institutions.id": self.inst_id,
-            "has_doi": 'true'
-        }
+        if not filters:
+            filters = {
+                "from_publication_date": self.startyear + "-01-01",
+                "institutions.id": self.inst_id,
+                "has_doi": 'true'
+            }
 
 
         pages_of_works = self.openalex.get_list_of_works(filters=filters, pages=None)
