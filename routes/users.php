@@ -310,7 +310,7 @@ Route::post('/synchronize-users', function () {
 
             $osiris->persons->updateOne(
                 ['username' => $username],
-                ['$set' => ['is_active' => true]]
+                ['$set' => ['is_active' => ['$ne'=>false]]]
             );
             echo "<p><i class='ph ph-user-check text-danger'></i> $name ($username) reactivated.</p>";
         }

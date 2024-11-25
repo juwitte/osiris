@@ -21,7 +21,7 @@ $cursor = $osiris->persons->aggregate([
     [
         '$match' => [
             'expertise' => ['$exists' => true],
-            'is_active' => true
+            'is_active' => ['$ne'=>false]
         ]
     ],
     ['$project' => ['expertise' => 1, 'displayname' => 1, 'depts' => 1, 'username' => 1]],

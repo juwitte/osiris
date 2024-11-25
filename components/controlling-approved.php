@@ -17,7 +17,7 @@
         }
         $yq = $Y . "Q" . $Q;
         $cursor = $osiris->persons->find(
-            ['roles' => 'scientist', 'is_active' => true],
+            ['roles' => 'scientist', 'is_active' => ['$ne'=>false]],
             ['sort' => ["approved" => -1, "last" => 1]]
         );
         if (empty($cursor)) {

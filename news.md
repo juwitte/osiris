@@ -103,7 +103,7 @@ Die Nutzereinstellungen sind in den letzten Monaten gewachsen und sehr unübersi
 - Es wurde eine Möglichkeit hinzugefügt, User zentral anzulegen (nur Auth-Addon)
 - Es ist jetzt möglich, eigene Rollen anzulegen
 
-#### <i class="ph ph-code"></i> Bug Fixes und UI Verbesserungen
+#### <i class="ph ph-code"></i> Bug Fixes und Verbesserungen
 - Es werden jetzt alle Namen einer Person bei der Suche in der Personenliste berücksichtigt  
 - Ein Fehler wurde behoben, durch den bei der Pubmed-Suche immer die nächste Publikation hinzugefügt wurde
 - Die Navigation auf der Profilseite wurde verbessert, sodass beim Nutzen der "Zurück"-Taste des Browsers automatisch das zuvor ausgewählte Fenster ausgewählt wird
@@ -113,6 +113,7 @@ Die Nutzereinstellungen sind in den letzten Monaten gewachsen und sehr unübersi
 - Es wurde ein Fehler behoben, durch den Template-Bausteine im Berichte-Editor nicht löschbar waren
 - Die Bezeichnung "Epub" wurde überall einheitlich in "Online ahead of Print" umbenannt
 - Untereinheiten können jetzt sortiert werden
+- Bei der Eingabe der Google Scholar-ID wird diese jetzt auf Fehler überprüft
 
 
 

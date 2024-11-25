@@ -89,7 +89,7 @@ function help_groupUsers($osiris, $id, $Groups)
 {
     $child_ids = $Groups->getChildren($id);
     $users = $osiris->persons->find(
-        ['depts' => ['$in' => $child_ids], 'is_active' => true, 'hide' => ['$ne' => true], 'hide' => ['$ne' => true]],
+        ['depts' => ['$in' => $child_ids], 'is_active' => ['$ne'=>false], 'hide' => ['$ne' => true], 'hide' => ['$ne' => true]],
         ['sort' => ['last' => 1]]
     )->toArray();
     $users = array_column($users, 'username');
@@ -243,7 +243,7 @@ Route::get('/portfolio/unit/([^/]*)/numbers', function ($id) {
 
     $filter = [
         'depts' => ['$in' => $child_ids],
-        'is_active' => true,
+        'is_active' => ['$ne'=>false],
         'hide' => ['$ne' => true]
     ];
 
@@ -397,7 +397,7 @@ Route::get('/portfolio/(unit|person)/([^/]*)/teaching', function ($context, $id)
             $id = $group['id'];
         }
         $child_ids = $Groups->getChildren($id);
-        $persons = $osiris->persons->find(['depts' => ['$in' => $child_ids], 'is_active' => true], ['sort' => ['last' => 1]])->toArray();
+        $persons = $osiris->persons->find(['depts' => ['$in' => $child_ids], 'is_active' => ['$ne'=>false]], ['sort' => ['last' => 1]])->toArray();
         $users = array_column($persons, 'username');
         $filter['authors.user'] = ['$in' => $users];
     } else {
@@ -459,7 +459,7 @@ Route::get('/portfolio/(unit|person)/([^/]*)/projects', function ($context, $id)
             $id = $group['id'];
         }
         $child_ids = $Groups->getChildren($id);
-        $persons = $osiris->persons->find(['depts' => ['$in' => $child_ids], 'is_active' => true], ['sort' => ['last' => 1]])->toArray();
+        $persons = $osiris->persons->find(['depts' => ['$in' => $child_ids], 'is_active' => ['$ne'=>false]], ['sort' => ['last' => 1]])->toArray();
         $users = array_column($persons, 'username');
         $filter['persons.user'] = ['$in' => $users];
     } else {
@@ -505,7 +505,7 @@ Route::get('/portfolio/unit/([^/]*)/staff', function ($id) {
 
     $filter = [
         'hide' => ['$ne' => true],
-        'is_active' => true,
+        'is_active' => ['$ne'=>false],
         'hide' => ['$ne' => true]
     ];
     if ($id == 0) {
@@ -556,7 +556,7 @@ Route::get('/portfolio/project/([^/]*)/staff', function ($id) {
 
     // $filter = [
     //     'hide' => ['$ne' => true],
-    //     'is_active' => true, 'hide'=>['$ne'=>true]
+    //     'is_active' => ['$ne'=>false], 'hide'=>['$ne'=>true]
     // ];
     $project = help_getProject($osiris, $id);
     if (empty($project)) {
@@ -1036,7 +1036,7 @@ Route::get('/portfolio/(unit|project)/([^/]*)/collaborators-map', function ($con
         $dept = $id;
 
         $child_ids = $Groups->getChildren($dept);
-        $persons = $osiris->persons->find(['depts' => ['$in' => $child_ids], 'is_active' => true, 'hide' => ['$ne' => true]], ['sort' => ['last' => 1]])->toArray();
+        $persons = $osiris->persons->find(['depts' => ['$in' => $child_ids], 'is_active' => ['$ne'=>false], 'hide' => ['$ne' => true]], ['sort' => ['last' => 1]])->toArray();
         $users = array_column($persons, 'username');
         $filter = [
             'persons.user' => ['$in' => $users],

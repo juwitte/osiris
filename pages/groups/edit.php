@@ -275,7 +275,7 @@ function sel($index, $value)
             </thead>
             <tbody>
                 <?php
-                $persons = $osiris->persons->find(['depts' => $id, 'is_active' => true], ['sort' => ['last' => 1]]);
+                $persons = $osiris->persons->find(['depts' => $id, 'is_active' => ['$ne'=>false]], ['sort' => ['last' => 1]]);
                 foreach ($persons as $p) {
                     $is_head = in_array($p['username'], $heads);
                 ?>
@@ -482,7 +482,7 @@ function sel($index, $value)
                             <label for="username"><?= lang('Username', 'Benutzername') ?></label>
                             <!-- select for distinct user names from DB -->
                             <select name="username" id="username" class="form-control">
-                                <?php foreach ($osiris->persons->find(['is_active' => true, 'depts' => ['$ne' => $id]], ['sort' => ['last' => 1]]) as $person) { ?>
+                                <?php foreach ($osiris->persons->find(['is_active' => ['$ne'=>false], 'depts' => ['$ne' => $id]], ['sort' => ['last' => 1]]) as $person) { ?>
                                     <option value="<?= $person['username'] ?>"><?= $person['last'] . ', ' . $person['first'] ?></option>
                                 <?php } ?>
                             </select>

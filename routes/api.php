@@ -1141,7 +1141,7 @@ Route::get('/api/dashboard/collaborators', function () {
             $dept = $_GET['dept'];
 
             $child_ids = $Groups->getChildren($dept);
-            $persons = $osiris->persons->find(['depts' => ['$in' => $child_ids], 'is_active' => true], ['sort' => ['last' => 1]])->toArray();
+            $persons = $osiris->persons->find(['depts' => ['$in' => $child_ids], 'is_active' => ['$ne'=>false]], ['sort' => ['last' => 1]])->toArray();
             $users = array_column($persons, 'username');
             $filter = [
                 'persons.user' => ['$in' => $users],
@@ -1820,7 +1820,7 @@ Route::get('/api/dashboard/department-graph', function () {
     }
     $group = $Groups->getGroup($_GET['dept']);
     $children = $Groups->getChildren($group['id']);
-    $persons = $osiris->persons->find(['depts' => ['$in' => $children], 'is_active' => true], ['sort' => ['last' => 1]])->toArray();
+    $persons = $osiris->persons->find(['depts' => ['$in' => $children], 'is_active' => ['$ne'=>false]], ['sort' => ['last' => 1]])->toArray();
     $users = array_column($persons, 'username');
     $nodes = [];
     $links = [];
@@ -1938,7 +1938,7 @@ Route::get('/api/dashboard/concept-search', function () {
 
     if (!isset($_GET['concept'])) return return_rest([], 0);
     $name = $_GET['concept'];
-    $active_users = $osiris->persons->distinct('username', ['is_active' => true]);
+    $active_users = $osiris->persons->distinct('username', ['is_active' => ['$ne'=>false]]);
     $concepts = $osiris->activities->aggregate(
         [
             ['$match' => ['concepts.display_name' => $name]],

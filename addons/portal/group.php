@@ -33,7 +33,7 @@ $level = $Groups->getLevel($id);
 $parent = $osiris->groups->findOne(['id' => $group['parent']]);
 
 $child_ids = $Groups->getChildren($id);
-$persons = $osiris->persons->find(['depts' => ['$in' => $child_ids], 'is_active' => true], ['sort' => ['last' => 1]])->toArray();
+$persons = $osiris->persons->find(['depts' => ['$in' => $child_ids], 'is_active' => ['$ne'=>false]], ['sort' => ['last' => 1]])->toArray();
 
 if (isset($group['head'])) {
 
