@@ -32,7 +32,8 @@
 - Es wurde ein neuer Filter für das Start- und Enddatum hinzugefügt, durch den sich Zeiträume jetzt auch leicht mit "größer" und "kleiner" definieren lassen 
 - Die Suche ist jetzt über die Seite "Alle Aktivitäten" erreichbar
 
-
+#### <i class="ph ph-magnifying-glass-plus"></i> Aus "Pubmed-Suche" wird "Online-Suche"
+- Die Suche nach Aktivitäten in Online-Repositorien wurde umstrukturiert, ausgeweitet und verbessert
 
 #### <i class="ph ph-text-aa"></i> Rich Text-Editoren und mehr Übersetzungen
 - Mehr Felder lassen sich jetzt zweisprachig definieren:
@@ -81,8 +82,13 @@ Die Nutzereinstellungen sind in den letzten Monaten gewachsen und sehr unübersi
 - Im Reiter "Account" kann jetzt zudem das Password geändert werden (nur bei Auth-Addon)
 
 
-#### <i class="ph ph-presentation-chart"></i> Konferenzen
-- Es wurde eine eigene Seite für Konferenzen hinzugefügt
+#### <i class="ph ph-presentation-chart"></i> Events
+- Es wurde eine eigene Seite für Events (zuvor Konferenzen) hinzugefügt
+- Events können jetzt mit einem neuen Modul zu Aktivitäten hinzugefügt werden. Das Modul heißt `event-select` und wird bei allen Aktivitäten, die zu Events verknüpfen können, empfohlen. Wird ein Event aus dem Modul ausgewählt, werden folgende Werte vorausgefüllt:
+  - Eventname (inkl. Verknüpfung zum Event)
+  - Ort des Events
+  - Start und Enddatum
+- Es könne auch direkt in meine Aktivitäten neue Events angelegt werden, ohne die Seite zu verlassen. Die Aktivität wird dann automatisch damit verknüpft. An dieser Stelle kann man auch direkt als Teilnehmer des Events registriert werden.
 
 #### <i class="ph ph-textbox"></i> Custom Fields
 - Custom Fields können jetzt auch auf Englisch übersetzt werden
@@ -734,7 +740,7 @@ Dadurch sieht die Seite auf den ersten Blick vielleicht etwas ungewohnt aus, ihr
 
 #### <i class="ph ph-book-open-text"></i> Neue Pubmed-Suche
 
-- Pubmed kann nun nach Autor(en), Titel, Jahr und Affiliation [durchsucht werden](activities/pubmed-search?authors=Koblitz&year=2023)
+- Pubmed kann nun nach Autor(en), Titel, Jahr und Affiliation [durchsucht werden](activities/online-search?authors=Koblitz&year=2023)
 - Mittels der Levenshtein-Distanz wird die Wahrscheinlichkeit berechnet, ob es sich um ein Duplikat handelt oder nicht (nur basierend auf dem Titel)
 - Die neue Suche kann z.B. bei Publikationen in [Mein Jahr](scientist) gefunden werden
 

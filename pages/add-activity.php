@@ -272,7 +272,7 @@ function val($index, $default = '')
         <?= lang('Add activity', 'Füge Aktivität hinzu') ?>
     </h1>
 
-    <a href="<?= ROOTPATH ?>/activities/pubmed-search" class="link mb-10 d-inline-block"><?= lang('Search in Pubmed', 'Suche in Pubmed') ?></a>
+    <a href="<?= ROOTPATH ?>/activities/online-search" class="link mb-10 d-inline-block"><?= lang('Search in Pubmed', 'Suche in Pubmed') ?></a>
 
     <form method="get" onsubmit="getPubData(event, this)">
         <div class="form-group">

@@ -178,6 +178,11 @@ class Modules
             "name" => "Editorial",
             "name_de" => "Editorenschaft"
         ],
+        "event-select" => [
+            "fields" => [],
+            "name" => "",
+            "name_de" => ""
+        ],
         "guest" => [
             "fields" => ["category" => 'guest scientist'],
             "name" => "Category",
@@ -1014,6 +1019,142 @@ class Modules
             <?php
                 break;
 
+            case "event-select":
+                $events = $this->DB->db->conferences->find(
+                    ['end' => ['$lte' => date('Y-m-d', strtotime('+3 days'))]],
+                    ['sort' => ['start' => -1], 'limit' => 10]
+                );
+            ?>
+
+
+                <div class="modal" id="add-event" tabindex="-1" role="dialog">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <a data-dismiss="modal" class="btn float-right" role="button" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </a>
+                            <h5 class="title"><?= lang('Add event', 'Event hinzufügen') ?></h5>
+                            <div id="content" id="new-event">
+
+                                <div class="form-group mb-10">
+                                    <label for="title" class="required"><?= lang('(Short) Title', 'Kurztitel') ?></label>
+                                    <input type="text" id="event-title" required class="form-control">
+                                </div>
+                                <div class="form-group mb-10">
+                                    <label for="title"><?= lang('Full Title', 'Kompletter Titel') ?></label>
+                                    <input type="text" id="event-title_full" class="form-control">
+                                </div>
+
+                                <div class="form-row row-eq-spacing mb-10">
+                                    <div class="col">
+                                        <label for="start" class="required"><?= lang('Start date', 'Anfangsdatum') ?></label>
+                                        <input type="date" id="event-start" required class="form-control" onchange="$('#event-end').val(this.value)">
+                                    </div>
+                                    <div class="col">
+                                        <label for="end" class="required"><?= lang('End date', 'Enddatum') ?></label>
+                                        <input type="date" id="event-end" class="form-control">
+                                    </div>
+                                </div>
+
+                                <div class="form-group mb-10">
+                                    <label for="location" class="required"><?= lang('Location', 'Ort') ?></label>
+                                    <input type="text" id="event-location" required class="form-control">
+                                </div>
+
+                                <div class="form-group mb-10">
+                                    <label for="url"><?= lang('URL', 'URL') ?></label>
+                                    <input type="url" id="event-url" class="form-control">
+                                </div>
+
+                                <div class="custom-checkbox">
+                                    <input type="checkbox" id="event-attended" value="<?= $_SESSION['username'] ?>">
+                                    <label for="event-attended" class="blank"><?= lang('I have attended', 'Ich habe teilgenommen') ?></label>
+                                </div>
+
+                                <button class="btn mb-10" type="button" onclick="addEvent()"><?= lang('Add event', 'Event hinzufügen') ?></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="data-module col-sm-6" data-module="event-select">
+                    <label class="floating-title"><?= lang('Select an event', 'Wähle ein Event') ?></label>
+
+                    <div id="event-select-container">
+                        <div class="btn-group d-flex" id="event-select-btns">
+                            <?php foreach ($events as $event) { ?>
+                                <button class="btn primary" type="button" onclick="selectEvent('<?= $event['_id'] ?>', '<?= $event['title'] ?>', '<?= $event['start'] ?>', '<?= $event['end'] ?>', '<?= $event['location'] ?>')">
+                                    <?= $event['title'] ?>
+                                    <small><?= fromToDate($event['start'], $event['end']) ?></small>
+                                </button>
+                            <?php } ?>
+                            <a class="btn" href="#add-event">
+                                <i class="ph ph-plus"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <style>
+                        #event-select-container {
+                            border-radius: var(--border-radius);
+                            position: relative;
+                            margin: 0 -2rem;
+                        }
+
+                        /* white scrim */
+                        #event-select-container::after {
+                            content: '';
+                            position: absolute;
+                            right: 0;
+                            bottom: 0;
+                            width: 2rem;
+                            height: 100%;
+                            background: linear-gradient(270deg, #fff, #ffffff 30%, transparent);
+                            z-index: 1;
+                        }
+
+                        #event-select-container::before {
+                            content: '';
+                            position: absolute;
+                            left: 0;
+                            bottom: 0;
+                            width: 2rem;
+                            height: 100%;
+                            background: linear-gradient(90deg, #fff, #ffffff 30%, transparent);
+                            z-index: 1;
+                        }
+
+                        #event-select-btns {
+                            overflow-x: auto;
+                            padding: 0 2rem;
+                        }
+
+                        #event-select-btns .btn {
+                            width: 100%;
+                            text-align: left;
+                            display: flex;
+                            flex-direction: column;
+                            height: auto;
+                            line-height: 1.6;
+                            padding: .5rem 1.5rem;
+                            justify-content: center;
+                        }
+
+                        .btn-group .btn:not(.disabled):not(:disabled):focus,
+                        .btn-group .btn:not(.disabled):not(:disabled).active {
+                            box-shadow: none;
+                        }
+
+                        #event-select-btns .btn small {
+                            display: block;
+                            font-size: 0.8em;
+                            color: var(--muted-color);
+                        }
+                    </style>
+                </div>
+            <?php
+                break;
+
             case "authors":
             ?>
                 <div class="data-module col-12" data-module="authors">
@@ -1326,25 +1467,41 @@ class Modules
             ?>
                 <div class="data-module floating-form col-sm-6" data-module="conference">
                     <input type="hidden" class="hidden" name="values[conference_id]" id="conference_id" value="<?= $this->val('conference_id', null) ?>">
-                    <input type="text" class="form-control" <?= $required ?> name="values[conference]" id="conference" list="conference-list" placeholder="VAAM 2022" value="<?= $this->val('conference') ?>" oninput="$('#conference_id').val('')">
+                    <input type="text" class="form-control" <?= $required ?> name="values[conference]" id="conference" list="conference-list" placeholder="VAAM 2022" value="<?= $this->val('conference') ?>" oninput="resetConference()">
                     <label for="conference" class="element-other <?= $required ?>"><?= lang('Event', 'Event') ?></label>
-                    <p class="m-0 font-size-12 ">
+                    <p class="m-0 font-size-12 position-absolute text-primary" id="connected-conference">
+                        <?php
+                        if (!empty($this->form) && isset($this->form['conference_id'])) {
+                            $conference = $this->DB->getConnected('conference', $this->form['conference_id']);
+                            echo lang('Connected to ', 'Verknüpft mit ') . $conference['title'];
+                        } else {
+                            echo lang('No event connected', 'Kein Event verknüpft');
+                        }
+                        ?>
+                    </p>
+                    <!-- <p class="m-0 font-size-12 ">
                         <?= lang('Latest', 'Zuletzt') ?>:
                         <?php
                         $conferences = $this->DB->db->conferences->find(
-                            ['start' => ['$lte' => date('Y-m-d', strtotime('today'))]],
+                            ['start' => ['$lte' => date('Y-m-d', strtotime('today'))], 'none' => true],
                             ['sort' => ['start' => -1], 'limit' => 5, 'projection' => ['title' => 1]]
                         )->toArray();
                         foreach ($conferences as $c) {
                         ?>
                             <a onclick="selectConference(this)" class="mr-5" data-id="<?= $c['_id'] ?>"><?= $c['title'] ?></a>
                         <?php } ?>
-                    </p>
+                    </p> -->
                     <script>
+                        function resetConference() {
+                            $('#conference_id').val('')
+                            $('#connected-conference').html(lang('No event connected', 'Kein Event verknüpft'))
+                        }
+
                         function selectConference(el) {
                             var id = $(el).data('id')
                             $('#conference').val(el.innerHTML)
                             $('#conference_id').val(id)
+                            $('#connected-conference').html(lang('Connected to ', 'Verknüpft mit ') + el.innerHTML)
                         }
                     </script>
                 </div>

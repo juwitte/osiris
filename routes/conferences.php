@@ -82,9 +82,12 @@ Route::get('/conference/ics/(.*)', function ($id) {
 Route::post('/crud/conferences/add', function () {
     include_once BASEPATH . "/php/init.php";
 
-    $values = $_POST;
-    $redirect = $values['redirect'] ?? '/';
-    unset($values['redirect']);
+    $values = $_POST['values'] ?? $_POST;
+    $redirect = false;
+    if (isset($values['redirect'])) {
+        $redirect = $values['redirect'];
+        unset($values['redirect']);
+    }
     $values['created'] = date('Y-m-d');
     $values['created_by'] = $_SESSION['username'];
 
@@ -93,13 +96,28 @@ Route::post('/crud/conferences/add', function () {
     $values['month'] = intval(date('n', $start));
     $values['quarter'] = ceil($values['month'] / 3);
     $values['day'] = intval(date('j', $start));
-    $values['interests'] = [];
-    $values['participants'] = [];
+
+    if (isset($values['participants'])) {
+        $values['participants'] = explode(',', $values['participants']);
+    } else {
+        $values['participants'] = [];
+    }
+    if (isset($values['interests'])) {
+        $values['interests'] = explode(',', $values['interests']);
+    } else {
+        $values['interests'] = [];
+    }
     $values['activities'] = [];
 
-    $osiris->conferences->insertOne($values);
+    $added = $osiris->conferences->insertOne($values);
 
-    header("Location: $redirect");
+    $id = $added->getInsertedId();
+
+    if ($redirect) {
+        header("Location: $redirect");
+    } else {
+        echo json_encode(['success' => true, 'id' => strval($id)]);
+    }
 }, 'login');
 
 
