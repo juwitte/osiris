@@ -460,7 +460,7 @@ if (!$Settings->featureEnabled('coins')) {
                             </a>
                             <a href="<?= ROOTPATH . "/add-activity?type=" . $t ?>" class="btn"><i class="ph ph-plus"></i></a>
                             <?php if ($col == 'publication') { ?>
-                                <a class="btn mr-20" href="<?= ROOTPATH ?>/activities/pubmed-search?authors=<?= $scientist['last'] ?>&year=<?= $YEAR ?>">
+                                <a class="btn mr-20" href="<?= ROOTPATH ?>/activities/online-search?authors=<?= $scientist['last'] ?>&year=<?= $YEAR ?>">
                                     <i class="ph ph-magnifying-glass-plus mr-5"></i>
                                     <?= lang('Search in Pubmed', 'Suche in Pubmed') ?>
                                 </a>

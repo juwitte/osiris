@@ -91,7 +91,7 @@ Route::post('/crud/activities/add-activity', function () {
 }, 'login');
 
 
-Route::get('/activities/pubmed-search', function () {
+Route::get('/activities/online-search', function () {
     include_once BASEPATH . "/php/init.php";
     $user = $_SESSION['username'];
     $breadcrumb = [
@@ -99,7 +99,7 @@ Route::get('/activities/pubmed-search', function () {
         ['name' => lang("Search in Pubmed", "Suche in Pubmed")]
     ];
     include BASEPATH . "/header.php";
-    include BASEPATH . "/pages/pubmed-search.php";
+    include BASEPATH . "/pages/online-search.php";
     include BASEPATH . "/footer.php";
 }, 'login');
 

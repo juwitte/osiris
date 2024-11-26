@@ -919,7 +919,7 @@ if ($currentuser) { ?>
                         $conferences = $osiris->conferences->find(
                             [
                                 '$or' => [
-                                    ['end' => ['$gte' => date('Y-m-d', strtotime('-3 days'))]],
+                                    ['end' => ['$gte' => date('Y-m-d', strtotime('-3 days'))], 'start' => ['$lte' => date('Y-m-d', strtotime('+6 month'))]],
                                     [
                                         'start' => ['$gte' => date('Y-m-d', strtotime('-6 month'))],
                                         '$or' => [
