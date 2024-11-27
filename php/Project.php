@@ -194,6 +194,15 @@ class Project
         'role',
         'coordinator',
     ];
+    public const INHERITANCE_PUBLIC = [
+        'website',
+        'funder',
+        'funding_organization',
+        'purpose',
+        'role',
+        'coordinator',
+        'collaborators'
+    ];
 
     private $db;
 

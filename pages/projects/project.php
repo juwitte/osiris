@@ -233,6 +233,10 @@ $institute = $Settings->get('affiliation_details');
                             <i class="ph ph-edit"></i>
                             <?= lang('Edit', 'Bearbeiten') ?>
                         </a>
+                        <a href="<?= ROOTPATH ?>/projects/public/<?= $id ?>" class="btn primary">
+                            <i class="ph ph-edit"></i>
+                            <?= lang('Public', 'Öffentlich') ?>
+                        </a>
                         <!-- dropdown -->
                         <div class="dropdown">
                             <button class="btn primary" data-toggle="dropdown" type="button" id="dropdown-download" aria-haspopup="true" aria-expanded="false">
