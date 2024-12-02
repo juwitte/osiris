@@ -251,7 +251,7 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
 
 
 <!-- show research topics -->
- <?= $Settings->printTopics($doc['topics'] ?? []) ?>
+<?= $Settings->printTopics($doc['topics'] ?? []) ?>
 
 
 <?php if ($Settings->featureEnabled('portal') && ($user_activity || $Settings->hasPermission('activities.edit'))) {
@@ -541,7 +541,7 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                                 </a>
                             </td>
                         </tr>
-                        <?php elseif ($module == 'conference' && isset($doc['conference_id'])) :
+                    <?php elseif ($module == 'conference' && isset($doc['conference_id'])) :
                         $conference = $DB->getConnected('conference', $doc['conference_id']);
                     ?>
 
@@ -552,16 +552,16 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                                 <div class="module ">
                                     <h6 class="m-0">
                                         <a href="<?= ROOTPATH ?>/conference/view/<?= $doc['conference_id'] ?>">
-                                        <?= $conference['title'] ?>
+                                            <?= $conference['title'] ?>
                                         </a>
                                     </h6>
                                     <div class="text-muted mb-10"><?= $conference['title_full'] ?></div>
                                     <ul class="horizontal mb-0">
-                                       <li>
-                                         <b><?=lang('Location', 'Ort')?></b>: <?= $conference['location'] ?>
-                                       </li>
                                         <li>
-                                            <b><?=lang('Date', 'Datum')?></b>: <?= fromToDate($conference['start'], $conference['end']) ?>
+                                            <b><?= lang('Location', 'Ort') ?></b>: <?= $conference['location'] ?>
+                                        </li>
+                                        <li>
+                                            <b><?= lang('Date', 'Datum') ?></b>: <?= fromToDate($conference['start'], $conference['end']) ?>
                                         </li>
                                         <li>
                                             <a href="<?= $conference['url'] ?>" target="_blank">
@@ -672,6 +672,32 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
 
 
         <div class="col-lg-5">
+
+
+            <div class="">
+                <?php
+
+                // get units based on project persons
+                $units = [];
+                $Groups = new Groups();
+
+                $authors = array_filter($doc['authors'], function ($a) {
+                    return isset($a['user']) && !empty($a['user']);
+                });
+                foreach ($authors as $a) {
+                    $p = $DB->getPerson($a['user']);
+                    if (isset($p['science_unit'])) {
+                        $units[] = $p['science_unit'];
+                    }
+                }
+                $units = array_unique($units);
+                foreach ($units as $unit) {
+                    $name = $Groups->getName($unit);
+                    echo "<a class='badge signal' href='" . ROOTPATH . "/groups/$unit' data-toggle='tooltip' data-title='$name'>$unit</a>";
+                }
+                ?>
+            </div>
+
             <?php foreach (['authors', 'editors'] as $role) {
                 if (!isset($activity[$role])) continue;
             ?>
@@ -705,6 +731,7 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                             <?php elseif ($role == 'authors') : ?>
                                 <th>Position</th>
                             <?php endif; ?>
+                            <th>Unit</th>
                             <th>User</th>
                         </tr>
                     </thead>
@@ -713,7 +740,13 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                         ?>
                             <tr>
                                 <td class="<?= (($author['aoi'] ?? 0) == '1' ? 'font-weight-bold' : '') ?>">
-                                    <?= $author['last'] ?? '' ?>
+                                    <?php if (isset($author['user'])) { ?>
+                                        <a href="<?= ROOTPATH ?>/profile/<?= $author['user'] ?>">
+                                            <?= $author['last'] ?? '' ?>
+                                        </a>
+                                    <?php } else { ?>
+                                        <?= $author['last'] ?? '' ?>
+                                    <?php } ?>
                                 </td>
                                 <td>
                                     <?= $author['first'] ?? '' ?>
@@ -728,12 +761,21 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                                     </td>
                                 <?php endif; ?>
                                 <td>
+                                    <?php
+                                    if (isset($author['user']) && !empty($author['user'])) {
+                                        $person = $DB->getPerson($author['user']);
+                                        if (isset($person['science_unit']) && !empty($person['science_unit'])) {
+                                            $unit = $Groups->getName($person['science_unit']);
+                                            echo "<a href='" . ROOTPATH . "/groups/view/{$person['science_unit']}' data-toggle='tooltip' data-title='$unit'>{$person['science_unit']}</a>";
+                                        }
+                                    } ?>
+                                </td>
+                                <td>
                                     <?php if (isset($author['user']) && !empty($author['user'])) : ?>
-                                        <a href="<?= ROOTPATH ?>/profile/<?= $author['user'] ?>"><i class="ph ph-user"></i></a>
                                         <span data-toggle="tooltip" data-title="<?= lang('Author approved activity?', 'Autor hat die Aktivität bestätigt?') ?>">
                                             <?= bool_icon($author['approved'] ?? 0) ?>
                                         </span>
-                                    <?php else : ?>
+                                    <?php elseif (!$user_activity) : ?>
                                         <div class="dropdown">
                                             <button class="btn small" data-toggle="dropdown" type="button" id="dropdown-1" aria-haspopup="true" aria-expanded="false">
                                                 <?= lang('Claim', 'Beanspruchen') ?>
@@ -1047,10 +1089,10 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                         } else if ($h['type'] == 'imported') {
                             echo lang('Imported by ', 'Importiert von ');
                         } else {
-                            echo $h['type']. lang(' by ', ' von ');
+                            echo $h['type'] . lang(' by ', ' von ');
                         }
                         if (isset($h['user']) && !empty($h['user'])) {
-                            echo '<a href="' . ROOTPATH . '/profile/' . $h['user'] . '">'.$DB->getNameFromId($h['user']).'</a>';
+                            echo '<a href="' . ROOTPATH . '/profile/' . $h['user'] . '">' . $DB->getNameFromId($h['user']) . '</a>';
                         } else {
                             echo "System";
                         }

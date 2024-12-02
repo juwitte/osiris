@@ -216,8 +216,15 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
             <h5>
                 <?= lang('Currently selected organisational units', 'Zurzeit ausgewählte Organisationseinheiten') ?>
             </h5>
+
+            <p>
+            <i class="ph ph-flask text-secondary"></i>
+            <?= lang('This is the main unit counting for your scientific output. This unit and all parent units are assigned to your output automatically.', 'Dies ist die Einheit, die für deine wissenschaftliche Ausgabe gezählt wird. Diese Einheit und alle übergeordneten Einheiten werden Ihrer Ausgabe automatisch zugewiesen.') ?>
+            </p>
+
             <?php
             $depts = DB::doc2Arr($data['depts'] ?? []);
+            $science_unit = $data['science_unit'] ?? $depts[0] ?? null;
             ?>
             <table class="table small w-auto mb-10">
                 <tbody>
@@ -228,13 +235,23 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
 
                         foreach ($tree as $row) {
                             $selected = in_array($row['id'], $depts);
-                    ?>
-                            <tr class="<?= $selected ? 'selected primary' : 'muted' ?>">
-                                <td style="padding-left: <?= ($row['indent'] * 2 + 2) . 'rem' ?>;">
-                                    <?= lang($row['name_en'], $row['name_de'] ?? null) ?>
-                                </td>
-                            </tr>
+                            if ($selected) { ?>
+                                <tr class="selected primary">
+                                    <td style="padding-left: <?= ($row['indent'] * 2 + 2) . 'rem' ?>;">
+                                        <?= lang($row['name_en'], $row['name_de'] ?? null) ?>
+                                        <?php if ($science_unit == $row['id']) { ?>
+                                           <i class="ph ph-flask text-secondary"></i>
+                                        <?php } ?>
+                                    </td>
+                                </tr>
+                            <?php } else { ?>
+                                <tr>
+                                    <td class="muted">
+                                        <?= lang($row['name_en'], $row['name_de'] ?? null) ?>
+                                    </td>
+                                </tr>
                         <?php }
+                        }
                     } else { ?>
                         <tr>
                             <td>
@@ -523,7 +540,7 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
 
                 <?php
                 $selected = $data['maintenance'] ?? '';
-                $all_users = $osiris->persons->find(['is_active' => ['$ne'=>false]], ['sort' => ['last' => 1, 'first' => 1]]);
+                $all_users = $osiris->persons->find(['is_active' => ['$ne' => false]], ['sort' => ['last' => 1, 'first' => 1]]);
                 foreach ($all_users as $s) { ?>
                     <option value="<?= $s['username'] ?>" <?= $selected == $s['username'] ? 'selected' : '' ?>><?= "$s[last], $s[first] ($s[username])" ?></option>
                 <?php } ?>

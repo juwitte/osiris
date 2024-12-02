@@ -17,11 +17,23 @@
 
 Route::get('/migrate/test', function () {
     include_once BASEPATH . "/php/init.php";
-    $cursor = $osiris->activities->find();
+    include_once BASEPATH . "/php/Groups.php";
+    $cursor = $osiris->persons->find(['science_unit' => ['$exists' => false]]);
+
     foreach ($cursor as $doc) {
-        // calculate depts
-        dump($doc, true);
+        $depts = DB::doc2Arr($doc['depts'] ?? []);
+        $science_unit = $depts[0] ?? null;
+        dump($science_unit, true);
+        $osiris->persons->updateOne(
+            ['_id' => $doc['_id']],
+            ['$set' => ['science_unit' => $science_unit]]
+        );
     }
+    // $cursor = $osiris->activities->find(['units' => ['$exists' => false]]);
+    // foreach ($cursor as $doc) {
+    //     // calculate depts
+    //     dump($doc, true);
+    // }
     // $cursor = $osiris->projects->find(['start_date' => ['$exists' => false]]);
     // foreach ($cursor as $doc) {
     //     $osiris->projects->updateOne(
@@ -657,7 +669,6 @@ Route::get('/migrate', function () {
             );
         }
         echo "<p>Migrated project date time for better search.</p>";
-
     }
 
 
@@ -715,7 +726,7 @@ Route::post('/migrate/custom-fields-to-topics', function () {
         // generate random soft color
         $color = '#' . str_pad(dechex(mt_rand(0, 0xFFFFFF)), 6, '0', STR_PAD_LEFT);
         $id = str_replace(' ', '-', strtolower($en));
-        
+
         $topic = [
             "id" => $id,
             "color" => $color,
@@ -735,11 +746,11 @@ Route::post('/migrate/custom-fields-to-topics', function () {
     echo count($topics) . " topics created. Colors have been chosen randomly, you can edit them later if you have the permission to do so. <br>";
 
     // 2. All activities for which the custom field was completed are assigned to the respective research areas.
-    $docs = $osiris->activities->find([$field => ['$exists' => true]], ['project'=> [$field => 1]])->toArray();
+    $docs = $osiris->activities->find([$field => ['$exists' => true]], ['project' => [$field => 1]])->toArray();
     foreach ($docs as $doc) {
         $id = $doc['_id'];
         $value = $doc[$field];
-        
+
         if (!array_key_exists($value, $topics)) {
             echo "Topic not found: $value <br>";
             continue;
@@ -762,10 +773,10 @@ Route::post('/migrate/custom-fields-to-topics', function () {
         ['$pull' => ['modules' => $field]]
     );
     $N = $res->getModifiedCount();
-    
+
     $res = $osiris->adminTypes->updateMany(
-        ['modules' => $field.'*'],
-        ['$pull' => ['modules' => $field.'*']]
+        ['modules' => $field . '*'],
+        ['$pull' => ['modules' => $field . '*']]
     );
     $N += $res->getModifiedCount();
     echo "The field has been removed from $N activity forms. <br>";
@@ -774,10 +785,7 @@ Route::post('/migrate/custom-fields-to-topics', function () {
         [$field => ['$exists' => true]],
         ['$unset' => [$field => '']]
     );
-    echo "The field has been removed from ". $res->getModifiedCount() . " activities. <br>";
+    echo "The field has been removed from " . $res->getModifiedCount() . " activities. <br>";
 
-include BASEPATH . "/footer.php";
-    
-
-
+    include BASEPATH . "/footer.php";
 });
