@@ -42,6 +42,24 @@ class Groups
             'head' => 'Head of Group',
             'head_de' => 'Arbeitsgruppenleitung',
         ],
+        'research group' => [
+            'name' => 'Research Group',
+            'name_de' => 'Forschungsgruppe',
+            'head' => 'Head of Research Group',
+            'head_de' => 'Leitung der Forschungsgruppe',
+        ],
+        'junior research group' => [
+            'name' => 'Junior Research Group',
+            'name_de' => 'Nachwuchsgruppe',
+            'head' => 'Head of Junior Research Group',
+            'head_de' => 'Leitung der Nachwuchsgruppe',
+        ],
+        'infrastructure' => [
+            'name' => 'Infrastructure',
+            'name_de' => 'Infrastruktur',
+            'head' => 'Head of Infrastructure',
+            'head_de' => 'Leitung der Infrastruktur',
+        ],
         'unit' => [
             'name' => 'Unit',
             'name_de' => 'Einheit',
@@ -54,7 +72,10 @@ class Groups
     {
         $this->osiris = new DB;
 
-        $groups = $this->osiris->db->groups->find([])->toArray();
+        $groups = $this->osiris->db->groups->find(
+            [],
+            ['sort' => ['level' => 1, 'inactive' => 1]]
+        )->toArray();
         foreach ($groups as $g) {
             $this->groups[$g['id']] = $g;
         }
@@ -118,7 +139,12 @@ class Groups
         if (isset($this->UNITS[$unit])) {
             $info = $this->UNITS[$unit];
         } else {
-            $info = $this->UNITS['unit'];
+            $info = [
+                'name' => ucfirst($unit),
+                'name_de' => ucfirst($unit),
+                'head' => 'Head of Unit',
+                'head_de' => 'Leitung der Organisationseinheit',
+            ];
         }
         if ($key === null) return $info;
 

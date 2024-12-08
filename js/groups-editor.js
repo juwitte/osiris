@@ -11,12 +11,16 @@ $(document).ready(function () {
 function navigate(key){
     $('section').hide()
     $('section#' + key).show()
+    if (key == 'personnel' || key == 'settings') {
+        $('section#'+key+'-2').show()
+    }
 
     $('.pills .btn').removeClass('active')
     $('.pills .btn#btn-' + key).addClass('active')
 
     // hash
     window.location.hash = 'section-' + key;
+
 }
 
 

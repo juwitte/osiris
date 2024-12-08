@@ -117,6 +117,10 @@ $edit_perm = ($Settings->hasPermission('units.add') || $Groups->editPermission($
                     <i class="ph ph-user-plus ph-fw"></i>
                     <?= lang('Add person', 'Person hinzufügen') ?>
                 </a> -->
+                <a href="<?= ROOTPATH ?>/groups/new?parent=<?= $id ?>" class="btn">
+                    <i class="ph ph-plus-circle ph-fw"></i>
+                    <?= lang('Add child unit', 'Untereinheit hinzufügen') ?>
+                </a>
             </div>
         <?php } ?>
 
@@ -133,7 +137,6 @@ $edit_perm = ($Settings->hasPermission('units.add') || $Groups->editPermission($
 
     <h1>
         <?= lang($group['name'] ?? '-', $group['name_de'] ?? null) ?>
-
     </h1>
     <h3 class="subtitle">
         <?= $Groups->getUnit($group['unit'] ?? null, 'name') ?>
@@ -147,10 +150,10 @@ $edit_perm = ($Settings->hasPermission('units.add') || $Groups->editPermission($
     <!-- TAB AREA -->
 
     <nav class="pills mt-20 mb-0">
-            <a onclick="navigate('general')" id="btn-general" class="btn active">
-                <i class="ph ph-info" aria-hidden="true"></i>
-                <?= lang('General', 'Allgemein') ?>
-            </a>
+        <a onclick="navigate('general')" id="btn-general" class="btn active">
+            <i class="ph ph-info" aria-hidden="true"></i>
+            <?= lang('General', 'Allgemein') ?>
+        </a>
         <?php if (!empty($group['research'] ?? null)) { ?>
 
             <a onclick="navigate('research')" id="btn-research" class="btn <?= !$show_general ? 'active' : '' ?>">
@@ -252,45 +255,45 @@ $edit_perm = ($Settings->hasPermission('units.add') || $Groups->editPermission($
         <!-- head -->
 
         <?php
-    $children = $osiris->groups->find(['parent' => $id], ['sort' => ['order' => 1]])->toArray();
+        $children = $osiris->groups->find(['parent' => $id], ['sort' => ['order' => 1]])->toArray();
 
-    if ($edit_perm) { ?>
-        <script src="<?= ROOTPATH ?>/js/jquery-ui.min.js"></script>
-        <!-- reorder modal -->
-        <div id="reorder-modal" class="modal">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <span class="close">&times;</span>
-                    <h2><?= lang('Reorder child units', 'Untereinheiten neu anordnen') ?></h2>
-                    <form action="<?= ROOTPATH ?>/crud/groups/reorder/<?= $id ?>" method="post">
-                        <p>
-                            <?= lang('Drag and drop to reorder', 'Ziehen und Ablegen zum Neuanordnen') ?>
-                        </p>
-                        <ul id="reorder-list" class="list">
-                            <?php foreach ($children as $child) { ?>
-                                <li class="cursor-pointer">
-                                    <input type="hidden" name="order[]" value="<?= $child['_id'] ?>">
-                                    <?= $child['name'] ?>
-                                </li>
-                            <?php } ?>
-                        </ul>
-                        <button type="submit" class="btn"><?= lang('Save', 'Speichern') ?></button>
-                    </form>
-                    <script>
-                        $('#reorder-list').sortable({
-                            // handle: ".handle",
-                            // change: function( event, ui ) {}
-                        });
-                    </script>
+        if ($edit_perm) { ?>
+            <script src="<?= ROOTPATH ?>/js/jquery-ui.min.js"></script>
+            <!-- reorder modal -->
+            <div id="reorder-modal" class="modal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h2><?= lang('Reorder child units', 'Untereinheiten neu anordnen') ?></h2>
+                        <form action="<?= ROOTPATH ?>/crud/groups/reorder/<?= $id ?>" method="post">
+                            <p>
+                                <?= lang('Drag and drop to reorder', 'Ziehen und Ablegen zum Neuanordnen') ?>
+                            </p>
+                            <ul id="reorder-list" class="list">
+                                <?php foreach ($children as $child) { ?>
+                                    <li class="cursor-pointer">
+                                        <input type="hidden" name="order[]" value="<?= $child['_id'] ?>">
+                                        <?= $child['name'] ?>
+                                    </li>
+                                <?php } ?>
+                            </ul>
+                            <button type="submit" class="btn"><?= lang('Save', 'Speichern') ?></button>
+                        </form>
+                        <script>
+                            $('#reorder-list').sortable({
+                                // handle: ".handle",
+                                // change: function( event, ui ) {}
+                            });
+                        </script>
+                    </div>
                 </div>
             </div>
-        </div>
 
-    <?php } ?>
+        <?php } ?>
 
         <div class="row row-eq-spacing">
             <div class="col-md-3">
-            <table class="table">
+                <table class="table">
                     <tbody>
                         <tr>
                             <td>
@@ -304,77 +307,77 @@ $edit_perm = ($Settings->hasPermission('units.add') || $Groups->editPermission($
                         </tr>
                         <tr>
                             <td>
-                              
+
                                 <span class="key"><?= lang('Child units', 'Untereinheiten') ?></span>
 
                                 <?php if (!empty($children)) { ?>
                                     <ul class="list">
                                         <?php foreach ($children as $child) { ?>
                                             <li>
-                                                <a href="<?= ROOTPATH ?>/groups/view/<?= $child['id'] ?>"><?= lang($child['name'], $child['name_de']??null) ?></a><br>
+                                                <a href="<?= ROOTPATH ?>/groups/view/<?= $child['id'] ?>"><?= lang($child['name'], $child['name_de'] ?? null) ?></a><br>
                                                 <small class="text-muted"><?= $child['unit'] ?></small>
                                             </li>
                                         <?php } ?>
                                     </ul>
-                                    <?php if ($edit_perm ) { ?>
-                                    <a href="#reorder-modal" class="btn primary small" id="reorder">
-                                        <i class="ph ph-sort-ascending"></i>
-                                        <?= lang('Reorder child units', 'Untereinheiten neu anordnen') ?>
-                                    </a>
-                                <?php } ?>
+                                    <?php if ($edit_perm) { ?>
+                                        <a href="#reorder-modal" class="btn primary small" id="reorder">
+                                            <i class="ph ph-sort-ascending"></i>
+                                            <?= lang('Reorder child units', 'Untereinheiten neu anordnen') ?>
+                                        </a>
+                                    <?php } ?>
                                 <?php } else { ?>
                                     -
                                 <?php } ?>
-                            
+
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
             <div class="col">
-        <?php
-        $head = $group['head'] ?? [];
-        if (is_string($head)) $head = [$head];
-        else $head = DB::doc2Arr($head);
+                <?php
+                $head = $group['head'] ?? [];
+                if (is_string($head)) $head = [$head];
+                else $head = DB::doc2Arr($head);
 
-        usort($persons, function ($a, $b) use ($head) {
-            return in_array($a['username'], $head)  ? -1 : 1;
-        });
-        if (!empty($head)) { ?>
-            <div class="head">
-                <h5 class="mt-0"><?= $Groups->getUnit($group['unit'] ?? null, 'head') ?></h5>
-                <div>
-                    <?php foreach ($head as $h) { ?>
-                        <a href="<?= ROOTPATH ?>/profile/<?= $h ?>" class="colorless d-flex align-items-center border bg-white p-10 rounded mt-10">
-                            <?= $Settings->printProfilePicture($h, 'profile-img small mr-20') ?>
-                            <div class="">
-                                <h5 class="my-0">
-                                    <?= $DB->getNameFromId($h) ?>
-                                </h5>
-                            </div>
-                        </a>
-                    <?php } ?>
-                </div>
+                usort($persons, function ($a, $b) use ($head) {
+                    return in_array($a['username'], $head)  ? -1 : 1;
+                });
+                if (!empty($head)) { ?>
+                    <div class="head">
+                        <h5 class="mt-0"><?= $Groups->getUnit($group['unit'] ?? null, 'head') ?></h5>
+                        <div>
+                            <?php foreach ($head as $h) { ?>
+                                <a href="<?= ROOTPATH ?>/profile/<?= $h ?>" class="colorless d-flex align-items-center border bg-white p-10 rounded mt-10">
+                                    <?= $Settings->printProfilePicture($h, 'profile-img small mr-20') ?>
+                                    <div class="">
+                                        <h5 class="my-0">
+                                            <?= $DB->getNameFromId($h) ?>
+                                        </h5>
+                                    </div>
+                                </a>
+                            <?php } ?>
+                        </div>
 
+                    </div>
+                <?php } ?>
+
+
+                <?php if (isset($group['description']) || isset($group['description_de'])) { ?>
+                    <style>
+                        #description img {
+                            width: 100%;
+                            max-width: 80rem;
+                        }
+                    </style>
+                    <h5>
+                        <?= lang('About', 'Information') ?>
+                    </h5>
+                    <div id="description">
+                        <?= lang($group['description'] ?? '-', $group['description_de'] ?? null) ?>
+                    </div>
+                <?php } ?>
             </div>
-        <?php } ?>
-
-
-        <?php if (isset($group['description']) || isset($group['description_de'])) { ?>
-            <style>
-                #description img {
-                    width: 100%;
-                    max-width: 80rem;
-                }
-            </style>
-            <h5>
-                <?= lang('About', 'Information') ?>
-            </h5>
-            <div id="description">
-                <?= lang($group['description'] ?? '-', $group['description_de'] ?? null) ?>
-            </div>
-        <?php } ?>
-        </div>
         </div>
 
     </section>
@@ -577,15 +580,15 @@ $edit_perm = ($Settings->hasPermission('units.add') || $Groups->editPermission($
 
     <section id="collab" style="display:none">
 
-                <?php if ($level !== 0) { ?>
+        <?php if ($level !== 0) { ?>
 
-                    <h3><?= lang('Collaboration with other groups', 'Zusammenarbeit mit anderen Gruppen') ?></h3>
-                    <p class="text-muted">
-                        <?= lang('Based on publications within the past 5 years.', 'Basierend auf Publikationen aus den vergangenen 5 Jahren.') ?>
-                    </p>
-                    <div id="collab-chart" style="max-width: 60rem"></div>
+            <h3><?= lang('Collaboration with other groups', 'Zusammenarbeit mit anderen Gruppen') ?></h3>
+            <p class="text-muted">
+                <?= lang('Based on publications within the past 5 years.', 'Basierend auf Publikationen aus den vergangenen 5 Jahren.') ?>
+            </p>
+            <div id="collab-chart" style="max-width: 60rem"></div>
 
-                <?php } ?>
+        <?php } ?>
 
 
 

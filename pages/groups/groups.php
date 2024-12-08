@@ -67,7 +67,6 @@ $style = $_GET['style'] ?? 'cards';
             flex-grow: column;
             flex-direction: row;
             flex-wrap: wrap;
-
         }
 
         .table.cards tr {
@@ -87,9 +86,30 @@ $style = $_GET['style'] ?? 'cards';
             display: block;
         }
 
+        .table.cards tr td.inactive {
+            opacity: 0.7;
+            position: relative;
+            padding-top: 1.8em;
+        }
+
+        .table.cards tr td.inactive::before {
+            content: 'inactive';
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: var(--border-color);
+            color: white;
+            border-bottom-right-radius: var(--border-radius);
+            padding: 0.2em 0.5em;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+
         .table.cards tr td h5 {
             margin: 0;
         }
+
         .table.cards a.title {
             color: var(--highlight-color);
             font-size: 1.6rem;
@@ -114,12 +134,14 @@ $style = $_GET['style'] ?? 'cards';
             <th></th>
         </thead>
         <tbody>
-            <?php foreach ($Groups->groups as $group) { ?>
+            <?php foreach ($Groups->groups as $group) {
+                $inactive = $group['inactive'] ?? false;
+            ?>
                 <tr>
-                    <td class="" id="<?= $group['id'] ?>" <?= $Groups->cssVar($group['id']) ?>>
+                    <td class="<?= $inactive ? 'inactive' : '' ?>" id="<?= $group['id'] ?>" <?= $Groups->cssVar($group['id']) ?>>
                         <span style="display:none">
                             <!-- hidden field for sorting based on level -->
-                            <?= $Groups->getLevel($group['id']) ?>
+                            <?= $inactive ? '100' :$Groups->getLevel($group['id']) ?>
                         </span>
                         <span class="badge dept-id float-md-right"><?= $group['id'] ?></span>
                         <span class="text-muted"><?= $group['unit'] ?></span>
@@ -129,26 +151,29 @@ $style = $_GET['style'] ?? 'cards';
                             </a>
                         </h5>
 
-                        <div class="text-muted font-size-12">
-                            <?php
-                            $children = $Groups->getChildren($group['id']);
-                            ?>
-                            <?= $osiris->persons->count(['depts' => ['$in' => $children],  'is_active' => ['$ne'=>false]]) ?> <?= lang('Coworkers', 'Mitarbeitende') ?>
+                        <?php if (!$inactive) { ?>
 
-                        </div>
-                        <?php if (isset($group['head'])) {
- ?>
-                        <hr>
-                        <div class="mb-0">
-                            <?php 
-                                $heads = $group['head'];
-                                if (is_string($heads)) $heads = [$heads];
-                                $heads = array_map([$DB, 'getNameFromId'], $heads);
+                            <div class="text-muted font-size-12">
+                                <?php
+                                $children = $Groups->getChildren($group['id']);
+                                ?>
+                                <?= $osiris->persons->count(['depts' => ['$in' => $children],  'is_active' => ['$ne' => false]]) ?> <?= lang('Coworkers', 'Mitarbeitende') ?>
+                            </div>
+                            <?php if (isset($group['head'])) {
                             ?>
-                                <i class="ph ph-crown text-signal"></i>
-                                <?= implode(', ', $heads) ?>
-                        </div>
-                    <?php } ?>
+                                <hr>
+                                <div class="mb-0">
+                                    <?php
+                                    $heads = $group['head'];
+                                    if (is_string($heads)) $heads = [$heads];
+                                    $heads = array_map([$DB, 'getNameFromId'], $heads);
+                                    ?>
+                                    <i class="ph ph-crown text-signal"></i>
+                                    <?= implode(', ', $heads) ?>
+                                </div>
+                            <?php } ?>
+
+                        <?php } ?>
 
                     </td>
                 </tr>
@@ -161,37 +186,27 @@ $style = $_GET['style'] ?? 'cards';
         $(document).ready(function() {
             dataTable = $('#group-table').DataTable({
                 dom: 'frtipP',
-
-                // columnDefs: [{
-                //     targets: [0],
-                //     searchable: false,
-                //     sortable: false,
-                //     visible: true
-                // }],
-                // "order": [
-                //     [0, 'asc'],
-                // ],
                 paging: true,
                 autoWidth: true,
                 pageLength: 12,
-                initComplete: function(settings, json) {
-                    // $(".dt-buttons .btn-group").append(
-                    //     '<a id="cv" class="btn secondary" href="#">CARDs VIEW</a>'
-                    // );
-                    // var labels = [];
-                    // $("#result-table thead th").each(function() {
-                    //     labels.push($(this).text());
-                    // });
-                    // $("#result-table tbody tr").each(function() {
-                    //     $(this)
-                    //         .find("td")
-                    //         .each(function(column) {
-                    //             $("<span class='key'>" + labels[column] + "</span>").prependTo(
-                    //                 $(this)
-                    //             );
-                    //         });
-                    // });
-                }
+                // initComplete: function(settings, json) {
+                //     // $(".dt-buttons .btn-group").append(
+                //     //     '<a id="cv" class="btn secondary" href="#">CARDs VIEW</a>'
+                //     // );
+                //     // var labels = [];
+                //     // $("#result-table thead th").each(function() {
+                //     //     labels.push($(this).text());
+                //     // });
+                //     // $("#result-table tbody tr").each(function() {
+                //     //     $(this)
+                //     //         .find("td")
+                //     //         .each(function(column) {
+                //     //             $("<span class='key'>" + labels[column] + "</span>").prependTo(
+                //     //                 $(this)
+                //     //             );
+                //     //         });
+                //     // });
+                // }
             });
         });
     </script>

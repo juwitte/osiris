@@ -69,7 +69,15 @@ Route::get('/groups/(edit|public)/(.*)', function ($page, $id) {
     include_once BASEPATH . "/php/init.php";
     $user = $_SESSION['username'];
 
-    $group = $osiris->groups->findOne(['id' => $id]);
+    if (DB::is_ObjectID($id)) {
+        $mongo_id = $DB->to_ObjectID($id);
+        $group = $osiris->groups->findOne(['_id' => $mongo_id]);
+        $id = $group['id'];
+    } else {
+        // wichtig für umlaute
+        $group = $osiris->groups->findOne(['id' => $id]);
+        // $id = strval($group['_id'] ?? '');
+    }
     if (empty($group)) {
         header("Location: " . ROOTPATH . "/groups?msg=not-found");
         die;

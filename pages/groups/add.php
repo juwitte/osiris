@@ -23,7 +23,7 @@ if (!$Settings->hasPermission('units.add')) {
 
 $formaction = ROOTPATH . "/crud/groups/create";
 $btntext = '<i class="ph ph-check"></i> ' . lang("Save", "Speichern");
-$url = ROOTPATH . "/groups/view/*";
+$url = ROOTPATH . "/groups/edit/*";
 $title = lang('New group', 'Neue Gruppe');
 
 ?>
@@ -53,9 +53,17 @@ $title = lang('New group', 'Neue Gruppe');
                 <select class="form-control" name="values[parent]" id="parent" onchange="deptSelect(this.value)">
                     <option value="" data-level="99"><?= lang('!!!Attention: No parent group chosen', '!!! Achtung: Keine übergeordnete Gruppe gewählt') ?></option>
                     <?php foreach ($Groups->groups as $d => $dept) {
-                        $level = $dept['level'] ?? $Groups->getLevel($d);
+                        $selected = false;
+                        $l = $dept['level'] ?? $Groups->getLevel($d);
+                        if (isset($_GET['parent']) && $_GET['parent'] == $d) {
+                            $selected = true;
+                            $level = $l + 1;
+                        } else if ($l == 0) {
+                            $selected = true;
+                            $level = 1;
+                        }
                     ?>
-                        <option value="<?= $d ?>" data-level="<?= $level ?>" <?= $level == 0 ? 'selected' : '' ?>>
+                        <option value="<?= $d ?>" data-level="<?= $l ?>" <?= $selected ? 'selected' : '' ?>>
                             <?= $dept['name'] != $d ? "$d: " : '' ?><?= $dept['name'] ?>
                         </option>
                     <?php } ?>
@@ -123,7 +131,7 @@ $title = lang('New group', 'Neue Gruppe');
                         <select class="head-input form-control">
                             <option value="" disabled selected><?= lang('Add head ...', 'Füge leitende Person hinzu ...') ?></option>
                             <?php
-                            $userlist = $osiris->persons->find(['username' => ['$ne' => null], 'is_active'=>['$ne'=>false]], ['sort' => ["last" => 1]]);
+                            $userlist = $osiris->persons->find(['username' => ['$ne' => null], 'is_active' => ['$ne' => false]], ['sort' => ["last" => 1]]);
                             foreach ($userlist as $j) {
                             ?>
                                 <option value="<?= $j['username'] ?>"><?= $j['last'] ?>, <?= $j['first'] ?></option>

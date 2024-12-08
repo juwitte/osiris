@@ -256,7 +256,7 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
                         <?php if (in_array($user, $dept['head'] ?? [])) { ?>
                             <i class="ph ph-crown"></i>
                         <?php } ?>
-                        <?= $dept['name'] ?>
+                        <?= lang($dept['name'], $dept['name_de']) ?>
                         (<?= $dept['unit'] ?>)
                     </a>
                 </li>
