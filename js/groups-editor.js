@@ -48,7 +48,7 @@ function searchActivities(index) {
         suggest.append(`<span >${lang('Please type at least 3 characters', 'Mindestens 3 Zeichen erforderlich')}</span>`)
         return;
     }
-    $.get('<?= ROOTPATH ?>/api/activities-suggest/' + val, function(data) {
+    $.get(ROOTPATH+'/api/activities-suggest/' + val+ '?unit='+UNIT, function(data) {
         console.log(data);
         if (data.count == 0) {
             suggest.append(`<span >${lang('Nothing found', 'Nichts gefunden')}</span>`)

@@ -99,6 +99,9 @@ function sel($index, $value)
     }
 </style>
 
+<script>
+    const UNIT = '<?=$id?>';
+</script>
 <script src="<?= ROOTPATH ?>/js/quill.min.js?v=2"></script>
 <script src="<?= ROOTPATH ?>/js/groups-editor.js"></script>
 
