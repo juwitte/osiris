@@ -1,4 +1,4 @@
-function navigate(key){
+function navigate(key) {
     $('section').hide()
     $('section#' + key).show()
 
@@ -14,7 +14,7 @@ function addName(evt, el) {
     group.append('<input type="text" name="values[names][]" value="" required class="form-control">')
     // var input = $()
     var btn = $('<a class="btn text-danger">')
-    btn.on('click', function() {
+    btn.on('click', function () {
         $(this).closest('.input-group').remove();
     })
     btn.html('&times;')
@@ -49,7 +49,11 @@ $(document).ready(function () {
     // read hash to navigate
     var hash = window.location.hash;
     if (hash) {
-        navigate(hash.replace('#section-', ''));
+        hash = hash.replace('#section-', '')
+        // check if hash is a valid section
+        if ($(`section#${hash}`).length > 0) {
+            navigate(hash);
+        }
     }
 
     $.ajax({

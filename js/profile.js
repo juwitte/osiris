@@ -79,7 +79,11 @@ $(document).ready(function () {
     // get hash
     var hash = window.location.hash
     if (hash) {
-        navigate(hash.replace('#section-', ''))
+        hash = hash.replace('#section-', '')
+        // check if hash is a valid section
+        if ($(`section#${hash}`).length > 0) {
+            navigate(hash);
+        }
     }
 });
 
