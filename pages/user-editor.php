@@ -198,28 +198,45 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
                     <h5><?= lang('Current Position', 'Aktuelle Position') ?></h5>
                 </label>
 
-                <div class="row row-eq-spacing my-0">
-                    <div class="col-md-6">
-                        <label for="position_de" class="d-flex">Deutsch <img src="<?= ROOTPATH ?>/img/de.svg" alt="DE" class="flag"></label>
-                        <input name="values[position_de]" id="position_de" type="text" class="form-control" value="<?= htmlspecialchars($data['position_de'] ?? '') ?>">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="position" class="d-flex">English <img src="<?= ROOTPATH ?>/img/gb.svg" alt="EN" class="flag"></label>
-                        <input name="values[position]" id="position" type="text" class="form-control" value="<?= htmlspecialchars($data['position'] ?? '') ?>">
-                    </div>
-                </div>
-            </div>
 
-            <!-- if topics are registered, you can choose them here -->
-            <?php $Settings->topicChooser($data['topics'] ?? []) ?>
+                <?php
+                $staff = $Settings->get('staff');
+                $staffPos = $staff['positions'] ?? [];
+                $staffFree = $staff['free'] ?? true;
+                ?>
+                <?php if ($staffFree) { ?>
+                    <div class="row row-eq-spacing my-0">
+                        <div class="col-md-6">
+                            <label for="position_de" class="d-flex">Deutsch <img src="<?= ROOTPATH ?>/img/de.svg" alt="DE" class="flag"></label>
+                            <input name="values[position_de]" id="position_de" type="text" class="form-control" value="<?= htmlspecialchars($data['position_de'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="position" class="d-flex">English <img src="<?= ROOTPATH ?>/img/gb.svg" alt="EN" class="flag"></label>
+                            <input name="values[position]" id="position" type="text" class="form-control" value="<?= htmlspecialchars($data['position'] ?? '') ?>">
+                        </div>
+                    </div>
+                <?php } else { ?>
+                    <!-- select list from predifined pos -->
+                    <select name="values[position_both]" id="position" class="form-control">
+                        <option value=""> -- <?=lang('no position selected', 'keine Position gewählt')?> --- </option>
+                        <?php foreach ($staffPos as $pos) { 
+                            $en = $pos[0] ?? '-';
+                            $de = $pos[1] ?? '-';
+                            ?>
+                            <option value="<?= $en ?>;;<?= $de ?>" <?= $data['position'] == $en ? 'selected' : '' ?>><?= $en ?> // <?= $de ?></option>
+                        <?php } ?>
+                    </select>
+                <?php } ?>
+
+            </div>
 
             <h5>
                 <?= lang('Currently selected organisational units', 'Zurzeit ausgewählte Organisationseinheiten') ?>
             </h5>
 
             <p>
-            <i class="ph ph-flask text-secondary"></i>
-            <?= lang('This is the main unit counting for your scientific output. This unit and all parent units are assigned to your output automatically.', 'Dies ist die Einheit, die für deine wissenschaftliche Ausgabe gezählt wird. Diese Einheit und alle übergeordneten Einheiten werden Ihrer Ausgabe automatisch zugewiesen.') ?>
+                <i class="ph ph-flask text-secondary"></i>
+                <?= lang('This is the main unit counting for your scientific output. This unit and all parent units are assigned to your output automatically.', 'Dies ist die Einheit, die für deine wissenschaftliche Ausgabe gezählt wird. Diese Einheit und alle übergeordneten Einheiten werden Ihrer Ausgabe automatisch zugewiesen.') ?>
             </p>
 
             <?php
@@ -240,7 +257,7 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
                                     <td style="padding-left: <?= ($row['indent'] * 2 + 2) . 'rem' ?>;">
                                         <?= lang($row['name_en'], $row['name_de'] ?? null) ?>
                                         <?php if ($science_unit == $row['id']) { ?>
-                                           <i class="ph ph-flask text-secondary"></i>
+                                            <i class="ph ph-flask text-secondary"></i>
                                         <?php } ?>
                                     </td>
                                 </tr>
@@ -637,12 +654,16 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
             <?= lang('Research interest', 'Forschungsinteressen') ?>
         </h2>
 
+            <!-- if topics are registered, you can choose them here -->
+            <?php $Settings->topicChooser($data['topics'] ?? []) ?>
+
+
         <small class="text-muted">Max. 5</small><br>
         <table class="table simple">
             <thead>
                 <tr>
-                    <th><label for="position" class="d-flex">English <img src="<?= ROOTPATH ?>/img/gb.svg" alt="EN" class="flag"></label></th>
-                    <th><label for="position_de" class="d-flex">Deutsch <img src="<?= ROOTPATH ?>/img/de.svg" alt="DE" class="flag"></label></th>
+                    <th><label for="research" class="d-flex">English <img src="<?= ROOTPATH ?>/img/gb.svg" alt="EN" class="flag"></label></th>
+                    <th><label for="research_de" class="d-flex">Deutsch <img src="<?= ROOTPATH ?>/img/de.svg" alt="DE" class="flag"></label></th>
                     <th></th>
                 </tr>
             </thead>

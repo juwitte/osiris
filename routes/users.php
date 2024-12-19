@@ -435,6 +435,14 @@ Route::post('/crud/users/update/(.*)', function ($user) {
             );
         }
     }
+    if (isset($values['position_both'])){
+        $pos = explode(";;", $values['position_both']);
+        $person['position'] = $pos[0];
+        $person['position_de'] = trim($pos[1] ?? '');
+        if (empty($person['position_de'])) {
+            $person['position_de'] = null;
+        }
+    }
 
     $updateResult = $osiris->persons->updateOne(
         ['username' => $user],

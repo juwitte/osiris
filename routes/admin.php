@@ -236,6 +236,31 @@ Route::post('/crud/admin/general', function () {
         }
     }
 
+    if (isset($_POST['staff'])){
+        $staff = [];
+        if (isset($_POST['staff']['free'])) {
+            $staff['free'] = boolval($_POST['staff']['free']);
+        }
+        if (isset($_POST['staff']['positions']) && !empty($_POST['staff']['positions'])) {
+            $en = $_POST['staff']['positions'];
+            $de = $_POST['staff']['positions_de'] ?? $en;
+    
+            $staff['positions'] = [];
+            foreach ($en as $i => $e) {
+                $staff['positions'][] = [
+                    $e,
+                    $de[$i] ?? $e
+                ];
+            }
+        }
+        $osiris->adminGeneral->deleteOne(['key' => 'staff']);
+        $osiris->adminGeneral->insertOne([
+            'key' => 'staff',
+            'value' => $staff
+        ]);
+    }
+    
+
     if (isset($_FILES["logo"])) {
         $filename = htmlspecialchars(basename($_FILES["logo"]["name"]));
         $filetype = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
