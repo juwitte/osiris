@@ -319,13 +319,17 @@ $expert = isset($_GET['expert']);
             },
             {
                 id: 'cooperative',
-                label: lang('Cooperative', 'Kooperativ'),
-                type: 'boolean',
+                label: lang('Cooperation type', 'Kooperationsform'),
+                type: 'string',
                 values: {
-                    'true': 'yes',
-                    'false': 'no'
+                    'individual': lang('Individual (only one affiliated author)', 'Individuell (nur ein affiliierter Autor)'),
+                    'departmental': lang('Departmental (cooperation within one department)', 'Abteilungsintern (Kooperation innerhalb einer Abteilung)'),
+                    'institutional': lang('Institutional (cooperation between departments of the same institute)', 'Institutionell (Kooperation zwischen Abteilungen des gleichen Instituts)'),
+                    'contributing': lang('Contributing (cooperation with other institutes with middle authorships)', 'Beitragend (Kooperation mit anderen Instituten mit Mittelautorenschaft)'),
+                    'leading': lang('Leading (cooperation with other institutes with a corresponding role, first or last authorship)', 'Führend (Kooperation mit anderen Instituten mit einer korrespondierenden Rolle, Erst- oder Letztautorenschaft)'),
+                    'none': lang('None (no author affiliated)', 'Kein:e Autor:in affiliert')
                 },
-                input: 'radio'
+                input: 'select'
             },
             {
                 id: 'journal',
