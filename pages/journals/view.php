@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Page to see a journal
  * 
@@ -76,11 +77,6 @@
             </td>
         </tr>
     <?php } ?>
-    <!--     
-    <tr>
-        <td>WoS Categories</td>
-        <td><?= isset($data['categories']) ? implode('<br>', DB::doc2Arr($data['categories'])) : '' ?></td>
-    </tr> -->
 </table>
 
 <h3>
@@ -196,44 +192,68 @@
     });
 </script>
 
+<h3><?= lang('Catergories', 'Kategorien') ?></h3>
+<?php
+$categories = $data['categories'] ?? [];
+if (empty($categories)) {
+    echo '<p>' . lang('No categories available.', 'Keine Kategorien verfügbar.') . '</p>';
+} else {
+    echo '<ul>';
+    foreach ($categories as $cat) { ?>
+        <li>
+            <?= $cat['name'] ?>
+            <?php if ($cat['quartile']) { ?>
+                <span class="quartile Q<?= $cat['quartile'] ?>">Q<?= $cat['quartile'] ?></span>
+            <?php } ?>
+        </li>
+<?php
+    }
+    echo '</ul>';
+}
+?>
 
 <?php if ($Settings->hasPermission('journals.edit')) { ?>
     <form action="<?= ROOTPATH ?>/crud/journal/update-metrics/<?= $id ?>" method="post">
         <button class="btn primary float-md-right"><i class="ph ph-arrows-clockwise"></i> <?= lang('Update Metrics', 'Metriken aktualisieren') ?></button>
     </form>
 <?php } ?>
-<h3><?=lang('Metrics', 'Metriken')?></h3>
+<h3><?= lang('Metrics', 'Metriken') ?></h3>
 
 <!-- crud/journal/update-metrics/ -->
 
 <?php
 $metrics = DB::doc2Arr($data['metrics'] ?? array());
 
-if (empty($metrics)){
-    echo '<p>'.lang('No metrics available.', 'Keine Metriken verfügbar.').'</p>';
-} else {
-    echo '<table class="table">';
-    echo '<thead>';
-    echo '<th>Year</th>';
-    echo '<th>SJR</th>';
-    // echo '<th>H-Index</th>';
-    echo '<th>IF (2Y)</th>';
-    echo '<th>IF (3Y)</th>';
-    echo '</thead>';
-    echo '<tbody>';
-    foreach ($metrics as $metric) {
-        echo '<tr>';
-        echo '<td>'.$metric['year'].'</td>';
-        echo '<td>'.$metric['sjr'].'</td>';
-        // echo '<td>'.$metric['h_index'].'</td>';
-        echo '<td>'.$metric['if_2y'].'</td>';
-        echo '<td>'.$metric['if_3y'].'</td>';
-        echo '</tr>';
-    }
-    echo '</tbody>';
-    echo '</table>';
-}
-?>
+if (empty($metrics)) {
+    echo '<p>' . lang('No metrics available.', 'Keine Metriken verfügbar.') . '</p>';
+} else { ?>
+    <table class="table small">
+        <thead>
+            <th><?= lang('Year', 'Jahr') ?></th>
+            <th>SJR</th>
+            <th>IF (2Y)</th>
+            <th>IF (3Y)</th>
+            <th><?= lang('Quartile') ?></th>
+        </thead>
+        <tbody>
+            <?php
+            foreach ($metrics as $metric) {
+                echo '<tr>';
+                echo '<th>' . $metric['year'] . '</th>';
+                echo '<td>' . $metric['sjr'] . '</td>';
+                echo '<td>' . $metric['if_2y'] . '</td>';
+                echo '<td>' . $metric['if_3y'] . '</td>';
+                echo '<td>';
+                if ($metric['quartile']) {
+                    echo '<span class="quartile ' . $metric['quartile'] . '">' . $metric['quartile'] . '</span>';
+                }
+                echo'</td>';
+                echo '</tr>';
+            }
+            ?>
+        </tbody>
+    </table>
+<?php } ?>
 
 
 <h3><?= lang('Impact factors', 'Impact-Faktoren') ?></h3>
@@ -242,13 +262,6 @@ $impacts = $data['impact'] ?? array();
 if ($impacts instanceof MongoDB\Model\BSONArray) {
     $impacts = DB::doc2Arr($impacts);
 }
-
-// $if_2y = [];
-// $if_3y = [];
-// foreach ($metrics as $m) {
-//     $if_2y[$m['year']] = $m['if_2y'];
-//     $if_3y[$m['year']] = $m['if_3y'];
-// }
 ?>
 
 <div class="box">

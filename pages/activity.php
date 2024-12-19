@@ -339,6 +339,13 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
             <span class="badge danger"><?= $doc['impact'] ?></span>
         </div>
     <?php } ?>
+    <?php if ($doc['quartile'] ?? false) { ?>
+        <div class="mr-10 badge bg-white">
+            <small><?= lang('Quartile', 'Quartil') ?>: </small>
+            <br />
+            <span class="quartile <?= $doc['quartile'] ?>"><?= $doc['quartile'] ?></span>
+        </div>
+    <?php } ?>
 
     <?php if (isset($doc['projects']) && count($doc['projects']) > 0) { ?>
         <div class="mr-10 badge bg-white">

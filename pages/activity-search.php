@@ -418,6 +418,13 @@ $expert = isset($_GET['expert']);
                 type: 'double'
             },
             {
+                id: 'quartile',
+                label: lang('Quartile'),
+                type: 'string',
+                input: 'select',
+                values: ['Q1', 'Q2', 'Q3', 'Q4']
+            },
+            {
                 id: 'book',
                 label: lang('Book title', 'Buchtitel'),
                 type: 'string'
@@ -516,7 +523,6 @@ $expert = isset($_GET['expert']);
                     'grant-rev': 'Grant proposal',
                     'thesis-rev': 'Thesis review'
                 }
-
             },
             {
                 id: 'name',

@@ -52,9 +52,10 @@ function renderActivities($filter = [])
         if ($doc['type'] == 'publication' && isset($doc['journal'])) {
             // update impact if necessary
             $if = $DB->get_impact($doc);
-            if (!empty($if) && (!isset($doc['impact']) || $if != $doc['impact'])) {
+            if (!empty($if)) {
                 $values['impact'] = $if;
             }
+            $values['quartile'] = $DB->get_metrics($doc);
         }
         $aoi_authors = array_filter($doc['authors'], function ($a) {
             return $a['aoi'] ?? false;
