@@ -26,6 +26,7 @@
 
 
 <h2 class="mt-0">
+    <i class="ph ph-stack text-primary"></i>
     <?= $data['journal'] ?>
 </h2>
 

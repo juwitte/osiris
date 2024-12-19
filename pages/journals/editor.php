@@ -17,7 +17,7 @@
  */
 ?>
 
-<h1>
+<h1><i class="ph ph-stack-plus text-primary"></i>
 <?php
     if ($id === null || empty($data)){
         echo lang("Add journal", "Journal hinzufügen");

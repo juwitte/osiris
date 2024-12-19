@@ -406,7 +406,7 @@ $pageactive = function ($p) use ($page) {
 
 
                         <a href="<?= ROOTPATH ?>/journal" class="with-icon <?= $pageactive('journal') ?>">
-                            <i class="ph ph-newspaper-clipping" aria-hidden="true"></i>
+                            <i class="ph ph-stack" aria-hidden="true"></i>
                             <?= lang('Journals', 'Journale') ?>
                         </a>
 
