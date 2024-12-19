@@ -108,6 +108,11 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
     .show-on-hover:hover .invisible {
         visibility: visible !important;
     }
+
+    .badge.block {
+        display: block;
+        text-align: center;
+    }
 </style>
 
 <script>
@@ -252,6 +257,100 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
 
 <!-- show research topics -->
 <?= $Settings->printTopics($doc['topics'] ?? []) ?>
+
+
+<div class="d-flex">
+
+    <div class="mr-10 badge bg-white">
+        <small><?= lang('Date', 'Datum') ?>: </small>
+        <br />
+        <span class="badge"><?= $Format->format_date($doc) ?></span>
+    </div>
+
+    <div class="mr-10 badge bg-white">
+        <small><?= $Settings->get('affiliation') ?>: </small>
+        <br />
+        <?php
+
+        if ($doc['affiliated'] ?? true) { ?>
+            <div class="badge success" data-toggle="tooltip" data-title="<?= lang('At least on author of this activity has an affiliation with the institute.', 'Mindestens ein Autor dieser Aktivität ist mit dem Institut affiliert.') ?>">
+                <!-- <i class="ph ph-handshake m-0"></i> -->
+                <?= lang('Affiliated', 'Affiliert') ?>
+            </div>
+        <?php } else { ?>
+            <div class="badge danger" data-toggle="tooltip" data-title="<?= lang('None of the authors has an affiliation to the Institute.', 'Keiner der Autoren ist mit dem Institut affiliert.') ?>">
+                <!-- <i class="ph ph-hand-x m-0"></i> -->
+                <?= lang('Not affiliated', 'Nicht affiliert') ?>
+            </div>
+        <?php } ?>
+    </div>
+
+    <!-- cooperative -->
+    <div class="mr-10 badge bg-white">
+        <small><?= lang('Cooperation', 'Zusammenarbeit') ?>: </small>
+        <br />
+        <?php
+        switch ($doc['cooperative'] ?? '-') {
+            case 'individual': ?>
+                <span class="badge block primary" data-toggle="tooltip" data-title="<?= lang('Only one author', 'Nur ein Autor/eine Autorin') ?>">
+                    <?= lang('Individual', 'Einzelarbeit') ?>
+                </span>
+            <?php
+                break;
+            case 'departmental': ?>
+                <span class="badge block primary" data-toggle="tooltip" data-title="<?= lang('Authors from the same department of this institute', 'Autoren aus der gleichen Abteilung des Instituts') ?>">
+                    <?= lang('Institutional', 'Institutionell') ?>
+                </span>
+            <?php
+                break;
+            case 'institutional': ?>
+                <span class="badge block primary" data-toggle="tooltip" data-title="<?= lang('Authors from different departments but all from this institute', 'Autoren aus verschiedenen Abteilungen, aber alle vom Institut') ?>">
+                    <?= lang('Institutional', 'Institutionell') ?>
+                </span>
+            <?php
+                break;
+            case 'contributing': ?>
+                <span class="badge block primary" data-toggle="tooltip" data-title="<?= lang('Authors from different institutes with us being middle authors', 'Autoren aus unterschiedlichen Instituten mit uns als Mittelautoren') ?>">
+                    <?= lang('Cooperative (Contributing)', 'Kooperativ (Beitragend)') ?>
+                </span>
+            <?php
+                break;
+            case 'leading': ?>
+                <span class="badge block primary" data-toggle="tooltip" data-title="<?= lang('Authors from different institutes with us being leading authors', 'Autoren aus unterschiedlichen Instituten mit uns als führenden Autoren') ?>">
+                    <?= lang('Cooperative (Leading)', 'Kooperativ (Führend)') ?>
+                </span>
+            <?php
+                break;
+            default: ?>
+                <span class="badge block" data-toggle="tooltip" data-title="<?= lang('No author affiliated', 'Autor:innen sind nicht affiliert') ?>">
+                    <?= lang('None', 'Keine') ?>
+                </span>
+        <?php
+                break;
+        }
+        ?>
+
+    </div>
+
+    <?php if ($doc['impact'] ?? false) { ?>
+        <div class="mr-10 badge bg-white">
+            <small><?= lang('Impact', 'Impact') ?>: </small>
+            <br />
+            <span class="badge danger"><?= $doc['impact'] ?></span>
+        </div>
+    <?php } ?>
+
+    <?php if (isset($doc['projects']) && count($doc['projects']) > 0) { ?>
+        <div class="mr-10 badge bg-white">
+            <small><?= lang('Projects', 'Projekte') ?>: </small>
+            <br />
+            <?php foreach ($doc['projects'] as $p) { ?>
+                <span class="badge"><?= $p ?></span>
+            <?php } ?>
+        </div>
+    <?php } ?>
+
+</div>
 
 
 <?php if ($Settings->featureEnabled('portal') && ($user_activity || $Settings->hasPermission('activities.edit'))) {

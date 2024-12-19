@@ -497,6 +497,59 @@ class Document extends Settings
         return Document::commalist($authors, $separator) . $append;
     }
 
+    public function getAffiliationTypes()
+    {
+        $aoi_authors = array_filter(DB::doc2Arr($this->doc['authors']), function ($a) {
+            return $a['aoi'] ?? false;
+        });
+        $pos = array_unique(array_column($aoi_authors, 'position'));
+        $aff = [];
+        if (count($this->doc['authors']) == 1 && count($aoi_authors) == 1)
+            $aff[] = 'single';
+        if (count($this->doc['authors']) == count($aoi_authors))
+            $aff[] = 'all';
+        if (in_array('first', $pos))
+            $aff[] = 'first';
+        if (in_array('last', $pos))
+            $aff[] = 'last';
+        if (in_array('first', $pos) && in_array('last', $pos))
+            $aff[] = 'first_and_last';
+        if (in_array('first', $pos) || in_array('last', $pos))
+            $aff[] = 'first_or_last';
+        if (in_array('middle', $pos))
+            $aff[] = 'middle';
+        if (empty($aoi_authors))
+            $aff[] = 'none';
+        elseif (empty($pos))
+            $aff[] = 'unspecified';
+        if (in_array('corresponding', $pos))
+            $aff[] = 'corresponding';
+        if (!in_array('first', $pos))
+            $aff[] = 'not_first';
+        if (!in_array('last', $pos))
+            $aff[] = 'not_last';
+        if (!in_array('middle', $pos))
+            $aff[] = 'not_middle';
+        if (!in_array('corresponding', $pos))
+            $aff[] = 'not_corresponding';
+        if (!in_array('first', $pos) && !in_array('last', $pos))
+            $aff[] = 'not_first_or_last';
+        return $aff;
+    }
+
+    public function getCooperationType($affPos=null, $depts)
+    {
+        if (is_null($affPos)) $affPos = $this->getAffiliationTypes();
+        if (in_array('none', $affPos)) return 'none';
+        if (in_array('single', $affPos)) return 'individual';
+        if (in_array('all', $affPos)) {
+            if (count($depts) == 1) return 'departmental';
+            else return 'institutional';
+        }
+        if (in_array('first_or_last', $affPos) || in_array('corresponding', $affPos)) return 'leading';
+        else return 'contributing';
+    }
+
     public function getAuthors()
     {
         if (empty($this->doc['authors'])) return '';
@@ -714,7 +767,7 @@ class Document extends Settings
                 return $this->fromToDate($this->getVal('start', $this->doc), $this->getVal('end', null));
             case "date-range-ongoing":
                 if (!empty($this->doc['start'])) {
-                    if (!empty($this->doc['end'])) { 
+                    if (!empty($this->doc['end'])) {
                         $start = Document::format_month($this->doc['start']['month']) . ' ' . $this->doc['start']['year'];
                         $end = Document::format_month($this->doc['end']['month']) . ' ' . $this->doc['end']['year'];
                         if ($start == $end) return $start;

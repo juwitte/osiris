@@ -150,6 +150,7 @@ Route::get('/portfolio/unit/([^/]*)', function ($id) {
                 'name' => $p['displayname'],
                 'img' => $img,
                 'position' => $p['position'],
+                'position_de' => $p['position_de'] ?? null,
             ];
         }
     }
@@ -301,6 +302,44 @@ Route::get('/portfolio/unit/([^/]*)/numbers', function ($id) {
 
         $result['cooperation'] = max(0, count($coop) - 1);
     }
+
+    echo rest($result);
+});
+
+
+Route::get('/portfolio/(publications|activities|all-activities)', function ($type) {
+    error_reporting(E_ERROR | E_PARSE);
+    include(BASEPATH . '/php/init.php');
+
+    $filter = ['hide' => ['$ne' => true]];
+
+    if ($type == 'publications') {
+        $filter['type'] = 'publication';
+    } else if ($type == 'activities') {
+        $filter['subtype'] = ['$in' => $Settings->getActivitiesPortfolio(false)];
+    } else {
+        $filter['subtype'] = ['$in' => $Settings->getActivitiesPortfolio(true)];
+    }
+
+    $options = [
+        'sort' => ['year' => -1, 'month' => -1, 'day' => -1],
+        'projection' => [
+            'html' => '$rendered.portfolio',
+            'search' => '$rendered.plain',
+            'type' => 1,
+            'subtype' => 1,
+            'year' => 1,
+            'month' => 1,
+            'day' => 1,
+            'icon' => '$rendered.icon',
+            'affiliated'=> 1
+        ]
+    ];
+
+    $result = $osiris->activities->find(
+        $filter,
+        $options
+    )->toArray();
 
     echo rest($result);
 });
@@ -474,6 +513,10 @@ Route::get('/portfolio/(unit|person)/([^/]*)/projects', function ($context, $id)
         'projection' => [
             'name' => 1,
             'title' => 1,
+            'public_title' => 1,
+            'public_title_de' => 1,
+            'public_subtitle' => 1,
+            'public_subtitle_de' => 1,
             'funder' => 1,
             'funding_organization' => 1,
             'funding_number' => 1,
@@ -504,7 +547,6 @@ Route::get('/portfolio/unit/([^/]*)/staff', function ($id) {
     // dump($_SERVER, true);
 
     $filter = [
-        'hide' => ['$ne' => true],
         'is_active' => ['$ne' => false],
         'hide' => ['$ne' => true]
     ];
@@ -526,7 +568,8 @@ Route::get('/portfolio/unit/([^/]*)/staff', function ($id) {
             'displayname' => ($person['first'] ?? '') . ' ' . $person['last'],
             'academic_title' => $person['academic_title'],
             'position' => $person['position'],
-            'depts' => $Groups->personDepts($person['depts'])
+            'position_de' => $person['position_de'],
+            'depts' => $Groups->personDepts($person['depts']),
         ];
         if ($person['public_image'] ?? false) {
             $row['img'] = $Settings->printProfilePicture($person['username'], 'profile-img');
@@ -584,6 +627,7 @@ Route::get('/portfolio/project/([^/]*)/staff', function ($id) {
             'displayname' => $person['displayname'],
             'academic_title' => $person['academic_title'],
             'position' => $person['position'],
+            'position_de' => $person['position_de'],
             'depts' => []
         ];
         if ($person['public_image'] ?? false) {
@@ -643,9 +687,11 @@ Route::get('/portfolio/activity/([^/]*)', function ($id) {
         'authors' => [],
         'depts' => [],
         'projects' => [],
+        'affiliated' => false
     ];
 
     foreach ($doc['authors'] as $a) {
+        if ($a['aoi']) $result['affiliated'] = true;
         $i = null;
         if (!empty($a['user'])) {
             $person = $DB->getPerson($a['user']);
@@ -974,11 +1020,17 @@ Route::get('/portfolio/person/([^/]*)', function ($id) {
         $raw = $osiris->projects->find(['persons.user' => $person['username'], "public" => true, "status" => ['$in' => ["approved", 'finished']]])->toArray();
         $projects = ['current' => [], 'past' => []];
         foreach ($raw as $project) {
-
             $Project->setProject($project);
             $past = $Project->inPast();
             if ($past) $key = 'past';
             else $key = 'current';
+            $personRole = null;
+            foreach ($project['persons'] as $p) {
+                if ($p['user'] == $person['username']) {
+                    $personRole = $p['role'];
+                    break;
+                }
+            }
             $projects[$key][] = [
                 'id' => strval($project['_id']),
                 'name' => $project['name'],
@@ -989,6 +1041,7 @@ Route::get('/portfolio/person/([^/]*)', function ($id) {
                 'role' => $project['role'],
                 'start' => $project['start'],
                 'end' => $project['end'],
+                'personRole' => $Project->personRoleRaw($personRole),
             ];
         }
         $result['projects'] = $projects;
@@ -1203,8 +1256,117 @@ Route::get('/portfolio/unit/([^/]*)/cooperation', function ($id) {
     ], count($labels));
 });
 
+// get all projects
+Route::get('/portfolio/projects', function () {
+    error_reporting(E_ERROR | E_PARSE);
+    include(BASEPATH . '/php/init.php');
+    $filter = [
+        'public' => true,
+        "status" => ['$in' => ["approved", 'finished']]
+    ];  
 
+    $options = [
+        'sort' => ['year' => -1, 'month' => -1],
+        'projection' => [
+            'name' => 1,
+            'title' => 1,
+            'funder' => 1,
+            'funding_organization' => 1,
+            'funding_number' => 1,
+            'role' => 1,
+            'start' => 1,
+            'end' => 1,
+            'type' => 1,
+            'teaser_en' => 1,
+            'teaser_de' => 1,
+            'public_image' => 1
+        ]
+    ];
 
+    $result = $osiris->projects->find(
+        $filter,
+        $options
+    )->toArray();
+    
+    echo rest($result);
+});
+
+// get all persons
+Route::get('/portfolio/persons', function () {
+    error_reporting(E_ERROR | E_PARSE);
+    include(BASEPATH . '/php/init.php');
+    $filter = [
+        'hide' => ['$ne' => true]
+    ];
+
+    $persons = $osiris->persons->find(
+        $filter,
+        ['sort' => ['last' => 1],
+        'projection' => [
+            'displayname' => 1,
+            'academic_title' => 1,
+            'position' => 1,
+            'position_de' => 1,
+            'depts' => 1
+        ]]
+    )->toArray();
+    
+    echo rest($persons);
+});
+
+// get all persons
+Route::get('/portfolio/person-images', function () {
+    error_reporting(E_ERROR | E_PARSE);
+    include(BASEPATH . '/php/init.php');
+    $filter = [
+        'hide' => ['$ne' => true],
+        'public_image' => true
+    ];
+
+    $persons = $osiris->persons->find(
+        $filter,
+        ['sort' => ['last' => 1],
+        'projection' => [
+            'username' => 1,
+        ]]
+    )->toArray();
+
+    $result = [];
+    foreach ($persons as $person) {
+        if ($Settings->featureEnabled('db_pictures')) {
+            $img = $Settings->printProfilePicture($person['username'], 'profile-img');
+        } else {
+            $user = $person['username'];
+            if (!file_exists(BASEPATH . "/img/users/$user.jpg")) {
+                continue;
+            } else {
+                $img = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . ROOTPATH . "/img/users/$user.jpg";
+            }
+        }
+
+        $result[] = [
+            'id' => strval($person['_id']),
+            'path' => $img
+        ];
+    }
+    
+    echo rest($result);
+});
+
+// function getPersonImage($person){
+//     global $Settings;
+//     if ($Settings->featureEnabled('db_pictures')) {
+//         $img = $Settings->printProfilePicture($person['username'], 'profile-img');
+//     } else {
+//         $user = $person['username'];
+//         if (!file_exists(BASEPATH . "/img/users/$user.jpg")) {
+//             return null;
+//         } else {
+//             $img = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] . ROOTPATH . "/img/users/$user.jpg";
+//         }
+//     }
+//     return $img;
+// }
 
 Route::get('/portfolio/test', function () {
     include(BASEPATH . '/php/init.php');

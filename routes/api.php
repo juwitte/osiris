@@ -2025,6 +2025,14 @@ Route::get('/api/activities-suggest/(.*)', function ($term) {
         $filter['projects'] = ['$ne' => $exclude];
     }
 
+    if (isset($_GET['user'])) {
+        $filter['authors.user'] = $_GET['user'];
+    }
+    // TODO: add filter for department
+    // if (isset($_GET['unit'])) {
+    //     $filter['depts'] = $_GET['unit'];
+    // }
+
     // $osiris->activities->createIndex(['rendered.plain' => 'text']);
 
     $result = $osiris->activities->find(

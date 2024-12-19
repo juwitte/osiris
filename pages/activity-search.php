@@ -17,7 +17,7 @@
  */
 
 $Format = new Document(true);
-$expert = isset($_GET['expert']) ;
+$expert = isset($_GET['expert']);
 ?>
 
 <link rel="stylesheet" href="<?= ROOTPATH ?>/css/query-builder.default.min.css">
@@ -278,6 +278,48 @@ $expert = isset($_GET['expert']) ;
             {
                 id: 'authors.aoi',
                 label: lang('Author (affiliated)', 'Autor (Affiliated)'),
+                type: 'boolean',
+                values: {
+                    'true': 'yes',
+                    'false': 'no'
+                },
+                input: 'radio'
+            },
+            {
+                id: 'affiliated',
+                label: lang('Affiliated', 'Affiliert'),
+                type: 'boolean',
+                values: {
+                    'true': 'yes',
+                    'false': 'no'
+                },
+                input: 'radio'
+            },
+            {
+                id: 'affiliated_positions',
+                label: lang('Affiliated positions', 'Affiliierte Positionen'),
+                type: 'string',
+                input: 'select',
+                values: {
+                    'first': lang('First author', 'Erstautor:in'),
+                    'last': lang('Last author', 'Letztautor:in'),
+                    'first_and_last': lang('First and last author', 'Erst- und Letztautor:in'),
+                    'first_or_last': lang('First or last author', 'Erst- oder Letztautor:in'),
+                    'middle': lang('Middle author', 'Mittelautor:in'),
+                    'single': lang('One single affiliated author', 'Ein einzelner affiliierter Autor'),
+                    'none': lang('No author affiliated', 'Kein:e Autor:in affiliert'),
+                    'all': lang('All authors affiliated', 'Alle Autoren affiliert'),
+                    'corresponding': lang('Corresponding author', 'Korrespondierender Autor:in'),
+                    'not_first': lang('Not first author', 'Nicht Erstautor:in'),
+                    'not_last': lang('Not last author', 'Nicht letzter Autor:in'),
+                    'not_middle': lang('Not middle author', 'Nicht Mittelautor:in'),
+                    'not_corresponding': lang('Not corresponding author', 'Nicht korrespondierender Autor:in'),
+                    'not_first_or_last': lang('Not first or last author', 'Nicht Erst- oder Letztautor:in')
+                }
+            },
+            {
+                id: 'cooperative',
+                label: lang('Cooperative', 'Kooperativ'),
                 type: 'boolean',
                 values: {
                     'true': 'yes',
@@ -584,12 +626,13 @@ $expert = isset($_GET['expert']) ;
                     'type' => $field['format'] == 'int' ? 'integer' : $field['format']
                 ];
 
-                if ($field['format'] == 'boolean') {
+                if ($field['format'] == 'bool') {
                     $f['values'] =  [
                         'true' => 'yes',
                         'false' => 'no'
                     ];
                     $f['input'] = 'radio';
+                    $f['type'] = 'boolean';
                 }
 
                 if ($field['format'] == 'list') {
@@ -835,7 +878,7 @@ $expert = isset($_GET['expert']) ;
 
         function saveQuery() {
             if (EXPERT) {
-                var rules =  $('#expert').val()
+                var rules = $('#expert').val()
                 rules = JSON.parse(rules)
             } else {
                 var rules = $('#builder').queryBuilder('getRules')
@@ -891,6 +934,7 @@ $expert = isset($_GET['expert']) ;
             RULES = rules
             dataTable.ajax.reload()
         }
+
         function applyFilterExpert(id, aggregate) {
             console.log((id));
             var filter = queries[id];
@@ -900,7 +944,7 @@ $expert = isset($_GET['expert']) ;
             }
             $('#aggregate').val(aggregate)
             $('#expert').val(filter)
-           
+
             run();
         }
 
