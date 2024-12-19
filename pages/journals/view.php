@@ -202,9 +202,11 @@ if (empty($categories)) {
     foreach ($categories as $cat) { ?>
         <li>
             <?= $cat['name'] ?>
+            <!-- 
+            Nicht aussagekräftig, da die Quartile nicht immer aktuell sind
             <?php if ($cat['quartile']) { ?>
                 <span class="quartile Q<?= $cat['quartile'] ?>">Q<?= $cat['quartile'] ?></span>
-            <?php } ?>
+            <?php } ?> -->
         </li>
 <?php
     }
@@ -233,7 +235,7 @@ if (empty($metrics)) {
             <th>SJR</th>
             <th>IF (2Y)</th>
             <th>IF (3Y)</th>
-            <th><?= lang('Quartile') ?></th>
+            <th><?= lang('Best Quartile', 'Bestes Quartil') ?></th>
         </thead>
         <tbody>
             <?php
