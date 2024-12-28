@@ -46,6 +46,7 @@ class Project
             'role',
             'coordinator',
             'nagoya',
+            'countries'
         ],
         'Stipendium' => [
             'name',

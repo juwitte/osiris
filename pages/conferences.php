@@ -83,6 +83,7 @@ $conferences = $osiris->conferences->find(
             <th><?= lang('Location', 'Ort') ?></th>
             <th><?= lang('Start', 'Anfang') ?></th>
             <th><?= lang('End', 'Ende') ?></th>
+            <th><?= lang('Type', 'Typ') ?></th>
             <th><?= lang('Activities', 'Aktivitäten') ?></th>
             <th><?= lang('URL', 'URL') ?></th>
         </tr>
@@ -112,7 +113,8 @@ $conferences = $osiris->conferences->find(
                     render: function(data, type, row) {
                         return `<a href="${rootpath}/conferences/${row.id}" class="font-weight-bold">${row.title}</a>
                         <br>
-                        ${row.title_full}`;
+                        ${row.title_full ?? ''}
+                        `;
                     }
                 },
                 {
@@ -149,10 +151,16 @@ $conferences = $osiris->conferences->find(
                 },
                 {
                     targets: 4,
-                    data: 'activities',
+                    data: 'type',
+                    searchable: true,
+                    defaultContent: '',
                 },
                 {
                     targets: 5,
+                    data: 'activities',
+                },
+                {
+                    targets: 6,
                     data: 'url',
                     searchable: true,
                     render: function(data, type, row) {

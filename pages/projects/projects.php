@@ -573,13 +573,20 @@ if (!$Settings->hasPermission('projects.view')) {
                     visible: false,
                     header: lang('Title', 'Titel')
                 },
+                {
+                    target: 12,
+                    data: 'start',
+                    searchable: true,
+                    visible: false,
+                    header: lang('Start date', 'Startdatum')
+                }
             ],
             order: [
-                [0, 'desc']
+                [12, 'desc']
             ],
             paging: true,
             autoWidth: true,
-            pageLength: 9,
+            pageLength: 8,
         });
 
         // $('#project-table_wrapper').prepend($('.filters'))

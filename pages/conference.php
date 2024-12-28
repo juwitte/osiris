@@ -21,6 +21,10 @@ $participate = in_array($_SESSION['username'], $conference['participants']);
     <?= $conference['title_full'] ?>
 </h2>
 
+<div id="description">
+    <?= $conference['description'] ?? '' ?>
+</div>
+
 <table class="table">
     <tr>
         <td>
@@ -28,6 +32,21 @@ $participate = in_array($_SESSION['username'], $conference['participants']);
             <?= $conference['location'] ?>
         </td>
     </tr>
+    <tr>
+        <td>
+            <span class="key"><?= lang('Type', 'Typ') ?></span>
+            <?= $conference['type'] ?>
+        </td>
+    </tr>
+    <?php if (isset($conference['internal_id'])) { ?>
+        <tr>
+            <td>
+                <span class="key"><?= lang('Internal ID', 'Interne ID') ?></span>
+                <?= $conference['internal_id'] ?>
+            </td>
+        </tr>
+    <?php } ?>
+    
     <tr>
         <td>
             <span class="key"><?= lang('Start', 'Beginn') ?></span>
@@ -230,3 +249,10 @@ $participate = in_array($_SESSION['username'], $conference['participants']);
         })
     }
 </script>
+
+
+<?php
+if (isset($_GET['verbose'])) {
+    dump($conference, true);
+}
+?>

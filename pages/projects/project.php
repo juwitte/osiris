@@ -291,6 +291,7 @@ $institute = $Settings->get('affiliation_details');
 
                     <?php
                     $fields = $Project->getFields($project['type'] ?? 'Drittmittel');
+                    // dump($fields);
                     $inherited = [];
 
                     if ($type == 'Teilprojekt') { #
@@ -341,7 +342,7 @@ $institute = $Settings->get('affiliation_details');
                         <?php } ?>
 
                         <?php foreach ($fields as $key) {
-                            if (!in_array($key, ['name', 'title', 'type', 'internal_number', 'contact', 'status', 'funder', 'funding_organization', 'funding_number', 'scholarship', 'university', 'purpose', 'role', 'coordinator', 'start', 'end', 'website', 'abstract', 'nagoya'])) {
+                            if (!in_array($key, ['name', 'title', 'type', 'internal_number', 'contact', 'status', 'funder', 'funding_organization', 'funding_number', 'scholarship', 'university', 'purpose', 'role', 'coordinator', 'start', 'end', 'website', 'abstract', 'nagoya', 'countries'])) {
                                 continue;
                             }
                             if ($key == 'nagoya' && !$Settings->featureEnabled('nagoya')) {
@@ -440,6 +441,14 @@ $institute = $Settings->get('affiliation_details');
                                             <?php } ?>
 
                                         <?php break;
+                                        case 'countries': ?>
+                                            <span class="key"><?= lang('Countries', 'Länder') ?></span>
+                                            <ul class="list signal mb-0">
+                                                <?php foreach ($project['countries'] ?? [] as $c) { ?>
+                                                    <li><?= Country::get($c) ?></li>
+                                                <?php } ?>
+                                            </ul>
+                                        <?php break;
                                         case 'website': ?>
                                             <span class="key"><?= lang('Project website', 'Webseite des Projekts') ?></span>
                                             <a href="<?= $project['website'] ?? '' ?>" target="_blank" rel="noopener noreferrer"> <?= $project['website'] ?? '-' ?></a>
@@ -464,11 +473,15 @@ $institute = $Settings->get('affiliation_details');
                         <tr>
                             <td>
                                 <span class="key"><?= lang('Created by', 'Erstellt von') ?></span>
-                                <?= $DB->getNameFromId($project['created_by']) ?? '-' ?> (<?= $project['created'] ?>)
+                                <?php if (!isset($project['created_by']) || $project['created_by'] == 'system') {
+                                    echo 'System';
+                                } else {
+                                    echo $DB->getNameFromId($project['created_by']);
+                                }
+                                echo " (" . $project['created'] . ")";
+                                ?>
                             </td>
                         </tr>
-
-
                     </tbody>
                 </table>
 
