@@ -122,7 +122,7 @@ function validateValues($values, $DB)
         } else if ($key == 'start' || $key == 'end') {
             if (DateTime::createFromFormat('Y-m-d', $value) !== FALSE) {
                 $values[$key] = valiDate($value);
-                $values[$key. '_date'] = $value;
+                $values[$key . '_date'] = $value;
                 if ($key == 'start') {
                     if (!isset($values['year']) && isset($values[$key]['year'])) {
                         $values['year'] = $values[$key]['year'];
@@ -179,7 +179,8 @@ function validateValues($values, $DB)
 }
 
 
-function get_preview($html, $length = 150) {
+function get_preview($html, $length = 150)
+{
     // 1. Entferne HTML-Tags
     if (empty($html)) return '';
     $text = strip_tags($html);
@@ -758,4 +759,40 @@ function lastDayOf($period, DateTime $date = null)
     }
 
     return $newDate;
+}
+
+function socialLogo($type)
+{
+    switch ($type) {
+        case 'researchgate':
+            return 'ph-student';
+        case 'youtube':
+            return 'ph-youtube-logo';
+        case 'github':
+            return 'ph-github-logo';
+        case 'linkedin':
+            return 'ph-linkedin-logo';
+        case 'xing':
+            return 'ph-xing-logo';
+        case 'mastodon':
+            return 'ph-mastodon-logo';
+        case 'bluesky':
+            return 'ph-butterfly';
+        case 'instagram':
+            return 'ph-instagram-logo';
+        case 'facebook':
+            return 'ph-facebook-logo';
+        case 'X':
+            return 'ph-x-logo';
+        case 'website':
+            return 'ph-browser';
+        case 'twitter':
+            return 'ph-twitter-logo';
+        case 'orcid':
+            return 'ph-student';
+        case 'email':
+            return 'ph-email-logo';
+        default:
+            return 'ph-link';
+    }
 }

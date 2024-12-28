@@ -18,17 +18,18 @@
 Route::get('/migrate/test', function () {
     include_once BASEPATH . "/php/init.php";
     include_once BASEPATH . "/php/Groups.php";
-    $cursor = $osiris->persons->find(['science_unit' => ['$exists' => false]]);
 
-    foreach ($cursor as $doc) {
-        $depts = DB::doc2Arr($doc['depts'] ?? []);
-        $science_unit = $depts[0] ?? null;
-        dump($science_unit, true);
-        $osiris->persons->updateOne(
-            ['_id' => $doc['_id']],
-            ['$set' => ['science_unit' => $science_unit]]
-        );
-    }
+    // $cursor = $osiris->persons->find(['science_unit' => ['$exists' => false]]);
+
+    // foreach ($cursor as $doc) {
+    //     $depts = DB::doc2Arr($doc['depts'] ?? []);
+    //     $science_unit = $depts[0] ?? null;
+    //     dump($science_unit, true);
+    //     $osiris->persons->updateOne(
+    //         ['_id' => $doc['_id']],
+    //         ['$set' => ['science_unit' => $science_unit]]
+    //     );
+    // }
     // $cursor = $osiris->activities->find(['units' => ['$exists' => false]]);
     // foreach ($cursor as $doc) {
     //     // calculate depts
@@ -669,6 +670,41 @@ Route::get('/migrate', function () {
             );
         }
         echo "<p>Migrated project date time for better search.</p>";
+
+
+        // migrate person socials
+        $cursor = $osiris->persons->find(['socials' => ['$exists' => false]]);
+        $available = [
+            'twitter' => 'https://twitter.com/',
+            'webpage' => '',
+            'linkedin' => 'https://www.linkedin.com/in/',
+            'researchgate' => 'https://www.researchgate.net/profile/'
+        ];
+        foreach ($cursor as $doc) {
+            $socials = [];
+            foreach ($available as $key => $url) {
+                if ($key == 'twitter') {
+                    $key = 'X';
+                }
+                if (isset($doc[$key])) {
+                    $socials[] = [
+                        'type' => $key,
+                        'url' => $url . $doc[$key]
+                    ];
+                }
+            }
+            if (empty($socials)) continue;
+            $osiris->persons->updateOne(
+                ['_id' => $doc['_id']],
+                ['$set' => ['socials' => $socials]]
+            );
+            $osiris->persons->updateOne(
+                ['_id' => $doc['_id']],
+                ['$unset' => ['twitter' => '', 'webpage' => '', 'linkedin' => '', 'researchgate' => '']]
+            );
+        }
+
+        echo "<p>Migrated socials.</p>";
     }
 
 

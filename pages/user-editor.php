@@ -24,6 +24,7 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
     const selectedOrgIds = JSON.parse('<?= json_encode($depts) ?>');
 </script>
 <script src="<?= ROOTPATH ?>/js/user-editor.js"></script>
+<script src="<?= ROOTPATH ?>/js/quill.min.js"></script>
 
 <h1 class="mt-0">
     <i class="ph ph-student"></i>
@@ -180,6 +181,20 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
             <?= lang('Organizational information', 'Organisatorische Informationen') ?>
         </h2>
 
+        <p>
+            <strong><?= lang('Username', 'Benutzername') ?>:</strong> <code class="code"><?= $data['username'] ?></code>
+            <br>
+            <small class="text-muted">
+                <?= lang('The username is cannot be changed.', 'Der Benutzername kann nicht geändert werden.') ?>
+            </small>
+        </p>
+
+        <!-- internal_id -->
+        <div class="form-group">
+            <label for="internal_id"><?= lang('Internal ID', 'Interne ID') ?></label>
+            <input type="text" name="values[internal_id]" id="internal_id" class="form-control w-auto" value="<?= $data['internal_id'] ?? '' ?>">
+        </div>
+
         <style>
             #depts .table tr.selected td::before {
                 content: '\E182';
@@ -190,8 +205,6 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
         </style>
 
         <div class="depts mb-20">
-
-
 
             <div class="form-group">
                 <label for="position">
@@ -207,22 +220,22 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
                 <?php if ($staffFree) { ?>
                     <div class="row row-eq-spacing my-0">
                         <div class="col-md-6">
-                            <label for="position_de" class="d-flex">Deutsch <img src="<?= ROOTPATH ?>/img/de.svg" alt="DE" class="flag"></label>
-                            <input name="values[position_de]" id="position_de" type="text" class="form-control" value="<?= htmlspecialchars($data['position_de'] ?? '') ?>">
-                        </div>
-                        <div class="col-md-6">
                             <label for="position" class="d-flex">English <img src="<?= ROOTPATH ?>/img/gb.svg" alt="EN" class="flag"></label>
                             <input name="values[position]" id="position" type="text" class="form-control" value="<?= htmlspecialchars($data['position'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="position_de" class="d-flex">Deutsch <img src="<?= ROOTPATH ?>/img/de.svg" alt="DE" class="flag"></label>
+                            <input name="values[position_de]" id="position_de" type="text" class="form-control" value="<?= htmlspecialchars($data['position_de'] ?? '') ?>">
                         </div>
                     </div>
                 <?php } else { ?>
                     <!-- select list from predifined pos -->
                     <select name="values[position_both]" id="position" class="form-control">
-                        <option value=""> -- <?=lang('no position selected', 'keine Position gewählt')?> --- </option>
-                        <?php foreach ($staffPos as $pos) { 
+                        <option value=""> -- <?= lang('no position selected', 'keine Position gewählt') ?> --- </option>
+                        <?php foreach ($staffPos as $pos) {
                             $en = $pos[0] ?? '-';
                             $de = $pos[1] ?? '-';
-                            ?>
+                        ?>
                             <option value="<?= $en ?>;;<?= $de ?>" <?= $data['position'] == $en ? 'selected' : '' ?>><?= $en ?> // <?= $de ?></option>
                         <?php } ?>
                     </select>
@@ -399,53 +412,32 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
 
     <section id="contact" style="display:none;">
         <h2 class="title"><?= lang('Contact', 'Kontakt') ?></h2>
-        <div class="form-row row-eq-spacing">
+        <div class="form-group">
+            <label for="mail">Mail</label>
+            <input type="text" name="values[mail]" id="mail" class="form-control" value="<?= $data['mail'] ?? '' ?>">
+        </div>
 
+        <div class="form-row row-eq-spacing">
             <div class="col-sm-6">
                 <label for="telephone"><?= lang('Telephone', 'Telefon') ?></label>
-                <input type="text" name="values[telephone]" id="telephone" class="form-control" value="<?= $data['telephone'] ?? '' ?>">
+                <input type="tel" name="values[telephone]" id="telephone" class="form-control" value="<?= $data['telephone'] ?? '' ?>">
             </div>
 
             <div class="col-sm-6">
-                <label for="mail">Mail</label>
-                <input type="text" name="values[mail]" id="mail" class="form-control" value="<?= $data['mail'] ?? '' ?>">
+                <label for="mobile">mobile</label>
+                <input type="tel" name="values[mobile]" id="mobile" class="form-control" value="<?= $data['mobile'] ?? '' ?>">
             </div>
 
         </div>
 
 
-        <?php if ($Settings->featureEnabled('portal')) { ?>
-            <p class="text-danger">
-                <?= lang('
-            Please note that the following information is optional. If you do not wish to make your contact information publicly visible, you can leave the corresponding fields blank. If you fill them in, you authorise OSIRIS Portfolio to show this data publicly. You can revoke this at any time by leaving the fields blank.
-            ', '
-            Bitte beachte, dass die folgenden Informationen freiwillige Angaben sind. Wenn du deine Kontaktinformationen nicht öffentlich sichtbar machen möchtest, kannst du die entsprechenden Felder leer lassen. Solltest du sie ausfüllen, erlaubst du OSIRIS Portfolio, diese Daten öffentlich zu zeigen. Du kannst dies jederzeit wieder rückgängig machen, indem du die Felder leer lässt.
-            ') ?>
-            </p>
-        <?php } ?>
-
-        <div class="row row-eq-spacing mb-10 mt-0">
-            <div class="col-md-6 col-sm-4 mb-20">
+        <div class="form-row row-eq-spacing">
+            <div class="col-sm-6">
                 <label for="orcid">ORCID</label>
                 <input type="text" name="values[orcid]" id="orcid" class="form-control" value="<?= $data['orcid'] ?? '' ?>">
             </div>
 
-            <div class="col-md-6 col-sm-4 mb-20">
-                <label for="twitter">Twitter</label>
-                <input type="text" name="values[twitter]" id="twitter" class="form-control" value="<?= $data['twitter'] ?? '' ?>">
-            </div>
-
-            <div class="col-md-6 col-sm-4 mb-20">
-                <label for="linkedin">LinkedIn</label>
-                <input type="text" name="values[linkedin]" id="linkedin" class="form-control" value="<?= $data['linkedin'] ?? '' ?>">
-            </div>
-
-            <div class="col-md-6 col-sm-4 mb-20">
-                <label for="researchgate">ResearchGate Handle</label>
-                <input type="text" name="values[researchgate]" id="researchgate" class="form-control" value="<?= $data['researchgate'] ?? '' ?>">
-            </div>
-
-            <div class="col-md-6 col-sm-4 mb-20">
+            <div class="col-sm-6">
                 <label for="google_scholar">Google Scholar ID</label>
                 <input type="text" name="values[google_scholar]" id="google_scholar" class="form-control" value="<?= $data['google_scholar'] ?? '' ?>">
                 <small class="text-muted">
@@ -456,6 +448,7 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
                 </div>
             </div>
         </div>
+
 
         <script>
             // validate google scholar id on change
@@ -476,6 +469,84 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
             });
         </script>
 
+
+        <?php if ($Settings->featureEnabled('portal')) { ?>
+            <p class="text-danger">
+                <?= lang('
+            Please note that the following information is optional. If you do not wish to make your contact information publicly visible, you can leave the corresponding fields blank. If you fill them in, you authorise OSIRIS Portfolio to show this data publicly. You can revoke this at any time by leaving the fields blank.
+            ', '
+            Bitte beachte, dass die folgenden Informationen freiwillige Angaben sind. Wenn du deine Kontaktinformationen nicht öffentlich sichtbar machen möchtest, kannst du die entsprechenden Felder leer lassen. Solltest du sie ausfüllen, erlaubst du OSIRIS Portfolio, diese Daten öffentlich zu zeigen. Du kannst dies jederzeit wieder rückgängig machen, indem du die Felder leer lässt.
+            ') ?>
+            </p>
+        <?php } ?>
+
+        <h4>
+            <?= lang('Social Media', 'Soziale Medien') ?>
+        </h4>
+        <div id="socials">
+
+            <?php
+            $socials = DB::doc2Arr($data['socials'] ?? []);
+            foreach ($socials as $t => $url) {
+            ?>
+                <div class="form-group">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">
+                                <?= $t ?>
+                            </span>
+                        </div>
+                        <input type="text" name="values[socials][<?= $t ?>]" class="form-control" value="<?= $url ?>" placeholder="<?= lang('URL', 'URL') ?>">
+                        <div class="input-group-append">
+                            <a class="btn text-danger" onclick="$(this).closest('.input-group').remove();">×</a>
+                        </div>
+                    </div>
+                </div>
+            <?php } ?>
+        </div>
+
+        <!-- dropdown to add new social -->
+        <div class="dropdown">
+            <button class="btn" data-toggle="dropdown" type="button" id="socials-dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="ph ph-plus"></i>
+                <?= lang('Add new social', 'Füge soziale Medien hinzu') ?>
+            </button>
+            <div class="dropdown-menu" aria-labelledby="socials-dropdown">
+                <?php foreach (['researchgate', 'youtube', 'github', 'linkedin', 'mastodon', 'bluesky', 'instagram', 'facebook', 'X', 'website'] as $s) {
+                    if (array_key_exists($s, $socials)) continue;
+                    $logo = socialLogo($s);
+                ?>
+                    <a class="item py-0" onclick="addSocial(event, '<?= $s ?>', '<?= $logo ?>');">
+                        <i class="ph <?= $logo ?> text-primary"></i>
+                        <?= ucfirst($s) ?>
+                    </a>
+                <?php } ?>
+            </div>
+        </div>
+
+        <script>
+            function addSocial(e, type, logo) {
+                e.preventDefault();
+                // var i = $(btn).closest('form').find('select[name^="values[socials]"]').last().attr('name').match(/\[(\d+)\]/)[1];
+                // get last index
+                var html = `
+        <div class="form-group">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">
+                        <i class="ph ${logo} mr-5 text-primary"></i>
+                        ${type.toUpperCase()}
+                    </span>
+                </div>
+                <input type="text" name="values[socials][${type}]" class="form-control" value="" placeholder="URL">
+                <div class="input-group-append">
+                    <a class="btn text-danger" onclick="$(this).closest('.input-group').remove();">×</a>
+                </div>
+            </div>
+        `;
+                $('#socials').append(html);
+            }
+        </script>
     </section>
 
 
@@ -650,13 +721,13 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
 
     <section id="research" style="display:none">
 
+        <!-- if topics are registered, you can choose them here -->
+        <?php $Settings->topicChooser($data['topics'] ?? []) ?>
+
+
         <h2 class="title">
             <?= lang('Research interest', 'Forschungsinteressen') ?>
         </h2>
-
-            <!-- if topics are registered, you can choose them here -->
-            <?php $Settings->topicChooser($data['topics'] ?? []) ?>
-
 
         <small class="text-muted">Max. 5</small><br>
         <table class="table simple">
@@ -690,6 +761,34 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
             <i class="ph ph-plus"></i>
         </button>
 
+        <h2 class="title"><?= lang('Research Profile', 'Forschungsprofil') ?></h2>
+
+        <div class="row row-eq-spacing">
+            <div class="col-md-6">
+                <h5 class="mt-0 ">English <img src="<?= ROOTPATH ?>/img/gb.svg" alt="EN" class="flag"></h5>
+                <div class="form-group mb-0">
+                    <div id="research_profile-editor-quill"><?= $data['research_profile'] ?? '' ?></div>
+                    <textarea name="values[research_profile]" id="research_profile-editor" class="d-none" readonly><?= $data['research_profile'] ?? '' ?></textarea>
+                    <script>
+                        quillEditor('research_profile-editor');
+                    </script>
+                </div>
+
+            </div>
+            <div class="col-md-6">
+                <h5 class="mt-0 ">Deutsch <img src="<?= ROOTPATH ?>/img/de.svg" alt="DE" class="flag"></h5>
+                <div class="form-group mb-0">
+                    <div id="research_profile_de-editor-quill"><?= $data['research_profile_de'] ?? '' ?></div>
+                    <textarea name="values[research_profile_de]" id="research_profile_de-editor" class="d-none" readonly><?= $data['research_profile_de'] ?? '' ?></textarea>
+                    <script>
+                        quillEditor('research_profile_de-editor');
+                    </script>
+                </div>
+
+            </div>
+        </div>
+
+
         <datalist id="research-list">
             <?php
             foreach ($osiris->persons->distinct('research') as $d) { ?>
@@ -703,10 +802,14 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
             <?php } ?>
         </datalist>
 
+
+
     </section>
 
 
     <section id="biography" style="display:none">
+
+
         <h2 class="title"><?= lang('Curriculum Vitae') ?></h2>
 
         <button class="btn" type="button" onclick="addCVrow(event, '#cv-list')"><i class="ph ph-plus text-success"></i> <?= lang('Add entry', 'Eintrag hinzufügen') ?></button>
@@ -807,10 +910,69 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
             <?php } ?>
         </datalist>
 
+
+
+        <h2 class="title"><?= lang('Biography', 'Biografie') ?></h2>
+
+        <div class="row row-eq-spacing my-0">
+            <div class="col-md-6">
+                <h5 class="mt-0 ">English <img src="<?= ROOTPATH ?>/img/gb.svg" alt="EN" class="flag"></h5>
+                <div class="form-group mb-0">
+                    <div id="biography-editor-quill"><?= $data['biography'] ?? '' ?></div>
+                    <textarea name="values[biography]" id="biography-editor" class="d-none" readonly><?= $data['biography'] ?? '' ?></textarea>
+                    <script>
+                        quillEditor('biography-editor');
+                    </script>
+                </div>
+
+            </div>
+            <div class="col-md-6">
+                <h5 class="mt-0 ">Deutsch <img src="<?= ROOTPATH ?>/img/de.svg" alt="DE" class="flag"></h5>
+                <div class="form-group mb-0">
+                    <div id="biography_de-editor-quill"><?= $data['biography_de'] ?? '' ?></div>
+                    <textarea name="values[biography_de]" id="biography_de-editor" class="d-none" readonly><?= $data['biography_de'] ?? '' ?></textarea>
+                    <script>
+                        quillEditor('biography_de-editor');
+                    </script>
+                </div>
+
+            </div>
+        </div>
+
+
+        <h2><?= lang('Eduction', 'Ausbildung') ?></h2>
+
+
+        <div class="row row-eq-spacing my-0">
+            <div class="col-md-6">
+                <h5 class="mt-0 ">English <img src="<?= ROOTPATH ?>/img/gb.svg" alt="EN" class="flag"></h5>
+                <div class="form-group mb-0">
+                    <div id="education-editor-quill"><?= $data['education'] ?? '' ?></div>
+                    <textarea name="values[education]" id="education-editor" class="d-none" readonly><?= $data['education'] ?? '' ?></textarea>
+                    <script>
+                        quillEditor('education-editor');
+                    </script>
+                </div>
+
+            </div>
+            <div class="col-md-6">
+                <h5 class="mt-0 ">Deutsch <img src="<?= ROOTPATH ?>/img/de.svg" alt="DE" class="flag"></h5>
+                <div class="form-group mb-0">
+                    <div id="education_de-editor-quill"><?= $data['education_de'] ?? '' ?></div>
+                    <textarea name="values[education_de]" id="education_de-editor" class="d-none" readonly><?= $data['education_de'] ?? '' ?></textarea>
+                    <script>
+                        quillEditor('education_de-editor');
+                    </script>
+                </div>
+
+            </div>
+        </div>
+
+
     </section>
 
 
-
+    <br>
     <button type="submit" class="btn secondary">
         Update
     </button>

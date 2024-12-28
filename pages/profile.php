@@ -909,9 +909,7 @@ if ($currentuser) { ?>
                             </a>
                         </h4>
                         <p class="text-muted">
-                            <?= lang('Shown are approaching events and events you attended within the past six month.', 'Gezeigt sind zukünftige Events und vergangene, an denen du in den letzten sechs Monaten teilgenommen hast.') ?>
-                            <br>
-                            <small> <?= lang('Events were added by users of the OSIRIS system.', 'Events wurden von Nutzenden des OSIRIS-Systems angelegt.') ?></small>
+                            <?= lang('Shown are approaching events in the next 6 month and events you attended within the past six month.', 'Gezeigt sind zukünftige Events in den nächsten 6 Monaten und vergangene, an denen du in den letzten sechs Monaten teilgenommen hast.') ?>
                         </p>
 
                         <?php
@@ -1010,6 +1008,7 @@ if ($currentuser) { ?>
                             <?php } ?>
 
                         </table>
+                        <small class="text-muted"> <?= lang('Events were added by users of the OSIRIS system.', 'Events wurden von Nutzenden des OSIRIS-Systems angelegt.') ?></small>
 
                     </div>
                 </div>
@@ -1037,12 +1036,20 @@ if ($currentuser) { ?>
                 </div>
                 <table class="table simple small">
                     <tbody>
-                        <!-- <tr>
+                        <tr>
                             <td>
                                 <span class="key"><?= lang('Username', 'Benutzername') ?></span>
                                 <?= $user ?>
                             </td>
-                        </tr> -->
+                        </tr>
+                        <?php if (isset($scientist['internal_id'])) { ?>
+                            <tr>
+                                <td>
+                                    <span class="key"><?= lang('Internal ID', 'Interne ID') ?></span>
+                                    <?= $scientist['internal_id'] ?>
+                                </td>
+                            </tr>
+                        <?php } ?>
                         <tr>
                             <td>
                                 <span class="key"><?= lang('Last name', 'Nachname') ?></span>
@@ -1055,34 +1062,42 @@ if ($currentuser) { ?>
                                 <?= $scientist['first'] ?? '' ?>
                             </td>
                         </tr>
-                        <tr>
-                            <td>
-                                <span class="key"><?= lang('Academic title', 'Akademischer Titel') ?></span>
-                                <?= $scientist['academic_title'] ?? '' ?>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <span class="key">Email</span>
-                                <?= $scientist['mail'] ?? '' ?>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <span class="key"><?= lang('Telephone', 'Telefon') ?></span>
-                                <?= $scientist['telephone'] ?? '' ?>
-                            </td>
-                        </tr>
-                        <?php if (!empty($scientist['twitter'] ?? null)) { ?>
+                        <?php if (isset($scientist['academic_title'])) { ?>
                             <tr>
                                 <td>
-                                    <span class="key">Twitter</span>
-
-                                    <a href="https://twitter.com/<?= $scientist['twitter'] ?>" target="_blank" rel="noopener noreferrer"><?= $scientist['twitter'] ?></a>
-
+                                    <span class="key"><?= lang('Academic title', 'Akademischer Titel') ?></span>
+                                    <?= $scientist['academic_title'] ?? '' ?>
                                 </td>
                             </tr>
                         <?php } ?>
+
+                        <?php if (isset($scientist['mail'])) { ?>
+                            <tr>
+                                <td>
+                                    <span class="key">Email</span>
+                                    <a href="mailto:<?= $scientist['mail'] ?>"><?= $scientist['mail'] ?></a>
+                                </td>
+                            </tr>
+                        <?php } ?>
+                        <?php if (isset($scientist['telephone'])) { ?>
+                            <tr>
+                                <td>
+                                    <span class="key"><?= lang('Telephone', 'Telefon') ?></span>
+                                    <a href="tel:<?= $scientist['telephone'] ?>"><?= $scientist['telephone'] ?></a>
+                                </td>
+                            </tr>
+                        <?php } ?>
+
+                        <?php if (isset($scientist['mobile'])) { ?>
+                            <tr>
+                                <td>
+                                    <span class="key"><?= lang('Mobile', 'Mobil') ?></span>
+                                    <a href="tel:<?= $scientist['mobile'] ?>"><?= $scientist['mobile'] ?></a>
+                                </td>
+                            </tr>
+                        <?php } ?>
+
+
                         <?php if (!empty($scientist['orcid'] ?? null)) { ?>
                             <tr>
                                 <td>
@@ -1093,16 +1108,7 @@ if ($currentuser) { ?>
                                 </td>
                             </tr>
                         <?php } ?>
-                        <?php if (!empty($scientist['researchgate'] ?? null)) { ?>
-                            <tr>
-                                <td>
-                                    <span class="key">ResearchGate</span>
 
-                                    <a href="https://www.researchgate.net/profile/<?= $scientist['researchgate'] ?>" target="_blank" rel="noopener noreferrer"><?= $scientist['researchgate'] ?></a>
-
-                                </td>
-                            </tr>
-                        <?php } ?>
                         <?php if (!empty($scientist['google_scholar'] ?? null)) { ?>
                             <tr>
                                 <td>
@@ -1113,14 +1119,14 @@ if ($currentuser) { ?>
                                 </td>
                             </tr>
                         <?php } ?>
-                        <?php if (!empty($scientist['webpage'] ?? null)) {
-                            $web = preg_replace('/^https?:\/\//', '', $scientist['webpage']);
-                        ?>
+                        <?php if (isset($scientist['socials'])) { ?>
                             <tr>
                                 <td>
-                                    <span class="key">Personal web page</span>
-
-                                    <a href="https://<?= $web ?>" target="_blank" rel="noopener noreferrer"><?= $web ?></a>
+                                    <span class="key"><?= lang('Social media') ?></span>
+                                    <?php
+                                    foreach ($scientist['socials'] as $key => $val) { ?>
+                                        <a class="btn primary" href="<?= $val ?>" target="_blank" rel="noopener noreferrer"> <i class="ph <?= socialLogo($key) ?>"></i></a>
+                                    <?php } ?>
                                 </td>
                             </tr>
                         <?php } ?>
@@ -1169,6 +1175,14 @@ if ($currentuser) { ?>
                     <?php } else { ?>
                         <p><?= lang('No research interests stated.', 'Keine Forschungsinteressen angegeben.') ?></p>
                     <?php } ?>
+
+                    <?php if (isset($scientist['research_profile'])) { ?>
+                        <h6 class="title">
+                            <?= lang('Research profile', 'Forschungsprofil') ?>
+                        </h6>
+                        <?= lang($scientist['research_profile'], $scientist['research_profile_de'] ?? null); ?>
+                    <?php } ?>
+
                 </div>
                 <hr>
                 <div class="content">
@@ -1197,6 +1211,22 @@ if ($currentuser) { ?>
                     <?php } else { ?>
                         <p><?= lang('No CV given.', 'Kein CV angegeben.') ?></p>
                     <?php } ?>
+
+
+                    <?php if (isset($scientist['biography']) && !empty($scientist['biography'])) { ?>
+                        <h6 class="title">
+                            <?= lang('Biography', 'Biografie') ?>
+                        </h6>
+                        <p><?= lang($scientist['biography'], $scientist['biography_de'] ?? null); ?></p>
+                    <?php } ?>
+
+                    <?php if (isset($scientist['education']) && !empty($scientist['education'])) { ?>
+                        <h6 class="title">
+                            <?= lang('Education', 'Ausbildung') ?>
+                        </h6>
+                        <p><?= lang($scientist['education'], $scientist['education_de'] ?? null); ?></p>
+                    <?php } ?>
+
                 </div>
             </div>
         </div>

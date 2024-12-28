@@ -92,7 +92,7 @@ class Settings
         // }
     }
 
-    function printProfilePicture($user, $class = "")
+    function printProfilePicture($user, $class = "", $embed = false)
     {
         $root = $_SERVER['REQUEST_SCHEME'] . "://" . $_SERVER['HTTP_HOST'] . ROOTPATH;
         $default = '<img src="' . $root . '/img/no-photo.png" alt="Profilbild" class="' . $class . '">';
@@ -107,7 +107,9 @@ class Settings
             if ($img['ext'] == 'svg') {
                 $img['ext'] = 'svg+xml';
             }
-            return '<img src="data:image/' . $img['ext'] . ';base64,' . base64_encode($img['img']) . ' " class="' . $class . '" />';
+            if ($embed)
+                return '<img src="data:image/' . $img['ext'] . ';base64,' . base64_encode($img['img']) . ' " class="' . $class . '" />';
+            return '<img src="' . $root . '/image/' . $user . '" alt="Profilbild" class="' . $class . '">';
         } else {
             $img_exist = file_exists(BASEPATH . "/img/users/$user.jpg");
             if (!$img_exist) {

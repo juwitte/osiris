@@ -324,7 +324,6 @@ function sel($index, $value)
                                         quillEditor('info_de-<?= $i ?>');
                                     </script>
                                 </div>
-
                             </div>
                         </div>
 

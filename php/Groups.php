@@ -164,6 +164,7 @@ class Groups
     public function personDept($depts, $level = false)
     {
         $result = ['level' => 0, 'name' => '', 'id' => ''];
+        if (empty($depts)) return $result;
         foreach ($depts as $d) {
             foreach ($this->getParents($d) as $id) {
                 $dept = $this->getGroup($id);

@@ -563,7 +563,7 @@ Route::get('/api/users', function () {
                 'telephone' => $user['telephone'] ?? '',
                 'orcid' => $user['orcid'] ?? '',
                 'academic_title' => $user['academic_title'],
-                'dept' => $Groups->personDept($user['depts'], 1)['id'],
+                'dept' => $Groups->personDept($user['depts'] ?? [], 1)['id'],
                 'active' => ($user['is_active'] ?? true) ? 'yes' : 'no',
                 'public_image' => $user['public_image'] ?? true,
                 'topics' => $user['topics'] ?? array()
@@ -764,7 +764,7 @@ Route::get('/api/projects', function () {
                 'type' => $project['type'],
                 'status' => $project['status'],
                 'date_range' => $Project->getDateRange(),
-                'start' => format_date($project['start'] ?? '', 'Y-m-d'),
+                'start' => $project['start_date'] ?? '',
                 'funder' => $project['funder'] ?? '-',
                 'funding_organization' => ($project['funding_organization'] ?? '-'),
                 'funding_numbers' => $Project->getFundingNumbers('; '),

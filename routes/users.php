@@ -39,6 +39,34 @@ Route::get('/user/search', function () {
 }, 'login');
 
 
+Route::get('/image/(.*)', function ($user) {
+    include_once BASEPATH . "/php/init.php";
+    $user = urldecode($user);
+    $img = $osiris->userImages->findOne(['user' => $user]);
+    if (empty($img)) {
+        $img = file_get_contents(BASEPATH . "/img/no-photo.png");
+        $type = 'image/png';
+    } else {
+        $type = $img['ext'];
+        if ($img['ext'] == 'svg') {
+            $type = 'image/svg+xml';
+        } else {
+            $type = 'image/' . $img['ext'];
+        }
+        $img = $img['img']->getData();
+        //if image is base64 encoded
+        // if (str_starts_with($img, '/')) {
+        //     $img = explode(',', $img)[1];
+        // }
+        
+        $img = base64_decode($img);
+    }
+    header('Content-Type: ' . $type);
+    echo $img;
+    die;
+});
+
+
 Route::get('/whats-up', function () {
     $breadcrumb = [
         ['name' => lang('What\'s up?', 'Was ist los?')]
@@ -544,14 +572,17 @@ Route::post('/crud/users/profile-picture/(.*)', function ($user) {
         } else {
             // check image settings
             if ($Settings->featureEnabled('db_pictures')) {
-                $img = new MongoDB\BSON\Binary(file_get_contents($_FILES["file"]["tmp_name"]), MongoDB\BSON\Binary::TYPE_GENERIC);
+                $file = file_get_contents($_FILES["file"]["tmp_name"]);
+                $type = pathinfo($_FILES["file"]["name"], PATHINFO_EXTENSION);
+                // encode image
+                $file = base64_encode($file);
+                $img = new MongoDB\BSON\Binary($file, MongoDB\BSON\Binary::TYPE_GENERIC);
                 // first: delete old image, then: insert new one
-                $filetype = 'jpg';
                 $osiris->userImages->deleteOne(['user' => $user]);
                 $updateResult = $osiris->userImages->insertOne([
                     'user' => $user,
                     'img' => $img,
-                    'ext' => $filetype
+                    'ext' => $type
                 ]);
             } else {
                 $target_dir = BASEPATH . "/img/users";
