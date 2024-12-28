@@ -2062,3 +2062,35 @@ Route::get('/api/groups/tree', function () {
     $tree = $Groups->tree;
     echo return_rest($tree, count($tree));
 });
+
+// events
+Route::get('/api/events', function () {
+    error_reporting(E_ERROR | E_PARSE);
+    include_once BASEPATH . "/php/init.php";
+
+    if (!apikey_check($_GET['apikey'] ?? null)) {
+        echo return_permission_denied();
+        die;
+    }
+
+    $filter = [];
+    if (isset($_GET['start']) && isset($_GET['end'])) {
+        $start = $_GET['start'];
+        $end = $_GET['end'];
+        $filter = [
+            '$or' => [
+                ['start' => ['$gte' => $start, '$lte' => $end]],
+                ['end' => ['$gte' => $start, '$lte' => $end]],
+                ['$and' => [['start' => ['$lte' => $start]], ['end' => ['$gte' => $end]]]]
+            ]
+        ];
+    }
+
+    // options for FullCalendar
+    $options = [
+        'projection' => ['start' => 1, 'end' => 1, 'title' => 1, 'title_full'=>1, 'id' => ['$toString' => '$_id']],
+        'sort' => ['start' => 1]
+    ];
+    $events = $osiris->conferences->find($filter, $options)->toArray();
+    echo return_rest($events, count($events));
+});

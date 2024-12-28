@@ -159,6 +159,7 @@ if (
     include_once BASEPATH . "/routes/admin.php";
     include_once BASEPATH . "/routes/conferences.php";
     require_once BASEPATH . '/routes/guests.php';
+    include_once BASEPATH . "/routes/calendar.php";
     // include_once BASEPATH . "/routes/adminGeneral.php";
     // include_once BASEPATH . "/routes/adminRoles.php";
 
