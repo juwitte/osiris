@@ -32,12 +32,15 @@ $participate = in_array($_SESSION['username'], $conference['participants']);
             <?= $conference['location'] ?>
         </td>
     </tr>
-    <tr>
-        <td>
-            <span class="key"><?= lang('Type', 'Typ') ?></span>
-            <?= $conference['type'] ?>
-        </td>
-    </tr>
+    <?php if (isset($conference['type'])) { ?>
+        <tr>
+            <td>
+                <span class="key"><?= lang('Type', 'Typ') ?></span>
+                <?= $conference['type'] ?>
+            </td>
+        </tr>
+    <?php } ?>
+
     <?php if (isset($conference['internal_id'])) { ?>
         <tr>
             <td>
@@ -46,7 +49,7 @@ $participate = in_array($_SESSION['username'], $conference['participants']);
             </td>
         </tr>
     <?php } ?>
-    
+
     <tr>
         <td>
             <span class="key"><?= lang('Start', 'Beginn') ?></span>
@@ -219,10 +222,10 @@ $participate = in_array($_SESSION['username'], $conference['participants']);
 <?php if ($conference['created_by'] == $_SESSION['username']) { ?>
     <form action="<?= ROOTPATH ?>/crud/conferences/delete/<?= $conference['_id'] ?>" method="post">
         <div class="alert danger mt-20">
-           <p>
-           <?= lang('Do you want to delete this event?', 'Möchten Sie diese Event löschen?') ?>
-           <?=lang('Please note: this cannot be undone.', 'Achtung: dies kann nicht rückgängig gemacht werden.')?>
-           </p>
+            <p>
+                <?= lang('Do you want to delete this event?', 'Möchten Sie diese Event löschen?') ?>
+                <?= lang('Please note: this cannot be undone.', 'Achtung: dies kann nicht rückgängig gemacht werden.') ?>
+            </p>
             <button class="btn danger" type="submit"><?= lang('Delete', 'Löschen') ?></button>
         </div>
     </form>

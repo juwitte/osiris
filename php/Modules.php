@@ -1026,65 +1026,13 @@ class Modules
                 );
             ?>
 
-
-                <div class="modal" id="add-event" tabindex="-1" role="dialog">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <a data-dismiss="modal" class="btn float-right" role="button" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </a>
-                            <h5 class="title"><?= lang('Add event', 'Event hinzufügen') ?></h5>
-                            <div id="content" id="new-event">
-
-                                <div class="form-group mb-10">
-                                    <label for="title" class="required"><?= lang('(Short) Title', 'Kurztitel') ?></label>
-                                    <input type="text" id="event-title" required class="form-control">
-                                </div>
-                                <div class="form-group mb-10">
-                                    <label for="title"><?= lang('Full Title', 'Kompletter Titel') ?></label>
-                                    <input type="text" id="event-title_full" class="form-control">
-                                </div>
-
-                                <div class="form-row row-eq-spacing mb-10">
-                                    <div class="col">
-                                        <label for="start" class="required"><?= lang('Start date', 'Anfangsdatum') ?></label>
-                                        <input type="date" id="event-start" required class="form-control" onchange="$('#event-end').val(this.value)">
-                                    </div>
-                                    <div class="col">
-                                        <label for="end" class="required"><?= lang('End date', 'Enddatum') ?></label>
-                                        <input type="date" id="event-end" class="form-control">
-                                    </div>
-                                </div>
-
-                                <div class="form-group mb-10">
-                                    <label for="location" class="required"><?= lang('Location', 'Ort') ?></label>
-                                    <input type="text" id="event-location" required class="form-control">
-                                </div>
-
-                                <div class="form-group mb-10">
-                                    <label for="url"><?= lang('URL', 'URL') ?></label>
-                                    <input type="url" id="event-url" class="form-control">
-                                </div>
-
-                                <div class="custom-checkbox">
-                                    <input type="checkbox" id="event-attended" value="<?= $_SESSION['username'] ?>">
-                                    <label for="event-attended" class="blank"><?= lang('I have attended', 'Ich habe teilgenommen') ?></label>
-                                </div>
-
-                                <button class="btn mb-10" type="button" onclick="addEvent()"><?= lang('Add event', 'Event hinzufügen') ?></button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
                 <div class="data-module col-sm-6" data-module="event-select">
                     <label class="floating-title"><?= lang('Select an event', 'Wähle ein Event') ?></label>
 
                     <div id="event-select-container">
                         <div class="btn-group d-flex" id="event-select-btns">
                             <?php foreach ($events as $event) { ?>
-                                <button class="btn primary" type="button" onclick="selectEvent('<?= $event['_id'] ?>', '<?= $event['title'] ?>', '<?= $event['start'] ?>', '<?= $event['end'] ?>', '<?= $event['location'] ?>')">
+                                <button class="btn primary" type="button" onclick="selectEvent('<?= $event['_id'] ?>', '<?= addslashes($event['title']) ?>', '<?= $event['start'] ?>', '<?= $event['end'] ?>', '<?= $event['location'] ?>')">
                                     <?= $event['title'] ?>
                                     <small><?= fromToDate($event['start'], $event['end']) ?></small>
                                 </button>

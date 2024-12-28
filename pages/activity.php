@@ -657,7 +657,7 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
 
                                 <div class="module ">
                                     <h6 class="m-0">
-                                        <a href="<?= ROOTPATH ?>/conference/view/<?= $doc['conference_id'] ?>">
+                                        <a href="<?= ROOTPATH ?>/conferences/<?= $doc['conference_id'] ?>">
                                             <?= $conference['title'] ?>
                                         </a>
                                     </h6>

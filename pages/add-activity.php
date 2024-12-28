@@ -67,6 +67,57 @@ function val($index, $default = '')
 <script src="<?= ROOTPATH ?>/js/add-activity.js?v=3"></script>
 
 
+<div class="modal" id="add-event" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <a data-dismiss="modal" class="btn float-right" role="button" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </a>
+            <h5 class="title"><?= lang('Add event', 'Event hinzufügen') ?></h5>
+            <div id="content" id="new-event">
+
+                <div class="form-group mb-10">
+                    <label for="title" class="required"><?= lang('(Short) Title', 'Kurztitel') ?></label>
+                    <input type="text" id="event-title" required class="form-control">
+                </div>
+                <div class="form-group mb-10">
+                    <label for="title"><?= lang('Full Title', 'Kompletter Titel') ?></label>
+                    <input type="text" id="event-title_full" class="form-control">
+                </div>
+
+                <div class="form-row row-eq-spacing mb-10">
+                    <div class="col">
+                        <label for="start" class="required"><?= lang('Start date', 'Anfangsdatum') ?></label>
+                        <input type="date" id="event-start" required class="form-control" onchange="$('#event-end').val(this.value)">
+                    </div>
+                    <div class="col">
+                        <label for="end" class="required"><?= lang('End date', 'Enddatum') ?></label>
+                        <input type="date" id="event-end" class="form-control">
+                    </div>
+                </div>
+
+                <div class="form-group mb-10">
+                    <label for="location" class="required"><?= lang('Location', 'Ort') ?></label>
+                    <input type="text" id="event-location" required class="form-control">
+                </div>
+
+                <div class="form-group mb-10">
+                    <label for="url"><?= lang('URL', 'URL') ?></label>
+                    <input type="url" id="event-url" class="form-control">
+                </div>
+
+                <div class="custom-checkbox">
+                    <input type="checkbox" id="event-attended" value="<?= $_SESSION['username'] ?>">
+                    <label for="event-attended" class="blank"><?= lang('I have attended', 'Ich habe teilgenommen') ?></label>
+                </div>
+
+                <button class="btn mb-10" type="button" onclick="addEvent()"><?= lang('Add event', 'Event hinzufügen') ?></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <div class="modal" id="author-help" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -604,4 +655,4 @@ function val($index, $default = '')
 <?php } ?>
 
 
-<script src="<?= ROOTPATH ?>/js/tour/add-activity.js?v=2"></script>
+<!-- <script src="<?= ROOTPATH ?>/js/tour/add-activity.js?v=2"></script> -->

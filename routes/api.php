@@ -2088,9 +2088,15 @@ Route::get('/api/events', function () {
 
     // options for FullCalendar
     $options = [
-        'projection' => ['start' => 1, 'end' => 1, 'title' => 1, 'title_full'=>1, 'id' => ['$toString' => '$_id']],
+        'projection' => ['start' => 1, 'end' => 1, 'title' => 1, 'id' => ['$toString' => '$_id']],
         'sort' => ['start' => 1]
     ];
+    // conferences
     $events = $osiris->conferences->find($filter, $options)->toArray();
+
+    // activities
+    $activities = $osiris->activities->find($filter, $options)->toArray();
+
+    $events = array_merge($events, $activities);
     echo return_rest($events, count($events));
 });

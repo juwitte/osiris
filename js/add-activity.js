@@ -270,7 +270,7 @@ function verifyForm(event, form) {
     form = $(form)
     var correct = true
     var errors = []
-    form.find(':input').each(function () {
+    form.find(':input[name]').each(function () {
         //retrieve field name and value from the DOM
         var input = $(this)
         var selector = input
@@ -282,13 +282,10 @@ function verifyForm(event, form) {
             // console.log(input);
             if (!$(this).val()) {
                 selector.removeClass('is-valid').addClass('is-invalid')
-                // .on('input', function(){
-                //     if (this.value !== '') selector.addClass('is-valid').removeClass('is-invalid')
-                //     else selector.addClass('is-invalid').removeClass('is-valid')
-                // })
-                correct = false;
+                
                 var name = input.attr('name').replace('values[', '').replace(']', '')
                 if (name == 'journal_id') return;
+                correct = false;
                 errors.push(name)
             } else {
                 selector.addClass('is-valid').removeClass('is-invalid');
