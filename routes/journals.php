@@ -1,5 +1,5 @@
 <?php
-    
+
 /**
  * Routing file for journals
  * 
@@ -80,7 +80,7 @@ Route::get('/journal/edit/([a-zA-Z0-9]*)', function ($id) {
 
 
 // journal/check-metrics
-Route::get('/journal/check-metrics', function(){
+Route::get('/journal/check-metrics', function () {
     include_once BASEPATH . "/php/init.php";
     // first check the year from https://osiris-app.de/api/v1
     $url = "https://osiris-app.de/api/v1";
@@ -147,14 +147,14 @@ Route::get('/journal/check-metrics', function(){
     }
     $_SESSION['msg'] = "Updated metrics of $N journals";
 
-    header("Location: ".ROOTPATH."/journal");
+    header("Location: " . ROOTPATH . "/journal");
 });
 
 /**
  * CRUD routes
  */
 
- Route::post('/crud/journal/create', function () {
+Route::post('/crud/journal/create', function () {
     include_once BASEPATH . "/php/init.php";
     if (!isset($_POST['values'])) die("no values given");
     $collection = $osiris->journals;
@@ -229,26 +229,37 @@ Route::get('/journal/check-metrics', function(){
         //     }
         // }
 
-            foreach ($values['issn'] as $issn) {
-                if (empty($issn)) continue;
+        foreach ($values['issn'] as $issn) {
+            if (empty($issn)) continue;
 
-                $url = "https://osiris-app.de/api/v1/journals/" . $issn;
+            $url = "https://osiris-app.de/api/v1/journals/" . $issn;
 
-                $curl = curl_init();
-                curl_setopt($curl, CURLOPT_HTTPHEADER, [
-                    'Accept: application/json',
-                    // "X-ApiKey: $apikey"
-                ]);
-                curl_setopt($curl, CURLOPT_URL, $url);
-                curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-                $result = curl_exec($curl);
-                $result = json_decode($result, true);
-                if (!empty($result['metrics'] ?? null)) {
-                    $values['metrics'] = $result['metrics'];
-                    break;
+            $curl = curl_init();
+            curl_setopt($curl, CURLOPT_HTTPHEADER, [
+                'Accept: application/json',
+                // "X-ApiKey: $apikey"
+            ]);
+            curl_setopt($curl, CURLOPT_URL, $url);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+            $result = curl_exec($curl);
+            $result = json_decode($result, true);
+            if (!empty($result['metrics'] ?? null)) {
+                $values['metrics'] = $result['metrics'];
+                # sort metrics by year
+                usort($values['metrics'], function ($a, $b) {
+                    return $a['year'] <=> $b['year'];
+                });
+
+                $values['impact'] = [];
+                foreach ($values['metrics'] as $i) {
+                    $values['impact'][] = [
+                        'year' => $i['year'],
+                        'impact' => floatval($i['if_2y'])
+                    ];
                 }
+                break;
             }
-
+        }
     } catch (\Throwable $th) {
     }
 
@@ -272,7 +283,7 @@ Route::get('/journal/check-metrics', function(){
 });
 
 
-Route::post('/crud/journal/update-metrics/(.*)', function ($id){
+Route::post('/crud/journal/update-metrics/(.*)', function ($id) {
     include_once BASEPATH . "/php/init.php";
 
     $collection = $osiris->journals;
@@ -280,10 +291,10 @@ Route::post('/crud/journal/update-metrics/(.*)', function ($id){
 
     $journal = $collection->findOne(['_id' => $mongoid]);
     if (empty($journal['issn'] ?? null)) {
-        header("Location: ".ROOTPATH."/journal/view/$id?msg=error-no-issn");
+        header("Location: " . ROOTPATH . "/journal/view/$id?msg=error-no-issn");
         die;
     }
-    
+
     $metrics = [];
     $categories = [];
     $country = null;
@@ -310,7 +321,7 @@ Route::post('/crud/journal/update-metrics/(.*)', function ($id){
     }
 
     if (empty($metrics)) {
-        header("Location: ".ROOTPATH."/journal/view/$id?msg=error-no-metrics");
+        header("Location: " . ROOTPATH . "/journal/view/$id?msg=error-no-metrics");
         die;
     }
 
@@ -340,7 +351,7 @@ Route::post('/crud/journal/update-metrics/(.*)', function ($id){
         ['$set' => $values]
     );
 
-    header("Location: ".ROOTPATH."/journal/view/$id?msg=update-success");
+    header("Location: " . ROOTPATH . "/journal/view/$id?msg=update-success");
 });
 
 
