@@ -654,6 +654,11 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                         <tr>
                             <td>
                                 <span class="key">Event</span>
+                                <?php if (empty($conference)) { ?>
+                                    <span class="text-danger">
+                                        <?= lang('This event has been deleted.', 'Diese Veranstaltung wurde gelöscht.') ?>
+                                    </span>
+                                <?php } else { ?>
 
                                 <div class="module ">
                                     <h6 class="m-0">
@@ -677,6 +682,7 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                                         </li>
                                     </ul>
                                 </div>
+                                <?php } ?>
                             </td>
                         </tr>
                     <?php else : ?>
