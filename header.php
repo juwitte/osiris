@@ -365,6 +365,11 @@ $pageactive = function ($p) use ($page) {
                                 <i class="ph ph-calendar" aria-hidden="true"></i>
                                 <?= lang('My year', 'Mein Jahr') ?>
                             </a>
+                            <a href="<?= ROOTPATH ?>/calendar" class="with-icon <?= $pageactive('calendar') ?>">
+                                <i class="ph ph-calendar-dots" aria-hidden="true"></i>
+                                <?= lang('Calendar', 'Kalender') ?>
+                            </a>
+                            
                             <a href="<?= ROOTPATH ?>/my-activities" class="with-icon <?= $pageactive('my-activities') ?>">
                                 <i class="ph ph-folder-user" aria-hidden="true"></i>
                                 <?= lang('My activities', 'Meine Aktivitäten') ?>

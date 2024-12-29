@@ -2064,14 +2064,14 @@ Route::get('/api/groups/tree', function () {
 });
 
 // events
-Route::get('/api/events', function () {
+Route::get('/api/calendar', function () {
     error_reporting(E_ERROR | E_PARSE);
     include_once BASEPATH . "/php/init.php";
 
-    if (!apikey_check($_GET['apikey'] ?? null)) {
-        echo return_permission_denied();
-        die;
-    }
+    // if (!apikey_check($_GET['apikey'] ?? null)) {
+    //     echo return_permission_denied();
+    //     die;
+    // }
 
     $filter = [];
     if (isset($_GET['start']) && isset($_GET['end'])) {
@@ -2087,16 +2087,60 @@ Route::get('/api/events', function () {
     }
 
     // options for FullCalendar
-    $options = [
-        'projection' => ['start' => 1, 'end' => 1, 'title' => 1, 'id' => ['$toString' => '$_id']],
-        'sort' => ['start' => 1]
-    ];
     // conferences
-    $events = $osiris->conferences->find($filter, $options)->toArray();
+    $events = $osiris->conferences->find($filter, [
+        'projection' => ['start' => 1, 'end' => 1, 'title' => 1, 'id' => ['$toString' => '$_id'], 'type' => 'event']
+    ])->toArray();
 
-    // activities
-    $activities = $osiris->activities->find($filter, $options)->toArray();
+    // activities $filter = [];
+    if (isset($_GET['start']) && isset($_GET['end'])) {
+        $start = $_GET['start'];
+        $end = $_GET['end'];
+        $filter = [
+            'authors.user' => $_GET['user'] ?? $_SESSION['username'] ?? '',
+            '$or' => [
+                ['start_date' => ['$gte' => $start, '$lte' => $end]],
+                ['end_date' => ['$gte' => $start, '$lte' => $end]],
+                ['$and' => [['start_date' => ['$lte' => $start]], ['end_date' => ['$gte' => $end]]]]
+            ]
+        ];
+    }
 
+    $activities = $osiris->activities->find($filter, [
+        'projection' => ['start' => '$start_date', 'end' => '$end_date', 'title' => 1, 'id' => ['$toString' => '$_id'], 'type' => 'activity']
+    ])->toArray();
+   
     $events = array_merge($events, $activities);
+
+    // projects
+    $filter = [
+        'persons.user' => $_GET['user'] ?? $_SESSION['username'] ?? '',
+        '$or' => [
+            ['start_date' => ['$gte' => $start, '$lte' => $end]],
+            ['end_date' => ['$gte' => $start, '$lte' => $end]],
+            ['$and' => [['start_date' => ['$lte' => $start]], ['end_date' => ['$gte' => $end]]]]
+        ]
+    ];
+
+    $projects = $osiris->projects->find($filter, [
+        'projection' => ['start' => '$start_date', 'end' => '$end_date', 'title' => 1, 'id' => ['$toString' => '$_id'], 'type' => 'project']
+    ])->toArray();
+    $events = array_merge($events, $projects);
+
+    // guests
+    $filter = [
+        // 'guests.user' => $_GET['user'] ?? $_SESSION['username'] ?? '',
+        '$or' => [
+            ['start_date' => ['$gte' => $start, '$lte' => $end]],
+            ['end_date' => ['$gte' => $start, '$lte' => $end]],
+            ['$and' => [['start_date' => ['$lte' => $start]], ['end_date' => ['$gte' => $end]]]]
+        ]
+    ];
+
+    $guests = $osiris->guests->find($filter, [
+        'projection' => ['start' => '$start_date', 'end' => '$end_date', 'title' => 1, 'id' => 1, 'type' => 'guest']
+    ])->toArray();
+    $events = array_merge($events, $guests);
+
     echo return_rest($events, count($events));
 });
