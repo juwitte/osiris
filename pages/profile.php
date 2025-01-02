@@ -254,7 +254,7 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
                 <li>
                     <a href="<?= ROOTPATH ?>/groups/view/<?= $dept['id'] ?>" style="color:<?= $dept['color'] ?? 'inherit' ?>">
                         <?php if (in_array($user, $dept['head'] ?? [])) { ?>
-                            <i class="ph ph-crown"></i>
+                            <i class="ph ph-crown-simple"></i>
                         <?php } ?>
                         <?= lang($dept['name'], $dept['name_de']) ?>
                         (<?= $dept['unit'] ?>)
@@ -390,6 +390,24 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
                 </button>
             </form>
         </div>
+
+
+        <?php
+        if ($show_achievements) {
+            $new = $Achievement->new;
+
+            if (!empty($new)) {
+                $notification = true;
+                echo '<div class="mt-20">';
+                echo '<h5 class="title font-size-16">' . lang('Congratulation, you achieved something new: ', 'Glückwunsch, du hast neue Errungenschaften erlangt:') . '</h5>';
+                foreach ($new as $i => $n) {
+                    $Achievement->snack($n);
+                }
+                $Achievement->save();
+                echo '</div>';
+            }
+        }
+        ?>
     </div>
 
 <?php } else { ?>
@@ -830,23 +848,6 @@ if ($currentuser) { ?>
                             </div>
                         <?php } ?>
 
-
-                        <?php
-                        if ($show_achievements) {
-                            $new = $Achievement->new;
-
-                            if (!empty($new)) {
-                                $notification = true;
-                                echo '<div class="mt-20">';
-                                echo '<h5 class="title font-size-16">' . lang('Congratulation, you achieved something new: ', 'Glückwunsch, du hast neue Errungenschaften erlangt:') . '</h5>';
-                                foreach ($new as $i => $n) {
-                                    $Achievement->snack($n);
-                                }
-                                $Achievement->save();
-                                echo '</div>';
-                            }
-                        }
-                        ?>
                         <?php if (!$notification) { ?>
                             <p>
                                 <?= lang('There are no new notifications.', 'Es gibt keine neuen Benachrichtigungen.') ?>

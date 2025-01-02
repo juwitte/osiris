@@ -17,7 +17,7 @@
 ?>
 
 <div class="container">
-    <h1><?= lang('Calendar', 'Kalender') ?></h1>
+    <!-- <h1><?= lang('Calendar', 'Kalender') ?></h1> -->
     <div id="calendar"></div>
     <div id="legend">
         <div class="legend-item">

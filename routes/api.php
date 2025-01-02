@@ -193,6 +193,31 @@ Route::get('/api/activities', function () {
         die;
     }
 
+    $projection = [
+        '_id' => 0,
+        'id' => ['$toString' => '$_id'],
+        // 'activity' => '$rendered.web',
+        // 'print' => '$rendered.print',
+        // 'icon' => '$rendered.icon',
+        // 'type' => '$rendered.type',
+        // 'subtype' => '$rendered.subtype',
+        // 'year' => '$year',
+        // 'authors' => '$rendered.authors',
+        // 'title' => '$rendered.title',
+        // 'departments' => '$rendered.depts'
+    ];
+
+    if (isset($_GET['columns'])) {
+        $columns = $_GET['columns'];
+        foreach ($columns as $c) {
+           if (in_array($c, ['web', 'print', 'icon', 'type', 'subtype', 'authors', 'title', 'departments'])) {
+               $projection[$c] = '$rendered.' . $c;
+           } else {
+               $projection[$c] = '$' . $c;
+           }
+        }
+    }
+
     $pipeline = [];
     // Nur `$match` hinzufügen, wenn `$filter` nicht leer ist
     if (!empty($filter)) {
@@ -201,18 +226,7 @@ Route::get('/api/activities', function () {
     // Füge das Sortieren und die Projektion hinzu
     $pipeline[] = ['$sort' => ['year' => -1]];
     $pipeline[] = [
-        '$project' => [
-            '_id' => ['$toString' => '$_id'],
-            'activity' => '$rendered.web',
-            'print' => '$rendered.print',
-            'icon' => '$rendered.icon',
-            'type' => '$rendered.type',
-            'subtype' => '$rendered.subtype',
-            'year' => '$year',
-            'authors' => '$rendered.authors',
-            'title' => '$rendered.title',
-            'departments' => '$rendered.depts'
-        ]
+        '$project' => $projection
     ];
 
     // Führe die Aggregation aus
