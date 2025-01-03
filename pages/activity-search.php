@@ -86,15 +86,128 @@ $filters = array_map(function ($f) {
             if (empty($queries)) {
                 echo '<p>' . lang('You have not saved any queries yet.', 'Du hast noch keine Abfragen gespeichert.') . '</p>';
             } else { ?>
-                <table class="table" id="saved-queries">
-                    <?php foreach ($queries as $query) { ?>
-                        <!-- use rules (json)  -->
-                        <tr id="query-<?= $query['_id'] ?>">
-                            <td><a onclick="applyFilter('<?= $query['_id'] ?>', '<?= $query['aggregate'] ?>')"><?= $query['name'] ?></a></td>
-                            <td class="text-right"><a onclick="deleteQuery('<?= $query['_id'] ?>')" class="text-danger"><i class="ph ph-trash"></i></a></td>
-                        </tr>
+                <div class="collapse-group" id="saved-queries">
+                    <?php foreach ($queries as $query) {
+                        $rules = json_decode($query['rules'], true);
+                        if (empty($rules['rules'])) {
+                            $rules['rules'] = ['id' => 'No rules'];
+                        }
+                    ?>
+                        <details id="query-<?= $query['_id'] ?>" class="mb-10">
+                            <summary class="collapse-header font-weight-bold">
+                                <?= $query['name'] ?>
+                            </summary>
+                            <div class="collapse-content">
+                                <a class="btn primary" onclick="applyFilter('<?= $query['_id'] ?>', '<?= $query['aggregate'] ?>', '<?= implode(';', DB::doc2Arr($query['columns'] ?? [])) ?>')"><?= lang('Apply filter', 'Filter anwenden') ?></a>
+
+                                <table class="table simple my-10">
+
+                                    <tr>
+                                        <th style="vertical-align: baseline;"><?= lang('Rules', 'Regeln') ?>:</th>
+                                        <td>
+                                            <ul>
+                                                <?php foreach ($rules['rules'] as $key) { ?>
+                                                    <li>
+                                                        <b class="text-primary"><?= $key['id'] ?></b>
+                                                        <code class="code"><?php
+                                                                            switch ($key['operator'] ?? '') {
+                                                                                case 'equal':
+                                                                                    echo '=';
+                                                                                    break;
+                                                                                case 'not_equal':
+                                                                                    echo '!=';
+                                                                                    break;
+                                                                                case 'less':
+                                                                                    echo '<';
+                                                                                    break;
+                                                                                case 'less_or_equal':
+                                                                                    echo '<=';
+                                                                                    break;
+                                                                                case 'greater':
+                                                                                    echo '>';
+                                                                                    break;
+                                                                                case 'greater_or_equal':
+                                                                                    echo '>=';
+                                                                                    break;
+                                                                                case 'contains':
+                                                                                    echo 'CONTAINS';
+                                                                                    break;
+                                                                                case 'not_contains':
+                                                                                    echo 'NOT CONTAINS';
+                                                                                    break;
+                                                                                case 'begins_with':
+                                                                                    echo 'BEGINS WITH';
+                                                                                    break;
+                                                                                case 'ends_with':
+                                                                                    echo 'ENDS WITH';
+                                                                                    break;
+                                                                                case 'between':
+                                                                                    echo 'BETWEEN';
+                                                                                    break;
+                                                                                case 'not_between':
+                                                                                    echo 'NOT BETWEEN';
+                                                                                    break;
+                                                                                case 'is_empty':
+                                                                                    echo 'IS EMPTY';
+                                                                                    break;
+                                                                                case 'is_not_empty':
+                                                                                    echo 'IS NOT EMPTY';
+                                                                                    break;
+                                                                                case 'is_null':
+                                                                                    echo 'IS NULL';
+                                                                                    break;
+                                                                                case 'is_not_null':
+                                                                                    echo 'IS NOT NULL';
+                                                                                    break;
+                                                                                case 'in':
+                                                                                    echo 'IN';
+                                                                                    break;
+                                                                                case 'not_in':
+                                                                                    echo 'NOT IN';
+                                                                                    break;
+                                                                            }
+                                                                            ?></code> <?php if (!empty($key['value'] ?? null)) { ?>
+                                                            <q><?= $key['value'] ?></q>
+                                                        <?php } ?>
+                                                    </li>
+                                                <?php } ?>
+                                            </ul>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <th><?= lang('Aggregate', 'Aggregieren') ?>:</th>
+                                        <td>
+                                            <?php if (isset($query['aggregate']) && !empty($query['aggregate'])) { ?>
+                                                <?= $query['aggregate'] ?>
+                                            <?php } else {
+                                                echo lang('No aggregation', 'Keine Aggregation angewendet');
+                                            } ?>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <th><?= lang('Columns', 'Spalten') ?>:</th>
+                                        <td>
+                                            <?php if (isset($query['columns']) && !empty($query['columns'])) { ?>
+                                                <?= implode(', ', DB::doc2Arr($query['columns'])) ?>
+                                            <?php } else {
+                                                echo lang('Default columns', 'Standard-Spalten');
+                                            } ?>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <th><?= lang('Created', 'Erstellt') ?>:</th>
+                                        <td><?= date('d.m.Y H:i', strtotime($query['created'])) ?></td>
+                                    </tr>
+                                </table>
+
+                                <a class="btn danger small text-right" onclick="deleteQuery('<?= $query['_id'] ?>')"><i class="ph ph-trash"></i> <?= lang('Delete Query', 'Abfrage löschen') ?></a>
+                            </div>
+                        </details>
                     <?php } ?>
-                </table>
+                </div>
             <?php  } ?>
 
             <script>
@@ -314,8 +427,8 @@ $filters = array_map(function ($f) {
                     <script>
                         function run() {
                             var rules = $('#expert').val()
-                            RULES = JSON.parse(decodeURI(rules))
-                            dataTable.ajax.reload()
+                            rules = JSON.parse(decodeURI(rules))
+                            getResult(rules)
                         }
                     </script>
                     <a class="btn osiris" href="?"><i class="ph ph-lego"></i> <?= lang('Sandbox mode', 'Baukasten-Modus') ?></a>
@@ -393,7 +506,6 @@ $filters = array_map(function ($f) {
                 $('#activity-table thead').empty(); // Header leeren
                 $('#activity-table tbody').empty(); // Daten leeren
             }
-
 
             // Extrahiere die Spaltennamen aus der API-Antwort
             const first_row = Object.keys(data[0]);
@@ -504,8 +616,10 @@ $filters = array_map(function ($f) {
         }
 
         // AJAX-Call zum Abrufen der Daten
-        function getResult() {
-            var rules = $('#builder').queryBuilder('getMongo')
+        function getResult(rules = null) {
+            if (rules === null) {
+                rules = $('#builder').queryBuilder('getMongo')
+            }
             if (rules === null) rules = []
             rules = JSON.stringify(rules)
 
@@ -577,29 +691,37 @@ $filters = array_map(function ($f) {
                 toastError('Please provide a name for your query.')
                 return
             }
+
+            var columns = []
+            $('#column-select input:checked').each(function() {
+                columns.push($(this).attr('id').replace('column-', ''))
+            })
+
             var query = {
                 name: name,
                 rules: rules,
                 user: '<?= $_SESSION['username'] ?>',
                 created: new Date(),
                 aggregate: $('#aggregate').val(),
+                columns: columns,
                 expert: EXPERT
             }
+
             $.post(ROOTPATH + '/crud/queries', query, function(data) {
                 // reload
                 queries[data.id] = JSON.stringify(rules)
 
                 $('#saved-queries').append(`<a class="d-block" onclick="applyFilter(${data.id}, '${$('#aggregate').val()}')">${name}</a>`)
                 $('#query-name').val('')
-                toastSuccess('Query saved successfully.')
+                toastSuccess(lang('Query saved successfully. Please reload the page to see it completely.', 'Abfrage erfolgreich gespeichert. Lade die Seite neu, um sie vollständig anzuzeigen.'))
 
             })
         }
 
-        function applyFilter(id, aggregate) {
+        function applyFilter(id, aggregate, columns) {
             // console.log((id));
             if (EXPERT) {
-                applyFilterExpert(id, aggregate)
+                applyFilterExpert(id, aggregate, columns)
                 return
             }
             var filter = queries[id];
@@ -618,10 +740,19 @@ $filters = array_map(function ($f) {
                 }
                 return value;
             });
+
+            if (!columns) {
+                columns = 'icon;web;year';
+            }
+            $('#column-select input').prop('checked', false)
+            columns.split(';').forEach(column => {
+                $('#column-' + column).prop('checked', true)
+            })
+
+
             $('#builder').queryBuilder('setRules', parsedFilter);
-            var rules = $('#builder').queryBuilder('getMongo')
-            RULES = rules
-            dataTable.ajax.reload()
+            // var rules = $('#builder').queryBuilder('getMongo')
+            getResult()
         }
 
         function applyFilterExpert(id, aggregate) {

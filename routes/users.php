@@ -682,6 +682,7 @@ Route::post('/crud/queries', function () {
         'user' => $_SESSION['username'],
         'created' => date('Y-m-d'),
         'aggregate' => $_POST['aggregate'] ?? null,
+        'columns' => $_POST['columns'] ?? null,
         'type' => $_POST['type'] ?? 'activity',
         'expert' => (($_POST['expert'] ?? 'false') == 'true')
     ]);
