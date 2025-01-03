@@ -1,5 +1,7 @@
 <?php
 
+require_once BASEPATH . '/php/init.php';
+require_once BASEPATH . '/php/_login.php';
 
 $blacklist = [];
 $bl = $Settings->get('ldap-sync-blacklist');
@@ -21,6 +23,10 @@ if (!empty($bl)) {
 }
 
 $users = getUsers();
+if (isset($users['msg'])) {
+    echo "<div class='alert signal mb-10'>" . $users['msg'] . "</div>";
+    unset($users['msg']);
+}
 
 $removed = $osiris->persons->find(
     ['username' => ['$nin' => array_keys($users)], 'is_active' => ['$in' => [1, true, '1']]],

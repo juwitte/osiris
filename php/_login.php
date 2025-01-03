@@ -90,7 +90,11 @@ function getUser($name)
         return $return;
     }
 
-    $fields = "(|(samaccountname=$name))";
+    if (!defined('OPEN_LDAP') || !OPEN_LDAP) {
+        $fields = "(|(samaccountname=$name))";
+    } else {
+        $fields = "(|(uid=$name))";
+    }
 
     $search = ldap_search($connect, $base_dn, $fields);
     if ($search === false) {
@@ -106,7 +110,7 @@ function getUser($name)
 
 function getUsers()
 {
-
+    $return = [];
     $username = LDAP_USER;
     $password = LDAP_PASSWORD;
     $base_dn = LDAP_BASEDN;
@@ -158,18 +162,29 @@ function getUsers()
             return "Fehler beim Abrufen der LDAP-Einträge: " . $error;
         }
 
-        foreach ($entries as $entry) {
-            if (!isset($entry['samaccountname'][0])) continue;
+        if (!defined('OPEN_LDAP') || !OPEN_LDAP) {
+            $key_user = 'samaccountname';
+        } else {
+            $key_user = 'uid';
+        }
+        
+        $key_active = 'useraccountcontrol';
+        $key_expires = 'accountexpires';
 
-            $accountControl = isset($entry['useraccountcontrol'][0]) ? (int)$entry['useraccountcontrol'][0] : 0;
-            $accountExpires = isset($entry['accountexpires'][0]) ? (int)$entry['accountexpires'][0] : 0;
+        foreach ($entries as $entry) {
+            if (!isset($entry[$key_user][0])) {
+                continue;
+            }
+
+            $accountControl = isset($entry[$key_active][0]) ? (int)$entry[$key_active][0] : 0;
+            $accountExpires = isset($entry[$key_expires][0]) ? (int)$entry[$key_expires][0] : 0;
             
             $isDisabled = ($accountControl & 2); // 2 = ACCOUNTDISABLE
             $isExpired = ($accountExpires != 0 && $accountExpires <= time() * 10000000 + 116444736000000000);
 
             $active = !$isDisabled && !$isExpired;
 
-            $res[$entry['samaccountname'][0]] = $active;
+            $res[$entry[$key_user][0]] = $active;
         }
 
         if (isset($controls[LDAP_CONTROL_PAGEDRESULTS]['value']['cookie'])) {
@@ -201,17 +216,32 @@ function newUser($username)
     $ldap_user = $ldap_users[0];
 
     $person = array();
-    $keys = [
-        "username" => "samaccountname",
-        "first" => "givenname",
-        "last" => "sn",
-        "displayname" => "displayname",
-        "formalname" => "cn",
-        "department" => "department",
-        "unit" => "description",
-        "telephone" => "telephonenumber",
-        "mail" => "mail"
-    ];
+    if (!defined('OPEN_LDAP') || !OPEN_LDAP) {
+        $keys = [
+            "username" => "samaccountname",
+            "first" => "givenname",
+            "last" => "sn",
+            "displayname" => "displayname",
+            "formalname" => "cn",
+            "department" => "department",
+            "unit" => "description",
+            "telephone" => "telephonenumber",
+            "mail" => "mail"
+        ];
+    } else {
+        $keys = [
+            "username" => "uid",
+            "first" => "givenname",
+            "last" => "sn",
+            "displayname" => "displayname",
+            "formalname" => "cn",
+            "department" => "department",
+            "unit" => "description",
+            "telephone" => "telephonenumber",
+            "mail" => "mail"
+        ];
+    }
+    
     foreach ($keys as $key => $name) {
         // dump($value, true);
         $person[$key] = $ldap_user[$name][0] ?? null;
