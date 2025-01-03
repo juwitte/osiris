@@ -119,6 +119,38 @@ $filters = array_map(function ($f) {
     </div>
 </div>
 
+<div class="modal" id="filter-code" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <a href="#/" class="close" role="button" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </a>
+            <h5 class="title"><?= lang('Filter code', 'Filter-Code') ?></h5>
+
+            <p>
+                <?= lang('This filter is needed for example for generating report templates.', 'Dieser Filter wird zum Beispiel für die Erstellung von Berichtsvorlagen benötigt.') ?>
+            </p>
+            <!-- copy to clipboard -->
+            <script>
+                function copyToClipboard() {
+                    var text = $('#result').text()
+                    navigator.clipboard.writeText(text)
+                    toastSuccess('Query copied to clipboard.')
+                }
+            </script>
+
+            <div class="position-relative">
+                <button class="btn secondary small position-absolute top-0 right-0 m-10" onclick="copyToClipboard()"><i class="ph ph-clipboard" aria-label="Copy to clipboard"></i></button>
+
+                <pre id="result" class="code p-20"></pre>
+            </div>
+            <div class="text-right mt-20">
+                <a href="#/" class="btn mr-5" role="button"><?= lang('Close', 'Schließen') ?></a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
     .checkbox-badge {
         display: inline-flex;
@@ -286,7 +318,7 @@ $filters = array_map(function ($f) {
                             dataTable.ajax.reload()
                         }
                     </script>
-                    <a class="btn osiris" href="?"><i class="ph ph-search-plus"></i> <?= lang('Sandbox mode', 'Baukasten-Modus') ?></a>
+                    <a class="btn osiris" href="?"><i class="ph ph-lego"></i> <?= lang('Sandbox mode', 'Baukasten-Modus') ?></a>
 
                 <?php } else { ?>
                     <button class="btn secondary" onclick="getResult()"><i class="ph ph-magnifying-glass"></i> <?= lang('Apply', 'Anwenden') ?></button>
@@ -297,28 +329,14 @@ $filters = array_map(function ($f) {
                     <i class="ph ph-floppy-disk"></i> <?= lang('Saved queries', 'Gespeicherte Abfragen') ?>
                 </a>
 
+                <a href="#filter-code" class="btn" role="button">
+                    <i class="ph ph-code"></i> <?= lang('Show filter', 'Zeige Filter') ?>
+                </a>
+
             </div>
         </div>
     </div>
 
-
-
-    <!-- copy to clipboard -->
-    <script>
-        function copyToClipboard() {
-            var text = $('#result').text()
-            navigator.clipboard.writeText(text)
-            toastSuccess('Query copied to clipboard.')
-        }
-    </script>
-
-    <div class="position-relative">
-        <button class="btn secondary small position-absolute top-0 right-0 m-10" onclick="copyToClipboard()"><i class="ph ph-clipboard" aria-label="Copy to clipboard"></i></button>
-
-        <pre id="result" class="code p-20"></pre>
-    </div>
-
-    <br>
 
     <table class="table" id="activity-table">
         <thead></thead>
@@ -369,46 +387,91 @@ $filters = array_map(function ($f) {
 
 
         function initializeTable(data) {
+            // destroy existing table
+            if ($.fn.DataTable.isDataTable('#activity-table')) {
+                $('#activity-table').DataTable().clear().destroy();
+                $('#activity-table thead').empty(); // Header leeren
+                $('#activity-table tbody').empty(); // Daten leeren
+            }
+
+
             // Extrahiere die Spaltennamen aus der API-Antwort
             const first_row = Object.keys(data[0]);
 
-            var selected_columns = []
-            $('#column-select input:checked').each(function() {
-                selected_columns.push($(this).attr('id').replace('column-', ''))
-            })
+            // check for aggregation
+            var aggregate = $('#aggregate').val()
 
             // Generiere dynamisch das thead
             const thead = document.querySelector('#activity-table thead');
-            thead.innerHTML = ''; // Leeren
             const headerRow = document.createElement('tr');
-            first_row.forEach(field => {
-                const th = document.createElement('th');
-                th.textContent = field.charAt(0).toUpperCase() + field.slice(1); // Optional: Titel formatieren
+
+            var columns = [];
+
+            if (aggregate !== "") {
+                data = data.map(row => ({
+                    activity: row.activity || lang('No Activity', 'Keine Aktivität'),
+                    count: row.count || 0
+                }));
+
+                // add aggregate column
+                var th = document.createElement('th');
+                th.textContent = lang('Activity', 'Aktivität');
                 headerRow.appendChild(th);
-            });
-            thead.appendChild(headerRow);
+                th = document.createElement('th');
+                th.textContent = lang('Count', 'Anzahl');
+                headerRow.appendChild(th);
+                thead.appendChild(headerRow);
 
-            // Konfiguriere die Spalten für Datatables
-            const columns = first_row.map(function(field) {
-                // remove from selected columns
-                selected_columns = selected_columns.filter(column => column !== field);
-                // get name from `fields`
-                const filter = fields.find(f => f.id == field);
-                var r = {
-                    data: field,
-                    title: filter ? filter.label : field
-                }
-                if (field == 'id') {
-                    r.render = function(data, type, row, meta) {
-                        return `<a href="<?= ROOTPATH ?>/activity/${data}"><i class="ph ph-arrow-fat-line-right"></i></a>`
+                columns = [{
+                        data: 'activity',
+                        title: lang('Value', 'Wert')
+                    },
+                    {
+                        data: 'count',
+                        title: lang('Count', 'Anzahl')
                     }
-                }
-                return r
-            });
+                ]
 
-            if (selected_columns.length > 0) {
-                toastWarning(lang('The following columns are not found in the result and are not shown:', 'Die folgenden Spalten waren im Ergebnis komplett leer und werden nicht gezeigt:') + ' <strong>' + selected_columns.join(', ') + '</strong>');
+            } else {
+                var selected_columns = []
+                $('#column-select input:checked').each(function() {
+                    selected_columns.push($(this).attr('id').replace('column-', ''))
+                })
+
+                // add dynamic column heads
+                first_row.forEach(field => {
+                    const th = document.createElement('th');
+                    th.textContent = field.charAt(0).toUpperCase() + field.slice(1); // Optional: Titel formatieren
+                    headerRow.appendChild(th);
+                });
+                thead.appendChild(headerRow);
+                // Konfiguriere die Spalten für Datatables
+                columns = first_row.map(function(field) {
+                    // remove from selected columns
+                    selected_columns = selected_columns.filter(column => column !== field);
+                    // get name from `fields`
+
+                    const filter = fields.find(f => f.id == field);
+                    var r = {
+                        data: field,
+                        title: filter ? filter.label : field
+                    }
+                    if (field == 'id') {
+                        r.render = function(data, type, row, meta) {
+                            return `<a href="<?= ROOTPATH ?>/activity/${data}"><i class="ph ph-arrow-fat-line-right"></i></a>`
+                        }
+                    }
+                    return r
+                });
+                if (selected_columns.length > 0) {
+                    toastWarning(lang('The following columns are not found in the result and are not shown:', 'Die folgenden Spalten waren im Ergebnis komplett leer und werden nicht gezeigt:') + ' <strong>' + selected_columns.join(', ') + '</strong>');
+                }
+
             }
+
+            console.log(thead);
+            console.log(columns);
+            console.log(data);
 
             // Initialisiere Datatables
             $('#activity-table').DataTable({
@@ -431,7 +494,7 @@ $filters = array_map(function ($f) {
                 initComplete: function() {
                     var tableWidth = $('#activity-table').width();
                     var containerWidth = $('#activity-table').parent().width();
-                    if (tableWidth > containerWidth) {
+                    if (tableWidth > containerWidth && !$('#activity-table').parent().hasClass('table-responsive')) {
                         $('#activity-table').wrap('<div class="table-responsive"></div>');
                     }
                 }
