@@ -422,15 +422,8 @@ $filters = array_map(function ($f) {
 
             <div class="btn-toolbar">
                 <?php if ($expert) { ?>
-                    <button class="btn secondary" onclick="run()"><i class="ph ph-magnifying-glass"></i> <?= lang('Apply', 'Anwenden') ?></button>
+                    <button class="btn secondary" onclick="getResult()"><i class="ph ph-magnifying-glass"></i> <?= lang('Apply', 'Anwenden') ?></button>
 
-                    <script>
-                        function run() {
-                            var rules = $('#expert').val()
-                            rules = JSON.parse(decodeURI(rules))
-                            getResult(rules)
-                        }
-                    </script>
                     <a class="btn osiris" href="?"><i class="ph ph-lego"></i> <?= lang('Sandbox mode', 'Baukasten-Modus') ?></a>
 
                 <?php } else { ?>
@@ -616,9 +609,20 @@ $filters = array_map(function ($f) {
         }
 
         // AJAX-Call zum Abrufen der Daten
-        function getResult(rules = null) {
-            if (rules === null) {
-                rules = $('#builder').queryBuilder('getMongo')
+        function getResult() {
+            if (EXPERT) {
+                var rules = $('#expert').val()
+                if (rules == '') {
+                    return
+                }
+                try {
+                    var rules = JSON.parse(rules)
+                } catch (SyntaxError) {
+                    toastError(lang('Invalid JSON', 'Ungültiges JSON'))
+                    return
+                }
+            } else {
+                var rules = $('#builder').queryBuilder('getMongo')
             }
             if (rules === null) rules = []
             rules = JSON.stringify(rules)
@@ -765,7 +769,7 @@ $filters = array_map(function ($f) {
             $('#aggregate').val(aggregate)
             $('#expert').val(filter)
 
-            run();
+            getResult()
         }
 
 
