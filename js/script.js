@@ -68,7 +68,8 @@ function quillEditor(selector) {
                 ['bold', 'italic', 'underline'],
                 [{
                     'list': 'ordered'
-                }, {
+                }, 
+                {
                     'list': 'bullet'
                 }],
                 [{
@@ -80,7 +81,7 @@ function quillEditor(selector) {
                 // ['clean']
             ],
         },
-        formats: ['italic', 'bold', 'underline', 'script', 'link', 'image', 'list', 'bullet', 'header'],
+        formats: ['italic', 'bold', 'underline', 'script', 'link', 'image', 'list', 'header'],
         placeholder: lang('Start typing here ...', 'Hier tippen ...'),
         theme: 'snow', // or 'bubble' 
     });

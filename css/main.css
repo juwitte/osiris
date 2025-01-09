@@ -12534,6 +12534,11 @@ a.concept:hover {
   background-color: var(--success-color-30);
 }
 
+.ql-editor ol li:is([data-list=bullet])::before {
+  content: "•";
+  padding-right: 0.5rem;
+}
+
 /*!
  * Quill Editor v1.3.6
  * https://quilljs.com/
