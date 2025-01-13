@@ -1088,6 +1088,14 @@ if ($currentuser) { ?>
                                 </td>
                             </tr>
                         <?php } ?>
+                        <?php if (isset($scientist['room'])) { ?>
+                            <tr>
+                                <td>
+                                    <span class="key"><?= lang('Room', 'Raum') ?></span>
+                                    <a href="tel:<?= $scientist['room'] ?>"><?= $scientist['room'] ?></a>
+                                </td>
+                            </tr>
+                        <?php } ?>
 
                         <?php if (isset($scientist['mobile'])) { ?>
                             <tr>

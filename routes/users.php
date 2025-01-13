@@ -147,6 +147,29 @@ Route::get('/user/delete/(.*)', function ($user) {
 
 
 
+
+Route::get('/user/ldap-example', function () {
+    include_once BASEPATH . "/php/init.php";
+    include_once BASEPATH . "/php/_login.php";
+
+    $data = getUser($_SESSION['username']);
+    $data = DB::doc2Arr($data);
+    if (empty($data)) {
+        header("Location: " . ROOTPATH . "/user/browse");
+        die;
+    }
+
+    $breadcrumb = [
+        ['name' => lang('Users', 'Personen'), 'path' => "/user/browse"],
+        ['name' => lang("LDAP Example", "LDAP Beispiel")]
+    ];
+
+    include BASEPATH . "/header.php";
+    dump($data, true);
+    include BASEPATH . "/footer.php";
+}, 'login');
+
+
 // Profile
 
 Route::get('/profile/?(.*)', function ($user) {
@@ -381,6 +404,20 @@ Route::post('/synchronize-users', function () {
     include BASEPATH . "/footer.php";
 });
 
+
+Route::post('/synchronize-attributes', function(){
+    include_once BASEPATH . "/php/init.php";
+    include_once BASEPATH . "/php/_login.php";
+
+    if (!$Settings->hasPermission('user.synchronize')){
+        echo "<p>Permission denied.</p>";
+        die();
+    }
+
+    include BASEPATH . "/header.php";
+    include BASEPATH . "/pages/synchronize-attributes-preview.php";
+    include BASEPATH . "/footer.php";
+});
 
 /** 
  * CRUD routes

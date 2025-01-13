@@ -17,6 +17,17 @@
  */
 
 $depts = DB::doc2Arr($data['depts'] ?? []);
+
+$ldap_fields = [];
+
+if (strtoupper(USER_MANAGEMENT) == 'LDAP') {
+    $ldap_fields = $osiris->adminGeneral->findOne(['key' => 'ldap_mappings']);
+    $ldap_fields = DB::doc2Arr($ldap_fields['value'] ?? []);
+    // ignore empty values
+    $ldap_fields = array_keys(array_filter($ldap_fields));
+}
+
+$ldap_msg = '<small class="text-muted">'.lang('This field is centrally managed by your organisation.', 'Dieses Feld wird durch deine Organisation zentral verwaltet.') . '</small>';
 ?>
 
 
@@ -25,6 +36,18 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
 </script>
 <script src="<?= ROOTPATH ?>/js/user-editor.js"></script>
 <script src="<?= ROOTPATH ?>/js/quill.min.js"></script>
+
+<style>
+    .form-control[readonly] {
+        background-color: var(--muted-color-very-light);
+        cursor: not-allowed;
+    }
+    .form-control[readonly]:focus {
+        background-color: var(--muted-color-very-light);
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+</style>
 
 <h1 class="mt-0">
     <i class="ph ph-student"></i>
@@ -93,23 +116,26 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
         <div class="form-row row-eq-spacing">
             <div class="col-sm-2">
                 <label for="academic_title">Title</label>
-                <select name="values[academic_title]" id="academic_title" class="form-control">
+                <select name="values[academic_title]" id="academic_title" class="form-control" <?=in_array('academic_title', $ldap_fields)? 'disabled': ''?>>
                     <option value="" <?= $data['academic_title'] == '' ? 'selected' : '' ?>></option>
                     <option value="Dr." <?= $data['academic_title'] == 'Dr.' ? 'selected' : '' ?>>Dr.</option>
                     <option value="Prof. Dr." <?= $data['academic_title'] == 'Prof. Dr.' ? 'selected' : '' ?>>Prof. Dr.</option>
                     <option value="PD Dr." <?= $data['academic_title'] == 'PD Dr.' ? 'selected' : '' ?>>PD Dr.</option>
                     <option value="Prof." <?= $data['academic_title'] == 'Prof.' ? 'selected' : '' ?>>Prof.</option>
                     <option value="PD" <?= $data['academic_title'] == 'PD' ? 'selected' : '' ?>>PD</option>
-                    <!-- <option value="Prof. Dr." <?= $data['academic_title'] == 'Prof. Dr.' ? 'selected' : '' ?>>Prof. Dr.</option> -->
+                    <option value="Dipl.-Ing." <?= $data['academic_title'] == 'Dipl.-Ing.' ? 'selected' : '' ?>>Dipl.-Ing.</option>
                 </select>
+                <?php if (in_array('first', $ldap_fields)) { echo $ldap_msg; } ?>
             </div>
             <div class="col-sm">
                 <label for="first"><?= lang('First name', 'Vorname') ?></label>
-                <input type="text" name="values[first]" id="first" class="form-control" value="<?= $data['first'] ?? '' ?>">
+                <input type="text" name="values[first]" id="first" class="form-control" value="<?= $data['first'] ?? '' ?>" <?=in_array('first', $ldap_fields) ? 'disabled': ''?>>
+            <?php if (in_array('first', $ldap_fields)) { echo $ldap_msg; } ?>
             </div>
             <div class="col-sm">
                 <label for="last"><?= lang('Last name', 'Nachname') ?></label>
-                <input type="text" name="values[last]" id="last" class="form-control" value="<?= $data['last'] ?? '' ?>">
+                <input type="text" name="values[last]" id="last" class="form-control" value="<?= $data['last'] ?? '' ?>" <?=in_array('last', $ldap_fields) ? 'disabled': ''?>>
+            <?php if (in_array('last', $ldap_fields)) { echo $ldap_msg; } ?>
             </div>
         </div>
 
@@ -192,7 +218,15 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
         <!-- internal_id -->
         <div class="form-group">
             <label for="internal_id"><?= lang('Internal ID', 'Interne ID') ?></label>
-            <input type="text" name="values[internal_id]" id="internal_id" class="form-control w-auto" value="<?= $data['internal_id'] ?? '' ?>">
+            <input type="text" name="values[internal_id]" id="internal_id" class="form-control w-auto" value="<?= $data['internal_id'] ?? '' ?>" <?=in_array('internal_id', $ldap_fields) ? 'disabled': ''?>>
+            <?php if (in_array('internal_id', $ldap_fields)) { echo $ldap_msg; } ?>
+        </div>
+
+        <!-- room -->
+        <div class="form-group">
+            <label for="room"><?= lang('Room', 'Raum') ?></label>
+            <input type="text" name="values[room]" id="room" class="form-control w-auto" value="<?= $data['room'] ?? '' ?>"  <?=in_array('room', $ldap_fields) ? 'disabled': ''?>>
+            <?php if (in_array('room', $ldap_fields)) { echo $ldap_msg; } ?>
         </div>
 
         <style>
@@ -211,7 +245,6 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
                     <h5><?= lang('Current Position', 'Aktuelle Position') ?></h5>
                 </label>
 
-
                 <?php
                 $staff = $Settings->get('staff');
                 $staffPos = $staff['positions'] ?? [];
@@ -221,11 +254,13 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
                     <div class="row row-eq-spacing my-0">
                         <div class="col-md-6">
                             <label for="position" class="d-flex">English <img src="<?= ROOTPATH ?>/img/gb.svg" alt="EN" class="flag"></label>
-                            <input name="values[position]" id="position" type="text" class="form-control" value="<?= htmlspecialchars($data['position'] ?? '') ?>">
+                            <input name="values[position]" id="position" type="text" class="form-control" value="<?= htmlspecialchars($data['position'] ?? '') ?>" <?=in_array('position', $ldap_fields)? 'disabled': ''?>>
+                            <?php if (in_array('position', $ldap_fields)) { echo $ldap_msg; } ?>
                         </div>
                         <div class="col-md-6">
                             <label for="position_de" class="d-flex">Deutsch <img src="<?= ROOTPATH ?>/img/de.svg" alt="DE" class="flag"></label>
-                            <input name="values[position_de]" id="position_de" type="text" class="form-control" value="<?= htmlspecialchars($data['position_de'] ?? '') ?>">
+                            <input name="values[position_de]" id="position_de" type="text" class="form-control" value="<?= htmlspecialchars($data['position_de'] ?? '') ?>" <?=in_array('position', $ldap_fields)? 'disabled': ''?>>
+                            <?php if (in_array('position', $ldap_fields)) { echo $ldap_msg; } ?>
                         </div>
                     </div>
                 <?php } else { ?>
@@ -414,18 +449,21 @@ $depts = DB::doc2Arr($data['depts'] ?? []);
         <h2 class="title"><?= lang('Contact', 'Kontakt') ?></h2>
         <div class="form-group">
             <label for="mail">Mail</label>
-            <input type="text" name="values[mail]" id="mail" class="form-control" value="<?= $data['mail'] ?? '' ?>">
+            <input type="text" name="values[mail]" id="mail" class="form-control" value="<?= $data['mail'] ?? '' ?>"  <?=in_array('mail', $ldap_fields)? 'disabled': ''?>>
+            <?php if (in_array('mail', $ldap_fields)) { echo $ldap_msg; } ?>
         </div>
 
         <div class="form-row row-eq-spacing">
             <div class="col-sm-6">
                 <label for="telephone"><?= lang('Telephone', 'Telefon') ?></label>
-                <input type="tel" name="values[telephone]" id="telephone" class="form-control" value="<?= $data['telephone'] ?? '' ?>">
+                <input type="tel" name="values[telephone]" id="telephone" class="form-control" value="<?= $data['telephone'] ?? '' ?>" <?=in_array('telephone', $ldap_fields)? 'disabled': ''?>>
+                <?php if (in_array('telephone', $ldap_fields)) { echo $ldap_msg; } ?>
             </div>
 
             <div class="col-sm-6">
                 <label for="mobile">mobile</label>
-                <input type="tel" name="values[mobile]" id="mobile" class="form-control" value="<?= $data['mobile'] ?? '' ?>">
+                <input type="tel" name="values[mobile]" id="mobile" class="form-control" value="<?= $data['mobile'] ?? '' ?>" <?=in_array('mobile', $ldap_fields)? 'disabled': ''?>>
+                <?php if (in_array('mobile', $ldap_fields)) { echo $ldap_msg; } ?>
             </div>
 
         </div>

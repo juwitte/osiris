@@ -152,26 +152,21 @@ function sel($index, $value)
             </div>
 
             <?php if (!empty($type)) { ?>
-
                 <hr>
                 <h5><?= lang('Types', 'Typen') ?>:</h5>
-                <ul class="horizontal">
+                <div>
                     <?php
                     $children = $osiris->adminTypes->find(['parent' => $id]);
                     foreach ($children as $subtype) { ?>
-                        <li>
-                            <a href="<?= ROOTPATH ?>/admin/types/<?= $subtype['id'] ?>">
+                            <a class="btn primary mb-5" href="<?= ROOTPATH ?>/admin/types/<?= $subtype['id'] ?>">
                                 <i class="ph ph-<?= $subtype['icon'] ?? 'placeholder' ?>"></i>
                                 <?= lang($subtype['name'], $subtype['name_de'] ?? $subtype['name']) ?>
                             </a>
-                        </li>
                     <?php } ?>
-                    <li>
                         <a class="btn" href="<?= ROOTPATH ?>/admin/types/new?parent=<?= $id ?>"><i class="ph ph-plus-circle"></i>
                             <?= lang('Add subtype', 'Neuen Typ hinzufügen') ?>
                         </a>
-                    </li>
-                </ul>
+                </div>
             <?php } ?>
 
         </div>

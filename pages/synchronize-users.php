@@ -3,6 +3,12 @@
 require_once BASEPATH . '/php/init.php';
 require_once BASEPATH . '/php/_login.php';
 
+echo "<h1>" . lang('Synchronize users', 'Synchronisiere Nutzer:innen') . "</h1>";
+
+// link to synchronize attributes
+echo "<p><a href='" . ROOTPATH . "/synchronize-attributes' class='btn primary float-right'> " . lang('Synchronize attributes', 'Synchronisiere Attribute') . "</a></p>";
+
+// get all users from LDAP
 $blacklist = [];
 $bl = $Settings->get('ldap-sync-blacklist');
 if (!empty($bl)) {
