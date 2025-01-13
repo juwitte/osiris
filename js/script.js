@@ -78,7 +78,7 @@ function quillEditor(selector) {
                     'script': 'super'
                 }],
                 ['link', 'image'],
-                // ['clean']
+                ['clean']
             ],
         },
         formats: ['italic', 'bold', 'underline', 'script', 'link', 'image', 'list', 'header'],

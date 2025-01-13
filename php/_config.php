@@ -718,12 +718,12 @@ function getFileIcon($type)
  * current/provided date falls within
  *
  * @param string   $period The period to find the last day of. ('year', 'quarter', 'month', 'week')
- * @param DateTime $date   The date to use instead of the current date
+ * @param DateTime|null $date   The date to use instead of the current date
  *
  * @return DateTime
  * @throws InvalidArgumentException
  */
-function lastDayOf($period, DateTime $date = null)
+function lastDayOf($period, $date = null)
 {
     $period = strtolower($period);
     $validPeriods = array('year', 'quarter', 'month', 'week');

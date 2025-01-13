@@ -251,39 +251,44 @@ $pageactive = function ($p) use ($page) {
                 </button>
             </form>
 
+            <?php if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true || !isset($_SESSION['username'])) { ?>
+                <a href="<?= ROOTPATH ?>/" class="btn text-primary border-primary mr-5">
+                    <i class="ph ph-sign-in" aria-hidden="true"></i>
+                    <?= lang('Log in', 'Anmelden') ?>
+                </a>
+                <?php } else {
+                $realusername = $_SESSION['realuser'] ?? $_SESSION['username'];
+                $maintain = $osiris->persons->find(['maintenance' => $realusername], ['projection' => ['displayname' => 1, 'username' => 1]])->toArray();
+                if (!empty($maintain)) { ?>
+                    <form action="" class="nav-search" id="navbar-search">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text border-primary text-primary"><i class="ph ph-user"></i></span>
+                            </div>
 
-            <?php
-            $realusername = $_SESSION['realuser'] ?? $_SESSION['username'];
-            $maintain = $osiris->persons->find(['maintenance' => $realusername], ['projection' => ['displayname' => 1, 'username' => 1]])->toArray();
-            if (!empty($maintain)) { ?>
-                <form action="" class="nav-search" id="navbar-search">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text border-primary text-primary"><i class="ph ph-user"></i></span>
+                            <select name="OSIRIS-SELECT-MAINTENANCE-USER" id="osiris-select-maintenance-user" class="form-control border-primary bg-white" onchange="$(this).closest('form').submit()">
+                                <option value="" disabled>
+                                    <?= lang('Switch user', 'Benutzer wechseln') ?>
+                                </option>
+                                <option value="<?= $realusername ?>"><?= $DB->getNameFromId($realusername) ?></option>
+                                <?php
+                                foreach ($maintain as $d) { ?>
+                                    <option value="<?= $d['username'] ?>" <?= $d['username'] ==  $_SESSION['username'] ? 'selected' : '' ?>><?= $DB->getNameFromId($d['username']) ?></option>
+                                <?php } ?>
+                            </select>
                         </div>
-
-                        <select name="OSIRIS-SELECT-MAINTENANCE-USER" id="osiris-select-maintenance-user" class="form-control border-primary bg-white" onchange="$(this).closest('form').submit()">
-                            <option value="" disabled>
-                                <?= lang('Switch user', 'Benutzer wechseln') ?>
-                            </option>
-                            <option value="<?= $realusername ?>"><?= $DB->getNameFromId($realusername) ?></option>
-                            <?php
-                            foreach ($maintain as $d) { ?>
-                                <option value="<?= $d['username'] ?>" <?= $d['username'] ==  $_SESSION['username'] ? 'selected' : '' ?>><?= $DB->getNameFromId($d['username']) ?></option>
-                            <?php } ?>
-                        </select>
-                    </div>
-                </form>
-            <?php } else { ?>
-                <form id="navbar-search" action="<?= ROOTPATH ?>/activities" method="get" class="nav-search">
-                    <div class="input-group">
-                        <input type="text" name="q" class="form-control border-primary" autocomplete="off" placeholder="<?= lang('Search in activities', 'Suche in Aktivitäten') ?>">
-                        <div class="input-group-append">
-                            <button class="btn primary filled"><i class="ph ph-magnifying-glass"></i></button>
+                    </form>
+                <?php } else { ?>
+                    <form id="navbar-search" action="<?= ROOTPATH ?>/activities" method="get" class="nav-search">
+                        <div class="input-group">
+                            <input type="text" name="q" class="form-control border-primary" autocomplete="off" placeholder="<?= lang('Search in activities', 'Suche in Aktivitäten') ?>">
+                            <div class="input-group-append">
+                                <button class="btn primary filled"><i class="ph ph-magnifying-glass"></i></button>
+                            </div>
                         </div>
-                    </div>
-                </form>
-            <?php } ?>
+                    </form>
+            <?php }
+            } ?>
 
 
         </nav>
@@ -296,7 +301,7 @@ $pageactive = function ($p) use ($page) {
 
                     <a href="<?= ROOTPATH ?>/" class="cta with-icon <?= $pageactive('add-activity') ?>">
                         <i class="ph ph-sign-in mr-10" aria-hidden="true"></i>
-                        <?= lang('Log in') ?>
+                        <?= lang('Log in', 'Anmelden') ?>
                     </a>
 
                     <?php if (strtoupper(USER_MANAGEMENT) === 'AUTH') { ?>
@@ -369,7 +374,7 @@ $pageactive = function ($p) use ($page) {
                                 <i class="ph ph-calendar-dots" aria-hidden="true"></i>
                                 <?= lang('Calendar', 'Kalender') ?>
                             </a>
-                            
+
                             <a href="<?= ROOTPATH ?>/my-activities" class="with-icon <?= $pageactive('my-activities') ?>">
                                 <i class="ph ph-folder-user" aria-hidden="true"></i>
                                 <?= lang('My activities', 'Meine Aktivitäten') ?>

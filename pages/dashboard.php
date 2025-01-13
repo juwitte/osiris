@@ -127,6 +127,7 @@ foreach ($cursor as $doc) {
 // get maximum value for the y axis
 $max = 0;
 foreach ($quarters as $q => $value) {
+    if (empty($value['activities'])) continue;
     $m = max(array_values($value['activities']));
     if ($m > $max) $max = $m;
 }

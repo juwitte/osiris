@@ -352,91 +352,99 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
             <small><?= lang('Projects', 'Projekte') ?>: </small>
             <br />
             <?php foreach ($doc['projects'] as $p) { ?>
-                <span class="badge"><?= $p ?></span>
+                <a class="badge" href="<?=ROOTPATH?>/projects/view/<?=$p?>"><?= $p ?></a>
             <?php } ?>
         </div>
     <?php } ?>
 
-</div>
+    <?php if ($Settings->featureEnabled('portal')) {
+        $doc['hide'] = $doc['hide'] ?? false;
+    ?>
+        <div class="mr-10 badge bg-white">
+            <small><?= lang('Online Visibility', 'Online-Sichtbarkeit') ?>: </small>
+            <br />
+            <?php if ($user_activity || $Settings->hasPermission('activities.edit')) { ?>
+                <div class="custom-switch">
+                    <input type="checkbox" id="hide" <?= $doc['hide'] ? 'checked' : '' ?> name="values[hide]" onchange="hide()">
+                    <label for="hide" id="hide-label">
+                    <?= $doc['hide'] ? lang('Visible', 'Sichtbar') : lang('Hidden', 'Versteckt') ?>
+                    </label>
+                </div>
+
+                <script>
+                    function hide() {
+                        $.ajax({
+                            type: "POST",
+                            url: ROOTPATH + "/crud/activities/hide",
+                            data: {
+                                activity: ACTIVITY_ID
+                            },
+                            success: function(response) {
+                                var hide = $('#hide').prop('checked');
+                                $('#hide-label').text(hide ? '<?= lang('Visible', 'Sichtbar') ?>' : '<?= lang('Hidden', 'Versteckt') ?>');
+                                toastSuccess(lang('Highlight status changed', 'Hervorhebungsstatus geändert'))
+                            },
+                            error: function(response) {
+                                console.log(response);
+                            }
+                        });
+                    }
+                </script>
 
 
-<?php if ($Settings->featureEnabled('portal') && ($user_activity || $Settings->hasPermission('activities.edit'))) {
-    $highlights = DB::doc2Arr($USER['highlighted'] ?? []);
-    $highlighted = in_array($id, $highlights);
-
-?>
-
-    <div class="box">
-        <div class="p-10">
-            <b><?= lang('Portfolio visibility', 'Sichtbarkeit in Portfolio') ?></b>
-            <div class="mt-10 d-flex">
-                <?php if (in_array($doc['subtype'], $Settings->getActivitiesPortfolio(true))) { ?>
-                    <?php if ($user_activity) { ?>
-                        <div class="custom-switch ml-10">
-                            <input type="checkbox" id="highlight" <?= ($highlighted) ? 'checked' : '' ?> name="values[highlight]" onchange="fav()">
-                            <label for="highlight">
-                                <?= lang('Highlight on your profile', 'Auf deinem Profil hervorheben') ?>
-                            </label>
-                        </div>
-                    <?php } ?>
-
-                    <!-- hide in all activities on portal -->
-                    <div class="custom-switch ml-10">
-                        <input type="checkbox" id="hide" <?= ($doc['hide'] ?? false) ? 'checked' : '' ?> name="values[hide]" onchange="hide()">
-                        <label for="hide">
-                            <?= lang('Hide in portfolio', 'Im Portfolio verstecken') ?>
-                        </label>
-                    </div>
-                <?php } else { ?>
-                    <span class="badge signal ml-10" data-toggle="tooltip" data-title="<?= lang('This activity cannot be shown on Portfolio due to institute settings.', 'Diese Aktivität kann aufgrund von Instituts-Einstellungen nicht im Portfolio gezeigt werden.') ?>">
+            <?php } else { ?>
+                <?php if ($doc['hide']) { ?>
+                    <span class="badge danger" data-toggle="tooltip" data-title="<?= lang('This activity is hidden on the portal.', 'Diese Aktivität ist auf dem Portal versteckt.') ?>">
                         <i class="ph ph-eye-slash"></i>
-                        <?= lang('Not visible', 'Nicht sichtbar') ?>
+                        <?= lang('Hidden', 'Versteckt') ?>
+                    </span>
+                <?php } else { ?>
+                    <span class="badge success" data-toggle="tooltip" data-title="<?= lang('This activity is visible on the portal.', 'Diese Aktivität ist auf dem Portal sichtbar.') ?>">
+                        <i class="ph ph-eye"></i>
+                        <?= lang('Visible', 'Sichtbar') ?>
                     </span>
                 <?php } ?>
-            </div>
-            <script>
-                function fav() {
-                    $.ajax({
-                        type: "POST",
-                        url: ROOTPATH + "/crud/activities/fav",
-                        data: {
-                            activity: ACTIVITY_ID
-                        },
-                        dataType: "json",
-                        success: function(response) {
-                            toastSuccess(lang('Highlight status changed', 'Hervorhebungsstatus geändert'))
-                        },
-                        error: function(response) {
-                            console.log(response);
-                        }
-                    });
-                }
-
-
-                function hide() {
-                    $.ajax({
-                        type: "POST",
-                        url: ROOTPATH + "/crud/activities/hide",
-                        data: {
-                            activity: ACTIVITY_ID
-                        },
-                        dataType: "json",
-                        success: function(response) {
-                            toastSuccess(lang('Highlight status changed', 'Hervorhebungsstatus geändert'))
-                        },
-                        error: function(response) {
-                            console.log(response);
-                        }
-                    });
-                }
-            </script>
-
-
-
+            <?php } ?>
         </div>
-    </div>
-<?php } ?>
+    <?php } ?>
 
+    <?php if ($user_activity) {
+        $highlights = DB::doc2Arr($USER['highlighted'] ?? []);
+        $highlighted = in_array($id, $highlights);
+    ?>
+        <div class="mr-10 badge bg-white">
+            <small><?= lang('Displayed in your profile', 'Darstellung in deinem Profil') ?>: </small>
+            <br />
+            <div class="custom-switch">
+                <input type="checkbox" id="highlight" <?= ($highlighted) ? 'checked' : '' ?> name="values[highlight]" onchange="fav()">
+                <label for="highlight" id="highlight-label">
+                    <?= $highlighted ? lang('Highlighted', 'Hervorgehoben') : lang('Normal', 'Normal') ?>
+                </label>
+            </div>
+        </div>
+        <script>
+            function fav() {
+                $.ajax({
+                    type: "POST",
+                    url: ROOTPATH + "/crud/activities/fav",
+                    data: {
+                        activity: ACTIVITY_ID
+                    },
+                    dataType: "json",
+                    success: function(response) {
+                        var highlight = $('#highlight').prop('checked');
+                        $('#highlight-label').text(highlight ? '<?= lang('Highlighted', 'Hervorgehoben') ?>' : '<?= lang('Normal', 'Normal') ?>');
+                        toastSuccess(lang('Highlight status changed', 'Hervorhebungsstatus geändert'))
+                    },
+                    error: function(response) {
+                        console.log(response);
+                    }
+                });
+            }
+        </script>
+    <?php } ?>
+
+</div>
 
 <!-- TAB AREA -->
 
@@ -660,28 +668,28 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                                     </span>
                                 <?php } else { ?>
 
-                                <div class="module ">
-                                    <h6 class="m-0">
-                                        <a href="<?= ROOTPATH ?>/conferences/<?= $doc['conference_id'] ?>">
-                                            <?= $conference['title'] ?>
-                                        </a>
-                                    </h6>
-                                    <div class="text-muted mb-10"><?= $conference['title_full'] ?></div>
-                                    <ul class="horizontal mb-0">
-                                        <li>
-                                            <b><?= lang('Location', 'Ort') ?></b>: <?= $conference['location'] ?>
-                                        </li>
-                                        <li>
-                                            <b><?= lang('Date', 'Datum') ?></b>: <?= fromToDate($conference['start'], $conference['end']) ?>
-                                        </li>
-                                        <li>
-                                            <a href="<?= $conference['url'] ?>" target="_blank">
-                                                <i class="ph ph-link"></i>
-                                                <?= lang('Website', 'Website') ?>
+                                    <div class="module ">
+                                        <h6 class="m-0">
+                                            <a href="<?= ROOTPATH ?>/conferences/<?= $doc['conference_id'] ?>">
+                                                <?= $conference['title'] ?>
                                             </a>
-                                        </li>
-                                    </ul>
-                                </div>
+                                        </h6>
+                                        <div class="text-muted mb-10"><?= $conference['title_full'] ?></div>
+                                        <ul class="horizontal mb-0">
+                                            <li>
+                                                <b><?= lang('Location', 'Ort') ?></b>: <?= $conference['location'] ?>
+                                            </li>
+                                            <li>
+                                                <b><?= lang('Date', 'Datum') ?></b>: <?= fromToDate($conference['start'], $conference['end']) ?>
+                                            </li>
+                                            <li>
+                                                <a href="<?= $conference['url'] ?>" target="_blank">
+                                                    <i class="ph ph-link"></i>
+                                                    <?= lang('Website', 'Website') ?>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
                                 <?php } ?>
                             </td>
                         </tr>

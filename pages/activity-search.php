@@ -406,6 +406,10 @@ $filters = array_map(function ($f) {
                     <div class="input-group" style="display:none;" id="aggregate-form">
                         <select name="aggregate" id="aggregate" class="form-control w-auto">
                             <option value=""><?= lang('Without aggregation (show all)', 'Ohne Aggregation (zeige alles)') ?></option>
+                            <?php foreach ($filters as $f) { ?>
+                                <option value="<?=$f['id']?>"><?=$f['label']?></option>
+                            <?php } ?>
+                            
                         </select>
 
                         <!-- remove aggregation -->
@@ -484,12 +488,12 @@ $filters = array_map(function ($f) {
 
         var dataTable;
 
-        filters.forEach(el => {
-            // console.log(el);
-            if (el.type == 'string') {
-                $('#aggregate').append(`<option value="${el.id}">${el.label}</option>`)
-            }
-        });
+        // filters.forEach(el => {
+        //     // console.log(el);
+        //     if (el.type == 'string') {
+        //         $('#aggregate').append(`<option value="${el.id}">${el.label}</option>`)
+        //     }
+        // });
 
 
         function initializeTable(data) {
@@ -514,7 +518,7 @@ $filters = array_map(function ($f) {
 
             if (aggregate !== "") {
                 data = data.map(row => ({
-                    activity: row.activity || lang('No Activity', 'Keine Aktivität'),
+                    value: row.value || lang('No Activity', 'Keine Aktivität'),
                     count: row.count || 0
                 }));
 
@@ -528,7 +532,7 @@ $filters = array_map(function ($f) {
                 thead.appendChild(headerRow);
 
                 columns = [{
-                        data: 'activity',
+                        data: 'value',
                         title: lang('Value', 'Wert')
                     },
                     {

@@ -83,9 +83,12 @@
     <?= lang('Publications in this journal', 'Publikationen in diesem Journal') ?>
 </h3>
 
+<!-- <canvas id="spark"></canvas> -->
+
 <table class="table" id="publication-table">
     <thead>
-        <th>Activity</th>
+        <th><?=lang('Year', 'Jahr')?></th>
+        <th><?=lang('Publication', 'Publikation')?></th>
         <th>Link</th>
     </thead>
     <tbody>
@@ -111,17 +114,25 @@
                 "emptyTable": lang('No publications available for this journal.', 'Für dieses Journal sind noch keine Publikationen verfügbar.'),
             },
             "pageLength": 5,
-            columnDefs: [{
+            columnDefs: [
+                {
                     targets: 0,
+                    data: 'year'
+                },
+                {
+                    targets: 1,
                     data: 'activity'
                 },
                 {
-                    "targets": 1,
+                    "targets": 2,
                     "data": "name",
                     "render": function(data, type, full, meta) {
                         return `<a href="${ROOTPATH}/activities/view/${full.id}"><i class="ph ph-arrow-fat-line-right"></a>`;
                     }
                 },
+            ],
+            "order": [
+                [0, 'desc'],
             ],
             <?php if (isset($_GET['q'])) { ?> "oSearch": {
                     "sSearch": "<?= $_GET['q'] ?>"
@@ -129,6 +140,10 @@
             <?php } ?>
         });
 
+        // spark('spark', {
+        //     journal_id: '<?= $id ?>',
+        //     type: 'publication'
+        // });
     });
 </script>
 

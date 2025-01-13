@@ -20,7 +20,7 @@ if (file_exists('CONFIG.php')) {
 } else {
     require_once 'CONFIG.default.php';
 }
-
+require_once 'php/_config.php';
 
 // error_reporting(E_ERROR);
 

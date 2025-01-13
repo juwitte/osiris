@@ -1719,3 +1719,71 @@ function userTable(selector, data = {}) {
 function iconTest(icon){
     $('#test-icon').attr('class', 'ph ph-'+icon);
 }
+
+function spark($selector, $filter){
+    // TODO: unfinished
+    $.ajax({
+        type: "GET",
+        url: ROOTPATH + "/api/activities",
+        data: {
+            filter: $filter,
+            aggregate: 'year'
+        },
+        dataType: "json",
+        success: function (response) {
+            console.log(response);
+            var data = response.data;
+
+            // sort data by key "year" desc
+            data.sort((a, b) => b.activity - a.activity);
+            // transform data
+            var labels = data.map(item => item.activity);
+            // labels are years. fill the gaps
+            labels = Array.from({length: labels[0] - labels[labels.length - 1] + 1}, (_, i) => labels[labels.length - 1] + i);
+
+            var y = data.map(item => item.count);
+
+            console.log(labels);
+            console.log(y);
+
+            var ctx = document.getElementById($selector)
+            var myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Dataset',
+                        data: y,
+                        fill: false,
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false,
+                        },
+                        title: {
+                            display: false,
+                            text: 'Activities'
+                        }
+                    },
+                    scales: {
+                        // x: {
+                        //     display: false,
+                        // },
+                        y: {
+                            display: false,
+                            beginAtZero: true
+                        }
+                    },
+                }
+            });
+        },
+        error: function (response) {
+            console.log(response);
+        }
+    });
+}

@@ -171,10 +171,10 @@ Route::get('/api/activities', function () {
             ['$group' => ['_id' => '$' . $group, 'count' => ['$sum' => 1]]];
 
         $aggregate[] = ['$sort' => ['count' => -1]];
-        $aggregate[] = ['$project' => ['_id' => 0, 'activity' => '$_id', 'count' => 1]];
+        $aggregate[] = ['$project' => ['_id' => 0, 'value' => '$_id', 'count' => 1]];
         // $aggregate[] = ['$limit' => 10];
         $aggregate[] = ['$sort' => ['count' => -1]];
-        $aggregate[] = ['$project' => ['_id' => 0, 'activity' => 1, 'count' => 1]];
+        $aggregate[] = ['$project' => ['_id' => 0, 'value' => 1, 'count' => 1]];
         // $aggregate = array_merge($filter);
 
         $result = $osiris->activities->aggregate(
@@ -216,6 +216,20 @@ Route::get('/api/activities', function () {
                $projection[$c] = '$' . $c;
            }
         }
+    } else {
+        $projection = [
+            '_id' => 0,
+            'id' => ['$toString' => '$_id'],
+            'activity' => '$rendered.web',
+            // 'print' => '$rendered.print',
+            'icon' => '$rendered.icon',
+            'type' => '$rendered.type',
+            'subtype' => '$rendered.subtype',
+            'year' => '$year',
+            // 'authors' => '$rendered.authors',
+            // 'title' => '$rendered.title',
+            // 'departments' => '$rendered.depts'
+        ];
     }
 
     $pipeline = [];
@@ -2136,25 +2150,25 @@ Route::get('/api/calendar', function () {
         ]
     ];
 
-    $projects = $osiris->projects->find($filter, [
-        'projection' => ['start' => '$start_date', 'end' => '$end_date', 'title' => 1, 'id' => ['$toString' => '$_id'], 'type' => 'project']
-    ])->toArray();
-    $events = array_merge($events, $projects);
+    // $projects = $osiris->projects->find($filter, [
+    //     'projection' => ['start' => '$start_date', 'end' => '$end_date', 'title' => 1, 'id' => ['$toString' => '$_id'], 'type' => 'project']
+    // ])->toArray();
+    // $events = array_merge($events, $projects);
 
-    // guests
-    $filter = [
-        // 'guests.user' => $_GET['user'] ?? $_SESSION['username'] ?? '',
-        '$or' => [
-            ['start_date' => ['$gte' => $start, '$lte' => $end]],
-            ['end_date' => ['$gte' => $start, '$lte' => $end]],
-            ['$and' => [['start_date' => ['$lte' => $start]], ['end_date' => ['$gte' => $end]]]]
-        ]
-    ];
+    // // guests
+    // $filter = [
+    //     // 'guests.user' => $_GET['user'] ?? $_SESSION['username'] ?? '',
+    //     '$or' => [
+    //         ['start_date' => ['$gte' => $start, '$lte' => $end]],
+    //         ['end_date' => ['$gte' => $start, '$lte' => $end]],
+    //         ['$and' => [['start_date' => ['$lte' => $start]], ['end_date' => ['$gte' => $end]]]]
+    //     ]
+    // ];
 
-    $guests = $osiris->guests->find($filter, [
-        'projection' => ['start' => '$start_date', 'end' => '$end_date', 'title' => 1, 'id' => 1, 'type' => 'guest']
-    ])->toArray();
-    $events = array_merge($events, $guests);
+    // $guests = $osiris->guests->find($filter, [
+    //     'projection' => ['start' => '$start_date', 'end' => '$end_date', 'title' => 1, 'id' => 1, 'type' => 'guest']
+    // ])->toArray();
+    // $events = array_merge($events, $guests);
 
     echo return_rest($events, count($events));
 });

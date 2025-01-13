@@ -537,7 +537,7 @@ class Document extends Settings
         return $aff;
     }
 
-    public function getCooperationType($affPos=null, $depts)
+    public function getCooperationType($affPos=null, $depts = [])
     {
         if (is_null($affPos)) $affPos = $this->getAffiliationTypes();
         if (in_array('none', $affPos)) return 'none';
