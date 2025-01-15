@@ -108,11 +108,17 @@ $(document).ready(function () {
 
 function generateCheckboxTree(node, $container, depth = 0) {
     var $li = $('<li></li>');
+    console.log(node);
 
     var $span = $('<span></span>');
 
     var $checkbox = $('<input type="checkbox">').attr('id', node.id).attr('name', 'values[depts][]').val(node.id);
     var $label = $('<label></label>').attr('for', node.id).text(node.name);
+
+    var inactive = node.inactive ?? false;
+    if (inactive){
+        $li.addClass('inactive')
+    }
 
     // Nur wenn es Kinder gibt, wird das Plus-Icon hinzugefügt
     if (node.children && node.children.length > 0) {

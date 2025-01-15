@@ -27,7 +27,7 @@ if (strtoupper(USER_MANAGEMENT) == 'LDAP') {
     $ldap_fields = array_keys(array_filter($ldap_fields));
 }
 
-$ldap_msg = '<small class="text-muted">'.lang('This field is centrally managed by your organisation.', 'Dieses Feld wird durch deine Organisation zentral verwaltet.') . '</small>';
+$ldap_msg = '<small class="text-muted">' . lang('This field is centrally managed by your organisation.', 'Dieses Feld wird durch deine Organisation zentral verwaltet.') . '</small>';
 ?>
 
 
@@ -42,6 +42,7 @@ $ldap_msg = '<small class="text-muted">'.lang('This field is centrally managed b
         background-color: var(--muted-color-very-light);
         cursor: not-allowed;
     }
+
     .form-control[readonly]:focus {
         background-color: var(--muted-color-very-light);
         cursor: not-allowed;
@@ -116,7 +117,7 @@ $ldap_msg = '<small class="text-muted">'.lang('This field is centrally managed b
         <div class="form-row row-eq-spacing">
             <div class="col-sm-2">
                 <label for="academic_title">Title</label>
-                <select name="values[academic_title]" id="academic_title" class="form-control" <?=in_array('academic_title', $ldap_fields)? 'disabled': ''?>>
+                <select name="values[academic_title]" id="academic_title" class="form-control" <?= in_array('academic_title', $ldap_fields) ? 'disabled' : '' ?>>
                     <option value="" <?= $data['academic_title'] == '' ? 'selected' : '' ?>></option>
                     <option value="Dr." <?= $data['academic_title'] == 'Dr.' ? 'selected' : '' ?>>Dr.</option>
                     <option value="Prof. Dr." <?= $data['academic_title'] == 'Prof. Dr.' ? 'selected' : '' ?>>Prof. Dr.</option>
@@ -125,17 +126,23 @@ $ldap_msg = '<small class="text-muted">'.lang('This field is centrally managed b
                     <option value="PD" <?= $data['academic_title'] == 'PD' ? 'selected' : '' ?>>PD</option>
                     <option value="Dipl.-Ing." <?= $data['academic_title'] == 'Dipl.-Ing.' ? 'selected' : '' ?>>Dipl.-Ing.</option>
                 </select>
-                <?php if (in_array('first', $ldap_fields)) { echo $ldap_msg; } ?>
+                <?php if (in_array('first', $ldap_fields)) {
+                    echo $ldap_msg;
+                } ?>
             </div>
             <div class="col-sm">
                 <label for="first"><?= lang('First name', 'Vorname') ?></label>
-                <input type="text" name="values[first]" id="first" class="form-control" value="<?= $data['first'] ?? '' ?>" <?=in_array('first', $ldap_fields) ? 'disabled': ''?>>
-            <?php if (in_array('first', $ldap_fields)) { echo $ldap_msg; } ?>
+                <input type="text" name="values[first]" id="first" class="form-control" value="<?= $data['first'] ?? '' ?>" <?= in_array('first', $ldap_fields) ? 'disabled' : '' ?>>
+                <?php if (in_array('first', $ldap_fields)) {
+                    echo $ldap_msg;
+                } ?>
             </div>
             <div class="col-sm">
                 <label for="last"><?= lang('Last name', 'Nachname') ?></label>
-                <input type="text" name="values[last]" id="last" class="form-control" value="<?= $data['last'] ?? '' ?>" <?=in_array('last', $ldap_fields) ? 'disabled': ''?>>
-            <?php if (in_array('last', $ldap_fields)) { echo $ldap_msg; } ?>
+                <input type="text" name="values[last]" id="last" class="form-control" value="<?= $data['last'] ?? '' ?>" <?= in_array('last', $ldap_fields) ? 'disabled' : '' ?>>
+                <?php if (in_array('last', $ldap_fields)) {
+                    echo $ldap_msg;
+                } ?>
             </div>
         </div>
 
@@ -218,15 +225,19 @@ $ldap_msg = '<small class="text-muted">'.lang('This field is centrally managed b
         <!-- internal_id -->
         <div class="form-group">
             <label for="internal_id"><?= lang('Internal ID', 'Interne ID') ?></label>
-            <input type="text" name="values[internal_id]" id="internal_id" class="form-control w-auto" value="<?= $data['internal_id'] ?? '' ?>" <?=in_array('internal_id', $ldap_fields) ? 'disabled': ''?>>
-            <?php if (in_array('internal_id', $ldap_fields)) { echo $ldap_msg; } ?>
+            <input type="text" name="values[internal_id]" id="internal_id" class="form-control w-auto" value="<?= $data['internal_id'] ?? '' ?>" <?= in_array('internal_id', $ldap_fields) ? 'disabled' : '' ?>>
+            <?php if (in_array('internal_id', $ldap_fields)) {
+                echo $ldap_msg;
+            } ?>
         </div>
 
         <!-- room -->
         <div class="form-group">
             <label for="room"><?= lang('Room', 'Raum') ?></label>
-            <input type="text" name="values[room]" id="room" class="form-control w-auto" value="<?= $data['room'] ?? '' ?>"  <?=in_array('room', $ldap_fields) ? 'disabled': ''?>>
-            <?php if (in_array('room', $ldap_fields)) { echo $ldap_msg; } ?>
+            <input type="text" name="values[room]" id="room" class="form-control w-auto" value="<?= $data['room'] ?? '' ?>" <?= in_array('room', $ldap_fields) ? 'disabled' : '' ?>>
+            <?php if (in_array('room', $ldap_fields)) {
+                echo $ldap_msg;
+            } ?>
         </div>
 
         <style>
@@ -254,13 +265,17 @@ $ldap_msg = '<small class="text-muted">'.lang('This field is centrally managed b
                     <div class="row row-eq-spacing my-0">
                         <div class="col-md-6">
                             <label for="position" class="d-flex">English <img src="<?= ROOTPATH ?>/img/gb.svg" alt="EN" class="flag"></label>
-                            <input name="values[position]" id="position" type="text" class="form-control" value="<?= htmlspecialchars($data['position'] ?? '') ?>" <?=in_array('position', $ldap_fields)? 'disabled': ''?>>
-                            <?php if (in_array('position', $ldap_fields)) { echo $ldap_msg; } ?>
+                            <input name="values[position]" id="position" type="text" class="form-control" value="<?= htmlspecialchars($data['position'] ?? '') ?>" <?= in_array('position', $ldap_fields) ? 'disabled' : '' ?>>
+                            <?php if (in_array('position', $ldap_fields)) {
+                                echo $ldap_msg;
+                            } ?>
                         </div>
                         <div class="col-md-6">
                             <label for="position_de" class="d-flex">Deutsch <img src="<?= ROOTPATH ?>/img/de.svg" alt="DE" class="flag"></label>
-                            <input name="values[position_de]" id="position_de" type="text" class="form-control" value="<?= htmlspecialchars($data['position_de'] ?? '') ?>" <?=in_array('position', $ldap_fields)? 'disabled': ''?>>
-                            <?php if (in_array('position', $ldap_fields)) { echo $ldap_msg; } ?>
+                            <input name="values[position_de]" id="position_de" type="text" class="form-control" value="<?= htmlspecialchars($data['position_de'] ?? '') ?>" <?= in_array('position', $ldap_fields) ? 'disabled' : '' ?>>
+                            <?php if (in_array('position', $ldap_fields)) {
+                                echo $ldap_msg;
+                            } ?>
                         </div>
                     </div>
                 <?php } else { ?>
@@ -349,6 +364,16 @@ $ldap_msg = '<small class="text-muted">'.lang('This field is centrally managed b
                     /* display: flex; */
                 }
 
+                #organization-tree ul li.inactive {
+                    display: none;
+                    font-style: italic;
+                    color: var(--danger-color-dark);
+                }
+
+                #organization-tree.show-inactive ul li.inactive {
+                    display: block;
+                }
+
                 #organization-tree ul li span label {
                     margin: 0;
 
@@ -381,6 +406,9 @@ $ldap_msg = '<small class="text-muted">'.lang('This field is centrally managed b
             </style>
             <input type="hidden" name="values[depts]" value="">
             <!-- checkbox tree -->
+             <button type="button" class="btn m-10 position-absolute right-0 top-0 z-10" onclick="$('#organization-tree').toggleClass('show-inactive')">
+                <?=lang('Show inactive', 'Zeige Inaktive')?>
+             </button>
             <div id="organization-tree"></div>
 
             <button class="btn primary small">
@@ -449,21 +477,27 @@ $ldap_msg = '<small class="text-muted">'.lang('This field is centrally managed b
         <h2 class="title"><?= lang('Contact', 'Kontakt') ?></h2>
         <div class="form-group">
             <label for="mail">Mail</label>
-            <input type="text" name="values[mail]" id="mail" class="form-control" value="<?= $data['mail'] ?? '' ?>"  <?=in_array('mail', $ldap_fields)? 'disabled': ''?>>
-            <?php if (in_array('mail', $ldap_fields)) { echo $ldap_msg; } ?>
+            <input type="text" name="values[mail]" id="mail" class="form-control" value="<?= $data['mail'] ?? '' ?>" <?= in_array('mail', $ldap_fields) ? 'disabled' : '' ?>>
+            <?php if (in_array('mail', $ldap_fields)) {
+                echo $ldap_msg;
+            } ?>
         </div>
 
         <div class="form-row row-eq-spacing">
             <div class="col-sm-6">
                 <label for="telephone"><?= lang('Telephone', 'Telefon') ?></label>
-                <input type="tel" name="values[telephone]" id="telephone" class="form-control" value="<?= $data['telephone'] ?? '' ?>" <?=in_array('telephone', $ldap_fields)? 'disabled': ''?>>
-                <?php if (in_array('telephone', $ldap_fields)) { echo $ldap_msg; } ?>
+                <input type="tel" name="values[telephone]" id="telephone" class="form-control" value="<?= $data['telephone'] ?? '' ?>" <?= in_array('telephone', $ldap_fields) ? 'disabled' : '' ?>>
+                <?php if (in_array('telephone', $ldap_fields)) {
+                    echo $ldap_msg;
+                } ?>
             </div>
 
             <div class="col-sm-6">
                 <label for="mobile">mobile</label>
-                <input type="tel" name="values[mobile]" id="mobile" class="form-control" value="<?= $data['mobile'] ?? '' ?>" <?=in_array('mobile', $ldap_fields)? 'disabled': ''?>>
-                <?php if (in_array('mobile', $ldap_fields)) { echo $ldap_msg; } ?>
+                <input type="tel" name="values[mobile]" id="mobile" class="form-control" value="<?= $data['mobile'] ?? '' ?>" <?= in_array('mobile', $ldap_fields) ? 'disabled' : '' ?>>
+                <?php if (in_array('mobile', $ldap_fields)) {
+                    echo $ldap_msg;
+                } ?>
             </div>
 
         </div>
