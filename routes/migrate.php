@@ -687,9 +687,7 @@ Route::get('/migrate', function () {
                     $key = 'X';
                 }
                 if (isset($doc[$key])) {
-                    $socials[] = [
-                        $key => $url . $doc[$key]
-                    ];
+                    $socials[$key] = $url . $doc[$key];
                 }
             }
             if (empty($socials)) continue;
