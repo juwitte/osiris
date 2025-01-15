@@ -98,6 +98,7 @@ class Groups
                     'unit' => $data[$i]['unit'],
                     'color' => $data[$i]['color'] ?? '#000000',
                     'level' => $depth,
+                    'inactive' => $data[$i]['inactive'] ?? false,
                     // 'head' => $v,
                     'children' => $this->tree($data, $data[$i]['id'], $depth + 1)
                 ];

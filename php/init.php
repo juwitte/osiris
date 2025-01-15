@@ -14,10 +14,9 @@ $osiris = $DB->db;
 
 // get installed OSIRIS version
 $version = $osiris->system->findOne(['key' => 'version']);
-if (empty($version) && !str_ends_with($_SERVER['REQUEST_URI'], '/install')) { 
+if (empty($version) && !str_ends_with($_SERVER['REQUEST_URI'], '/install')) {
     // echo $_SERVER['REQUEST_URI'] ;
-    die ('OSIRIS has not been installed yet. <a href="'.ROOTPATH.'/install">Click here to install it</a>.');
-    
+    die('OSIRIS has not been installed yet. <a href="' . ROOTPATH . '/install">Click here to install it</a>.');
 }
 define('OSIRIS_DB_VERSION', $version['value']);
 
@@ -27,9 +26,15 @@ include_once BASEPATH . "/php/Groups.php";
 global $Groups;
 $Groups = new Groups();
 global $Departments;
-if (!empty($Groups->tree)){
-$Departments = array_column($Groups->tree['children'], 'name', 'id');
+if (!empty($Groups->tree)) {
+    // filter inactive groups
+    $Departments = array_filter($Groups->tree['children'], function ($group) {
+        return !($group['inactive'] ?? false);
+    }); 
+    // take only id => name
+    $Departments = array_column($Departments, 'name', 'id');
 } else $Departments = [];
+
 // Activity categories and types
 include_once BASEPATH . "/php/Categories.php";
 global $Categories;
@@ -42,5 +47,3 @@ $USER = $DB->initUser();
 // Get all Settings
 global $Settings;
 $Settings = new Settings($USER);
-
-?>
