@@ -334,22 +334,22 @@ if (!$Settings->hasPermission('projects.view')) {
     ]
 
     function renderType(data) {
-        if (data == 'Eigenfinanziert') {
+        if (data == 'Eigenfinanziert' || data == 'self-funded') {
             return `<span class="badge text-signal">
                         <i class="ph ph-piggy-bank"></i>&nbsp;${lang('Self-funded', 'Eigenfinanziert')}
                         </span>`
         }
-        if (data == 'Stipendium') {
+        if (data == 'Stipendium' || data == 'stipendiate') {
             return `<span class="badge text-success no-wrap">
                         <i class="ph ph-tip-jar"></i>&nbsp;${lang('Stipendiate', 'Stipendium')}
                         </span>`
         }
-        if (data == 'Drittmittel') {
+        if (data == 'Drittmittel' || data == 'third-party') {
             return `<span class="badge text-danger">
                         <i class="ph ph-hand-coins"></i>&nbsp;${lang('Third-party funded', 'Drittmittel')}
                         </span>`
         }
-        if (data == 'Teilprojekt') {
+        if (data == 'Teilprojekt' || data == 'subproject') {
             return `<span class="badge text-danger">
                         <i class="ph ph-hand-coins"></i>&nbsp;${lang('Subproject', 'Teilprojekt')}
                         </span>`
@@ -395,7 +395,7 @@ if (!$Settings->hasPermission('projects.view')) {
             case 'approved':
                 return `<span class='badge success'>${lang('approved', 'bewilligt')}</span>`;
             case 'finished':
-                return `<span class='badge success'>${lang('finished', 'abgeschlossen')}</span>`;
+                return `<span class='badge success filled'>${lang('finished', 'abgeschlossen')}</span>`;
             case 'applied':
                 return `<span class='badge signal'>${lang('applied', 'beantragt')}</span>`;
             case 'rejected':
@@ -417,6 +417,21 @@ if (!$Settings->hasPermission('projects.view')) {
         return topics;
     }
 
+    function renderDate(data){
+        var start = data.start_date;
+        // format from ISO to MM/YYYY
+        if(start){
+            start = new Date(start).toLocaleDateString('de-DE', { month: 'short', year: 'numeric' });
+        }
+        var end = data.end_date;
+        if(end){
+            end = new Date(end).toLocaleDateString('de-DE', { month: 'short', year: 'numeric' });
+            return `${start} - ${end}`;
+        } else {
+            return start;
+        }
+    }
+
     $(document).ready(function() {
         dataTable = new DataTable('#project-table', {
             ajax: {
@@ -424,7 +439,7 @@ if (!$Settings->hasPermission('projects.view')) {
                 // add data to the request
                 data: {
                     json: '<?= json_encode($filter) ?>',
-                    formatted: true
+                    // formatted: true
                 },
             },
             type: 'GET',
@@ -433,8 +448,7 @@ if (!$Settings->hasPermission('projects.view')) {
             language: {
                 url: lang(null, ROOTPATH + '/js/datatables/de-DE.json')
             },
-            buttons: [
-                {
+            buttons: [{
                     text: '<i class="ph ph-magnifying-glass-plus"></i> <?= lang('Advanced search', 'Erweiterte Suche') ?>',
                     className: 'btn small text-primary mr-10',
                     action: function(e, dt, node, config) {
@@ -470,6 +484,8 @@ if (!$Settings->hasPermission('projects.view')) {
                     target: 0,
                     data: 'name',
                     render: function(data, type, row) {
+                        console.log(row);
+                        // row.persons.map(a => a.name).join(', ')
                         return `
                         ${renderTopic(row.topics)}
                         <div class="d-flex flex-column h-full">
@@ -478,9 +494,9 @@ if (!$Settings->hasPermission('projects.view')) {
                         </h4>
                        
                         <div class="flex-grow-1">
-                         <p class="text-muted mt-0">${row.date_range}</p>
+                         <p class="text-muted mt-0">${renderDate(row)}</p>
                         
-                        ${row.persons.join(', ')}
+                        ${row.persons.map(a => a.name).join(', ')}
 
                         </div>
                         <hr />
@@ -505,80 +521,88 @@ if (!$Settings->hasPermission('projects.view')) {
                 },
                 {
                     target: 2,
-                    data: 'funder',
+                    data: 'type',
                     searchable: true,
                     visible: false,
-                    header: lang('Funder', 'Drinmmittelgeber')
+                    header: lang('Funder', 'Drittmmittelgeber'),
+                    render: (data, type, row) => renderFunder(row)
                 },
                 {
                     target: 3,
-                    data: 'date_range',
+                    data: 'start_date',
                     searchable: true,
                     visible: false,
-                    header: lang('Date range', 'Zeitraum')
+                    header: lang('Start date', 'Startdatum')
                 },
                 {
                     target: 4,
-                    data: 'role',
+                    data: 'end_date',
                     searchable: true,
                     visible: false,
-                    header: lang('Role', 'Rolle')
+                    header: lang('End date', 'Enddatum')
                 },
                 {
                     target: 5,
-                    data: 'applicant',
+                    data: 'role',
                     searchable: true,
                     visible: false,
-                    header: lang('Applicant', 'Antragsteller')
+                    defaultContent: '',
+                    header: lang('Role', 'Rolle')
                 },
                 {
                     target: 6,
+                    data: 'applicant',
+                    searchable: true,
+                    visible: false,
+                    defaultContent: '',
+                    header: lang('Applicant', 'Antragsteller')
+                },
+                {
+                    target: 7,
                     data: 'status',
                     searchable: true,
                     visible: false,
                     header: lang('Status', 'Status')
                 },
                 {
-                    target: 7,
+                    target: 8,
                     data: 'units',
                     searchable: true,
                     visible: false,
+                    defaultContent: '',
                     header: lang('Units', 'Einheiten')
                 },
                 {
-                    target: 8,
+                    target: 9,
                     data: 'topics',
                     searchable: true,
                     visible: false,
+                    defaultContent: '',
                     header: lang('Topics', 'Forschungsbereiche')
                 },
                 {
-                    target: 9,
+                    target: 10,
                     data: 'funding_organization',
                     searchable: true,
                     visible: false,
+                    defaultContent: '',
                     header: lang('Funding organization', 'Förderorganisation')
                 },
                 {
-                    target: 10,
+                    target: 11,
                     data: 'name',
                     searchable: true,
                     visible: false,
+                    defaultContent: '',
                     header: lang('Project', 'Projekt')
                 },
                 {
-                    target: 11,
+                    target: 12,
                     data: 'title',
                     searchable: false,
                     visible: false,
+                    defaultContent: '',
                     header: lang('Title', 'Titel')
-                },
-                {
-                    target: 12,
-                    data: 'start',
-                    searchable: true,
-                    visible: false,
-                    header: lang('Start date', 'Startdatum')
                 }
             ],
             order: [
