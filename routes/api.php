@@ -1787,16 +1787,38 @@ Route::get('/api/dashboard/activity-authors', function () {
         foreach ($doc['authors'] as $a) {
             $user = $a['user'] ?? null;
             $name = Document::abbreviateAuthor($a['last'], $a['first'] ?? null);
-            if (empty($user)) {
+            if (!($a['aoi'] ?? false)) {
                 $depts['external'][] = $name;
+                continue;
+            }
+            if (empty($user)) {
+                $depts['unknown'][] = $name;
                 continue;
             }
 
             // get person group
             $person = $osiris->persons->findOne(['username' => $user]);
-            if (!isset($person['depts'])) continue;
+            if (empty($person['science_unit'] ?? null) && !isset($person['depts'])) {
+                $depts['unknown'][] = $name;
+                continue;
+            }
             $d = [];
-            foreach ($person['depts'] as $key) {
+            if (!empty($person['science_unit'] ?? null)){
+                $p = $Groups->getParents($person['science_unit'], true);
+                if (!isset($p[$lvl])) $p = end($p);
+                else $p = $p[$lvl];
+
+                // in case the selected unit is not the science unit
+                if ($p != $person['science_unit']) {
+                    $name = $name . ' <small>(' . $Groups->getGroup($person['science_unit'])['name'] . ')</small>';
+                }
+                if (!in_array($p, $d)) {
+                    if (!empty($d)) $warnings[] =  $person['displayname'] . ' has multiple associations.';
+                    $d[] = $p;
+                    $dept_users[$p][] = $person['username'];
+                    $users[$person['username']] = $p;
+                }
+            } else foreach ($person['depts'] as $key) {
                 // get parent dept
                 $p = $Groups->getParents($key, true);
                 if (!isset($p[$lvl])) $p = end($p);
@@ -1822,6 +1844,9 @@ Route::get('/api/dashboard/activity-authors', function () {
         if ($key == 'external') {
             $labels[] = 'External partners';
             $colors[] = '#00000095';
+        } elseif ($key == 'unknown') {
+            $labels[] = 'Unknown unit';
+            $colors[] = '#00002295';
         } else {
             $group = $Groups->getGroup($key);
             $labels[] = $group['name'];

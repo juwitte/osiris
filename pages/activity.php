@@ -352,7 +352,7 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
             <small><?= lang('Projects', 'Projekte') ?>: </small>
             <br />
             <?php foreach ($doc['projects'] as $p) { ?>
-                <a class="badge" href="<?=ROOTPATH?>/projects/view/<?=$p?>"><?= $p ?></a>
+                <a class="badge" href="<?= ROOTPATH ?>/projects/view/<?= $p ?>"><?= $p ?></a>
             <?php } ?>
         </div>
     <?php } ?>
@@ -367,7 +367,7 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                 <div class="custom-switch">
                     <input type="checkbox" id="hide" <?= $doc['hide'] ? 'checked' : '' ?> name="values[hide]" onchange="hide()">
                     <label for="hide" id="hide-label">
-                    <?= $doc['hide'] ? lang('Visible', 'Sichtbar') : lang('Hidden', 'Versteckt') ?>
+                        <?= $doc['hide'] ? lang('Visible', 'Sichtbar') : lang('Hidden', 'Versteckt') ?>
                     </label>
                 </div>
 
@@ -806,15 +806,14 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                 });
                 foreach ($authors as $a) {
                     $p = $DB->getPerson($a['user']);
-                    if (isset($p['science_unit'])) {
-                        $units[] = $p['science_unit'];
+                    if (!isset($p['science_unit'])) continue;
+                    $parents = $Groups->getParents($p['science_unit']);
+
+                    foreach ($parents as $parent) {
+                        $units[] = $parent;
                     }
                 }
                 $units = array_unique($units);
-                foreach ($units as $unit) {
-                    $name = $Groups->getName($unit);
-                    echo "<a class='badge signal' href='" . ROOTPATH . "/groups/$unit' data-toggle='tooltip' data-title='$name'>$unit</a>";
-                }
                 ?>
             </div>
 
@@ -924,6 +923,18 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                     </tbody>
                 </table>
             <?php } ?>
+
+            <h5>
+                <?=lang('Participating units', 'Beteiligte Einheiten')?>
+            </h5>
+           <div class="btn-toolbar">
+           <?php
+                foreach ($units as $unit) {
+                    $name = $Groups->getName($unit);
+                    echo "<a class='btn' href='" . ROOTPATH . "/groups/$unit' data-toggle='tooltip' data-title='$name'>$unit</a>";
+                }
+            ?>
+           </div>
         </div>
     </div>
 </section>
@@ -1134,6 +1145,10 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
         <i class="ph ph-graph" aria-hidden="true"></i>
         <?= lang('Coauthors', 'Koautoren') ?>
     </h2>
+    <a href="<?= ROOTPATH ?>/activities/edit/<?= $id ?>/authors" class="btn secondary">
+        <i class="ph ph-pencil-simple-line"></i>
+        <?= lang('Edit', 'Bearbeiten') ?>
+    </a>
     <div class="row row-eq-spacing">
         <div class="col-md-6 flex-grow-0" style="max-width: 40rem">
             <div id="chart-authors">
