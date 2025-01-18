@@ -561,7 +561,7 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
 
 <section id="general">
     <div class="row row-eq-spacing-lg">
-        <div class="col-lg-7">
+        <div class="col-lg-6">
 
             <div class="btn-toolbar float-sm-right">
                 <?php if (($user_activity || $Settings->hasPermission('activities.edit')) && (!$locked || $Settings->hasPermission('activities.edit-locked'))) { ?>
@@ -791,7 +791,7 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
         </div>
 
 
-        <div class="col-lg-5">
+        <div class="col-lg-6">
 
 
             <div class="">

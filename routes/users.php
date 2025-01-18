@@ -58,7 +58,7 @@ Route::get('/image/(.*)', function ($user) {
         // if (str_starts_with($img, '/')) {
         //     $img = explode(',', $img)[1];
         // }
-        
+
         $img = base64_decode($img);
     }
     header('Content-Type: ' . $type);
@@ -361,7 +361,7 @@ Route::post('/synchronize-users', function () {
 
             $osiris->persons->updateOne(
                 ['username' => $username],
-                ['$set' => ['is_active' => ['$ne'=>false]]]
+                ['$set' => ['is_active' => ['$ne' => false]]]
             );
             echo "<p><i class='ph ph-user-check text-danger'></i> $name ($username) reactivated.</p>";
         }
@@ -405,11 +405,11 @@ Route::post('/synchronize-users', function () {
 });
 
 
-Route::post('/synchronize-attributes', function(){
+Route::post('/synchronize-attributes', function () {
     include_once BASEPATH . "/php/init.php";
     include_once BASEPATH . "/php/_login.php";
 
-    if (!$Settings->hasPermission('user.synchronize')){
+    if (!$Settings->hasPermission('user.synchronize')) {
         echo "<p>Permission denied.</p>";
         die();
     }
@@ -478,6 +478,20 @@ Route::post('/crud/users/update/(.*)', function ($user) {
         $person['cv'] = $cv;
     }
 
+    // update science unit if needed
+    if (isset($values['depts'])) {
+        $old_su = $old['science_unit'] ?? null;
+        // in case the science unit was removed from the list
+        if (!empty($old_su) && !in_array($old_su, $values['depts'])){
+            $person['science_unit'] = null;
+            $old_su = null;
+        }
+        // in case no science unit was set and a dept is added
+        if (empty($old_su) && count($values['depts']) > 0) {
+            $person['science_unit'] = $values['depts'][0];
+        }
+    }
+
 
     // if new password is set, update password
     if (isset($_POST['password']) && !empty($_POST['password'])) {
@@ -500,7 +514,7 @@ Route::post('/crud/users/update/(.*)', function ($user) {
             );
         }
     }
-    if (isset($values['position_both'])){
+    if (isset($values['position_both'])) {
         $pos = explode(";;", $values['position_both']);
         $person['position'] = $pos[0];
         $person['position_de'] = trim($pos[1] ?? '');
@@ -698,6 +712,25 @@ Route::post('/crud/users/approve', function () {
     echo json_encode([
         'updated' => $updateResult->getModifiedCount()
     ]);
+});
+
+Route::post('/crud/users/update-science-unit', function () {
+    include_once BASEPATH . "/php/init.php";
+    $user = $_POST['user'] ?? $_SESSION['username'];
+    if (!isset($_POST['unit'])) {
+        echo "unit was not defined";
+        die();
+    }
+
+    $updateResult = $osiris->persons->updateOne(
+        ['username' => $user],
+        ['$set' => ["science_unit" => $_POST['unit']]]
+    );
+    echo lang("Science unit updated.", "Haupt-Einheit für die Wissenschaft aktualisiert.");
+    die;
+
+    // header("Location: " . ROOTPATH . "/user/edit/".$user."#section-organization");
+    // die();
 });
 
 

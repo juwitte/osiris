@@ -299,8 +299,18 @@ $ldap_msg = '<small class="text-muted">' . lang('This field is centrally managed
 
             <p>
                 <i class="ph ph-flask text-secondary"></i>
-                <?= lang('This is the main unit counting for your scientific output. This unit and all parent units are assigned to your output automatically.', 'Dies ist die Einheit, die für deine wissenschaftliche Ausgabe gezählt wird. Diese Einheit und alle übergeordneten Einheiten werden Ihrer Ausgabe automatisch zugewiesen.') ?>
+                <?= lang('This is the main unit counting for your scientific output. This unit and all parent units are assigned to your output automatically.', 'Dies ist die Einheit, die für deine wissenschaftliche Ausgabe gezählt wird. Diese Einheit und alle übergeordneten Einheiten werden deiner Arbeit automatisch zugewiesen.') ?>
             </p>
+
+            <style>
+                tr .visible-on-hover {
+                    visibility: hidden;
+                }
+
+                tr:hover .visible-on-hover {
+                    visibility: visible;
+                }
+            </style>
 
             <?php
             $depts = DB::doc2Arr($data['depts'] ?? []);
@@ -321,12 +331,21 @@ $ldap_msg = '<small class="text-muted">' . lang('This field is centrally managed
                                         <?= lang($row['name_en'], $row['name_de'] ?? null) ?>
                                         <?php if ($science_unit == $row['id']) { ?>
                                             <i class="ph ph-flask text-secondary"></i>
+                                        <?php } else { ?>
+                                            <!-- <form action="<?= ROOTPATH ?>/crud/users/update-science-unit" method="post">
+                                                <input type="hidden" name="username" value="<?= $data['username'] ?>">
+                                                <input type="hidden" name="science_unit" value="<?= $row['id'] ?>"> -->
+                                                <button class="btn small secondary visible-on-hover" type="button" onclick="updateScienceUnit('<?= $data['username'] ?>', '<?= $row['id'] ?>')">
+                                                <i class="ph ph-flask"></i>
+                                                    <?= lang('Set as research unit', 'Zur Forschungs-Einheit machen') ?>
+                                                </button>
+                                            <!-- </form> -->
                                         <?php } ?>
                                     </td>
                                 </tr>
                             <?php } else { ?>
                                 <tr>
-                                    <td class="muted">
+                                    <td class="muted" style="padding-left: <?= ($row['indent'] * 2 + 2) . 'rem' ?>;">
                                         <?= lang($row['name_en'], $row['name_de'] ?? null) ?>
                                     </td>
                                 </tr>
@@ -406,9 +425,9 @@ $ldap_msg = '<small class="text-muted">' . lang('This field is centrally managed
             </style>
             <input type="hidden" name="values[depts]" value="">
             <!-- checkbox tree -->
-             <button type="button" class="btn m-10 position-absolute right-0 top-0 z-10" onclick="$('#organization-tree').toggleClass('show-inactive')">
-                <?=lang('Show inactive', 'Zeige Inaktive')?>
-             </button>
+            <button type="button" class="btn m-10 position-absolute right-0 top-0 z-10" onclick="$('#organization-tree').toggleClass('show-inactive')">
+                <?= lang('Show inactive', 'Zeige Inaktive') ?>
+            </button>
             <div id="organization-tree"></div>
 
             <button class="btn primary small">

@@ -224,46 +224,6 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
             <?php } ?>
         </h5>
 
-
-        <style>
-            .dept-list {
-                list-style: none;
-                padding: 0;
-                margin: .5rem 0;
-            }
-
-            .dept-list li {
-                margin: 0;
-            }
-        </style>
-        <ul class="dept-list">
-            <?php
-            $depts = DB::doc2Arr($scientist['depts'] ?? []);
-            if (in_array(null, $depts)) {
-                // filter and change in database
-                $depts = array_filter($depts);
-                $osiris->scientists->updateOne(
-                    ['username' => $user],
-                    ['$set' => ['depts' => $depts]]
-                );
-            }
-
-            if (!empty($scientist['depts'])) foreach ($depts as $i => $d) {
-                $dept = $Groups->getGroup($d);
-            ?>
-                <li>
-                    <a href="<?= ROOTPATH ?>/groups/view/<?= $dept['id'] ?>" style="color:<?= $dept['color'] ?? 'inherit' ?>">
-                        <?php if (in_array($user, $dept['head'] ?? [])) { ?>
-                            <i class="ph ph-crown-simple"></i>
-                        <?php } ?>
-                        <?= lang($dept['name'], $dept['name_de']) ?>
-                        (<?= $dept['unit'] ?>)
-                    </a>
-                </li>
-            <?php } ?>
-
-        </ul>
-
         <?php if (!($scientist['is_active'] ?? true)) { ?>
             <span class="text-danger badge">
                 <?= lang('Former Employee', 'Ehemalige Beschäftigte') ?>
@@ -297,31 +257,96 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
             </span>
         <?php } ?>
 
+
     </div>
 
-    <div class="achievements text-right" style="max-width: 35rem;">
+    <div id="units">
+        <h5 class="mt-0">
+            <?= lang('Organisational Unit(s)', 'Organisationseinheit(en)') ?>
+        </h5>
         <?php
-        if ($show_achievements) {
+        $depts = DB::doc2Arr($scientist['depts'] ?? []);
+        if (in_array(null, $depts)) {
+            // filter and change in database
+            $depts = array_filter($depts);
+            $osiris->scientists->updateOne(
+                ['username' => $user],
+                ['$set' => ['depts' => $depts]]
+            );
+        }
+        $science_unit = $scientist['science_unit'] ?? $depts[0] ?? null;
         ?>
-            <h5 class="m-0"><?= lang('Achievements', 'Errungenschaften') ?>:</h5>
+        <table class="table small w-auto mb-10">
+            <tbody>
+                <?php
+                if (!empty($depts)) {
+                    $hierarchy = $Groups->getPersonHierarchyTree($depts);
+                    $tree = $Groups->readableHierarchy($hierarchy);
+
+                    foreach ($tree as $row) {
+                        $selected = in_array($row['id'], $depts);
+                        $dept = $Groups->getGroup($row['id']);
+                        $head = (in_array($user, $dept['head'] ?? []));
+                        if ($selected) { ?>
+                            <tr>
+                                <td style="padding-left: <?= ($row['indent'] * 2 + 2) . 'rem' ?>;">
+                                    <?= lang($row['name_en'], $row['name_de'] ?? null) ?>
+                                    <?php if ($head) { ?>
+                                        <span data-toggle="tooltip" data-title="<?=lang('The person is leading this unit.', 'Die Person leitet diese Einheit.')?>">
+                                        <i class="ph ph-crown-simple text-signal"></i>
+                                        </span>
+                                    <?php } ?>
+                                    <?php if ($science_unit == $row['id']) { ?>
+                                        <span data-toggle="tooltip" data-title="<?=lang('This is the organisational unit counting for research.', 'Dies ist die Einheit, die für Forschung gezählt wird.')?>">
+                                        <i class="ph ph-flask text-secondary"></i>
+                                    <?php } ?>
+                                </td>
+                            </tr>
+                        <?php } else { ?>
+                            <tr>
+                                <td class="text-muted" style="padding-left: <?= ($row['indent'] * 2 + 2) . 'rem' ?>;">
+                                    <?= lang($row['name_en'], $row['name_de'] ?? null) ?>
+                                </td>
+                            </tr>
+                    <?php }
+                    }
+                } else { ?>
+                    <tr>
+                        <td>
+                            <?= lang('No organisational unit selected', 'Keine Organisationseinheit ausgewählt') ?>
+                        </td>
+                    </tr>
+                <?php }
+                ?>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+
+<div class="achievements d-flex align-baseline">
+    <style>
+        .achievement-widget-small img {
+            height: 2.8rem;
+        }
+    </style>
+
+    <?php if ($showcoins) { ?>
+        <p class="lead m-0">
+            <i class="ph ph-lg ph-coin text-signal"></i>
+            <b id="lom-points"><?= $coins ?></b>
+            Coins
+            <a href='#coins' class="text-muted">
+                <i class="ph ph-question text-muted"></i>
+            </a>
 
             <?php
-            $Achievement->widget();
-            ?>
-        <?php
-        } ?>
-
-        <?php if ($showcoins) { ?>
-            <p class="lead m-0">
-                <i class="ph ph-lg ph-coin text-signal"></i>
-                <b id="lom-points"><?= $coins ?></b>
-                Coins
-                <a href='#coins' class="text-muted">
-                    <i class="ph ph-question text-muted"></i>
-                </a>
-            </p>
-        <?php } ?>
-    </div>
+            if ($show_achievements) {
+                $Achievement->widget('small ml-20');
+            } ?>
+        </p>
+    <?php } ?>
 </div>
 
 
@@ -332,83 +357,73 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
 
 <?php if ($currentuser) { ?>
 
-    <div class="card my-10 pb-20">
-        <h5 class="title font-size-16">
-            <?= lang('This is your personal profile page.', 'Dies ist deine persönliche Profilseite.') ?>
-        </h5>
-        <div class="btn-toolbar">
+    <div class="btn-toolbar">
 
-            <div class="btn-group btn-group-lg">
-                <a class="btn text-primary border-primary" href="<?= ROOTPATH ?>/add-activity" data-toggle="tooltip" data-title="<?= lang('Add activity', 'Aktivität hinzufügen') ?>">
-                    <i class="ph ph-plus-circle ph-fw"></i>
-                    <!-- <?= lang('Add activity', 'Aktivität hinzufügen') ?> -->
-                </a>
-                <a href="<?= ROOTPATH ?>/my-activities" class="btn text-primary border-primary" data-toggle="tooltip" data-title="<?= lang('My activities', 'Meine Aktivitäten ') ?>">
-                    <i class="ph ph-folder-user ph-fw"></i>
-                    <!-- <?= lang('My activities', 'Meine Aktivitäten ') ?> -->
-                </a>
-                <a class="btn text-primary border-primary" href="<?= ROOTPATH ?>/my-year/<?= $user ?>" data-toggle="tooltip" data-title="<?= lang('My Year', 'Mein Jahr') ?>">
-                    <i class="ph ph-calendar ph-fw"></i>
-                    <!-- <?= lang('My Year', 'Mein Jahr') ?> -->
-                </a>
+        <div class="btn-group btn-group-lg">
+            <a class="btn text-primary border-primary" href="<?= ROOTPATH ?>/add-activity" data-toggle="tooltip" data-title="<?= lang('Add activity', 'Aktivität hinzufügen') ?>">
+                <i class="ph ph-plus-circle ph-fw"></i>
+                <!-- <?= lang('Add activity', 'Aktivität hinzufügen') ?> -->
+            </a>
+            <a href="<?= ROOTPATH ?>/my-activities" class="btn text-primary border-primary" data-toggle="tooltip" data-title="<?= lang('My activities', 'Meine Aktivitäten ') ?>">
+                <i class="ph ph-folder-user ph-fw"></i>
+                <!-- <?= lang('My activities', 'Meine Aktivitäten ') ?> -->
+            </a>
+            <a class="btn text-primary border-primary" href="<?= ROOTPATH ?>/my-year/<?= $user ?>" data-toggle="tooltip" data-title="<?= lang('My Year', 'Mein Jahr') ?>">
+                <i class="ph ph-calendar ph-fw"></i>
+                <!-- <?= lang('My Year', 'Mein Jahr') ?> -->
+            </a>
 
-                <?php if ($Settings->featureEnabled('portal')) { ?>
-                    <a class="btn text-primary border-primary" href="<?= ROOTPATH ?>/preview/person/<?= $user ?>" data-toggle="tooltip" data-title="<?= lang('Preview', 'Vorschau') ?>">
-                        <i class="ph ph-eye ph-fw"></i>
-                    </a>
-                <?php } ?>
-
-            </div>
-            <div class="btn-group btn-group-lg">
-                <?php if ($show_achievements) { ?>
-                    <a class="btn text-primary border-primary" href="<?= ROOTPATH ?>/achievements" data-toggle="tooltip" data-title="<?= lang('My Achievements', 'Meine Errungenschaften') ?>">
-                        <i class="ph ph-trophy ph-fw"></i>
-                    </a>
-                <?php } ?>
-
-            </div>
-
-            <div class="btn-group btn-group-lg">
-                <a class="btn text-primary border-primary" href="<?= ROOTPATH ?>/user/edit/<?= $user ?>" data-toggle="tooltip" data-title="<?= lang('Edit user profile', 'Bearbeite Profil') ?>">
-                    <i class="ph ph-edit ph-fw"></i>
-                    <!-- <?= lang('Edit user profile', 'Bearbeite Profil') ?> -->
-                </a>
-                <!-- <a class="btn text-primary border-primary" href="<?= ROOTPATH ?>/user/visibility/<?= $user ?>" data-toggle="tooltip" data-title="<?= lang('Configure web profile', 'Webprofil bearbeiten') ?>">
+            <?php if ($Settings->featureEnabled('portal')) { ?>
+                <a class="btn text-primary border-primary" href="<?= ROOTPATH ?>/preview/person/<?= $user ?>" data-toggle="tooltip" data-title="<?= lang('Preview', 'Vorschau') ?>">
                     <i class="ph ph-eye ph-fw"></i>
-                </a> -->
+                </a>
+            <?php } ?>
 
-            </div>
-            <form action="<?= ROOTPATH ?>/download" method="post">
-
-                <input type="hidden" name="filter[user]" value="<?= $user ?>">
-                <input type="hidden" name="highlight" value="user">
-                <input type="hidden" name="format" value="word">
-                <input type="hidden" name="type" value="cv">
-
-                <button class="btn text-primary border-primary large" data-toggle="tooltip" data-title="<?= lang('Export CV', 'CV exportieren') ?>">
-                    <i class="ph ph-identification-card text-primary ph-fw"></i>
-                </button>
-            </form>
+        </div>
+        <div class="btn-group btn-group-lg">
+            <?php if ($show_achievements) { ?>
+                <a class="btn text-primary border-primary" href="<?= ROOTPATH ?>/achievements" data-toggle="tooltip" data-title="<?= lang('My Achievements', 'Meine Errungenschaften') ?>">
+                    <i class="ph ph-trophy ph-fw"></i>
+                </a>
+            <?php } ?>
         </div>
 
+        <div class="btn-group btn-group-lg">
+            <a class="btn text-primary border-primary" href="<?= ROOTPATH ?>/user/edit/<?= $user ?>" data-toggle="tooltip" data-title="<?= lang('Edit user profile', 'Bearbeite Profil') ?>">
+                <i class="ph ph-edit ph-fw"></i>
+                <!-- <?= lang('Edit user profile', 'Bearbeite Profil') ?> -->
+            </a>
+        </div>
+        <form action="<?= ROOTPATH ?>/download" method="post">
 
-        <?php
-        if ($show_achievements) {
-            $new = $Achievement->new;
+            <input type="hidden" name="filter[user]" value="<?= $user ?>">
+            <input type="hidden" name="highlight" value="user">
+            <input type="hidden" name="format" value="word">
+            <input type="hidden" name="type" value="cv">
 
-            if (!empty($new)) {
-                $notification = true;
-                echo '<div class="mt-20">';
-                echo '<h5 class="title font-size-16">' . lang('Congratulation, you achieved something new: ', 'Glückwunsch, du hast neue Errungenschaften erlangt:') . '</h5>';
-                foreach ($new as $i => $n) {
-                    $Achievement->snack($n);
-                }
-                $Achievement->save();
-                echo '</div>';
-            }
-        }
-        ?>
+            <button class="btn text-primary border-primary large" data-toggle="tooltip" data-title="<?= lang('Export CV', 'CV exportieren') ?>">
+                <i class="ph ph-identification-card text-primary ph-fw"></i>
+            </button>
+        </form>
     </div>
+
+
+    <?php
+    if ($show_achievements) {
+        $new = $Achievement->new;
+
+        if (!empty($new)) {
+            $notification = true;
+            echo '<div class="mt-20">';
+            echo '<h5 class="title font-size-16">' . lang('Congratulation, you achieved something new: ', 'Glückwunsch, du hast neue Errungenschaften erlangt:') . '</h5>';
+            foreach ($new as $i => $n) {
+                $Achievement->snack($n);
+            }
+            $Achievement->save();
+            echo '</div>';
+        }
+    }
+    ?>
 
 <?php } else { ?>
     <div class="btn-toolbar">

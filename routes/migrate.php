@@ -19,17 +19,9 @@ Route::get('/migrate/test', function () {
     include_once BASEPATH . "/php/init.php";
     include_once BASEPATH . "/php/Groups.php";
 
-    // $cursor = $osiris->persons->find(['science_unit' => ['$exists' => false]]);
+    
 
-    // foreach ($cursor as $doc) {
-    //     $depts = DB::doc2Arr($doc['depts'] ?? []);
-    //     $science_unit = $depts[0] ?? null;
-    //     dump($science_unit, true);
-    //     $osiris->persons->updateOne(
-    //         ['_id' => $doc['_id']],
-    //         ['$set' => ['science_unit' => $science_unit]]
-    //     );
-    // }
+
     // $cursor = $osiris->activities->find(['units' => ['$exists' => false]]);
     // foreach ($cursor as $doc) {
     //     // calculate depts
@@ -702,6 +694,37 @@ Route::get('/migrate', function () {
         }
 
         echo "<p>Migrated socials.</p>";
+
+
+        // update science units
+        $osiris->persons->updateMany(
+            ['science_unit' => ['$exists' => true]],
+            ['$unset' => ['science_unit' => 1]]
+        );
+        $cursor = $osiris->persons->find(['science_unit' => ['$exists' => false]]);
+        foreach ($cursor as $doc) {
+            $depts = DB::doc2Arr($doc['depts'] ?? []);
+
+            $groups = [];
+            // find the unit with the highest level
+            foreach ($depts as $dept) {
+                $D = $Groups->getGroup($dept);
+                if (empty($D)) continue;
+                if (!isset($groups[$D['level']]))
+                    $groups[$D['level']] = $D['id'];
+            }
+            ksort($groups);
+            $science_unit = array_pop($groups);
+
+
+            // $science_unit = $depts[0] ?? null;
+            $osiris->persons->updateOne(
+                ['_id' => $doc['_id']],
+                ['$set' => ['science_unit' => $science_unit]]
+            );
+        }
+        echo "<p>Migrated science units.</p>";
+
     }
 
 

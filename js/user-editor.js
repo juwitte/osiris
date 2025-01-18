@@ -190,3 +190,21 @@ function preselectCheckboxes(selectedIds) {
         $('#' + id).prop('checked', true);
     });
 }
+
+function updateScienceUnit(user, unit){
+    
+    $.ajax({
+        url: ROOTPATH + "/crud/users/update-science-unit",
+        method: "POST",
+        data: {
+            user: user,
+            unit: unit
+        },
+        dataType: "html",
+        success: function (response) {
+            toastSuccess(response);
+            location.reload();
+
+        }
+    });
+}
