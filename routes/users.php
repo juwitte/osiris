@@ -103,6 +103,26 @@ Route::get('/user/edit/(.*)', function ($user) {
     include BASEPATH . "/footer.php";
 }, 'login');
 
+
+Route::get('/user/units/(.*)', function ($user) {
+    include_once BASEPATH . "/php/init.php";
+
+    $data = $DB->getPerson($user);
+    if (empty($data)) {
+        header("Location: " . ROOTPATH . "/user/browse");
+        die;
+    }
+    $breadcrumb = [
+        ['name' => lang('Users', 'Personen'), 'path' => "/user/browse"],
+        ['name' => $data['name'], 'path' => "/profile/$user"],
+        ['name' => lang("Edit units", "Einheiten bearbeiten")]
+    ];
+
+    include BASEPATH . "/header.php";
+    include BASEPATH . "/pages/user-units.php";
+    include BASEPATH . "/footer.php";
+}, 'login');
+
 Route::get('/user/visibility/(.*)', function ($user) {
     include_once BASEPATH . "/php/init.php";
     // include_once BASEPATH . "/php/Document.php";
@@ -478,19 +498,19 @@ Route::post('/crud/users/update/(.*)', function ($user) {
         $person['cv'] = $cv;
     }
 
-    // update science unit if needed
-    if (isset($values['depts'])) {
-        $old_su = $old['science_unit'] ?? null;
-        // in case the science unit was removed from the list
-        if (!empty($old_su) && !in_array($old_su, $values['depts'])){
-            $person['science_unit'] = null;
-            $old_su = null;
-        }
-        // in case no science unit was set and a dept is added
-        if (empty($old_su) && count($values['depts']) > 0) {
-            $person['science_unit'] = $values['depts'][0];
-        }
-    }
+    // // update science unit if needed
+    // if (isset($values['depts'])) {
+    //     $old_su = $old['science_unit'] ?? null;
+    //     // in case the science unit was removed from the list
+    //     if (!empty($old_su) && !in_array($old_su, $values['depts'])){
+    //         $person['science_unit'] = null;
+    //         $old_su = null;
+    //     }
+    //     // in case no science unit was set and a dept is added
+    //     if (empty($old_su) && count($values['depts']) > 0) {
+    //         $person['science_unit'] = $values['depts'][0];
+    //     }
+    // }
 
 
     // if new password is set, update password
@@ -536,6 +556,51 @@ Route::post('/crud/users/update/(.*)', function ($user) {
             include_once BASEPATH . "/php/Render.php";
             renderActivities(['authors.user' => $user]);
         }
+    }
+
+    if (isset($_POST['redirect']) && !str_contains($_POST['redirect'], "//")) {
+        header("Location: " . $_POST['redirect'] . "?msg=update-success");
+        die();
+    }
+    echo json_encode([
+        'updated' => $updateResult->getModifiedCount()
+    ]);
+});
+
+
+Route::post('/crud/users/units/(.*)', function ($user) {
+    include_once BASEPATH . "/php/init.php";
+
+    if (!isset($_POST['values']) && isset($_POST['id'])) {
+        // delete unit
+        $osiris->persons->updateOne(
+            ['username' => $user],
+            ['$pull' => ['units' => ['id' => $_POST['id']]]]
+        );
+        header("Location: " . ROOTPATH . "/user/units/$user?msg=delete-success");
+        die();
+    }
+    
+    // transform values if needed
+    $values = $_POST['values'];
+    $values['scientific'] = boolval($values['scientific'] ?? false);
+    $values['start'] = !empty($values['start']) ? $values['start'] : null;
+    $values['end'] = !empty($values['end']) ? $values['end'] : null;
+
+    if (isset($_POST['id'])){
+        // update existing unit
+        $values['id'] = $_POST['id'];
+        $osiris->persons->updateOne(
+            ['username' => $user, 'units.id' => $_POST['id']],
+            ['$set' => ['units.$' => $values]]
+        );
+    } else {
+        // add new unit
+        $values['id'] = uniqid();
+        $osiris->persons->updateOne(
+            ['username' => $user],
+            ['$push' => ['units' => $values]]
+        );
     }
 
     if (isset($_POST['redirect']) && !str_contains($_POST['redirect'], "//")) {

@@ -218,7 +218,7 @@ $ldap_msg = '<small class="text-muted">' . lang('This field is centrally managed
             <strong><?= lang('Username', 'Benutzername') ?>:</strong> <code class="code"><?= $data['username'] ?></code>
             <br>
             <small class="text-muted">
-                <?= lang('The username is cannot be changed.', 'Der Benutzername kann nicht geändert werden.') ?>
+                <?= lang('The username cannot be changed.', 'Der Benutzername kann nicht geändert werden.') ?>
             </small>
         </p>
 
@@ -294,146 +294,48 @@ $ldap_msg = '<small class="text-muted">' . lang('This field is centrally managed
             </div>
 
             <h5>
-                <?= lang('Currently selected organisational units', 'Zurzeit ausgewählte Organisationseinheiten') ?>
+                <?= lang('Organisational units', 'Organisationseinheiten') ?>
             </h5>
 
-            <p>
-                <i class="ph ph-flask text-secondary"></i>
-                <?= lang('This is the main unit counting for your scientific output. This unit and all parent units are assigned to your output automatically.', 'Dies ist die Einheit, die für deine wissenschaftliche Ausgabe gezählt wird. Diese Einheit und alle übergeordneten Einheiten werden deiner Arbeit automatisch zugewiesen.') ?>
-            </p>
-
-            <style>
-                tr .visible-on-hover {
-                    visibility: hidden;
-                }
-
-                tr:hover .visible-on-hover {
-                    visibility: visible;
-                }
-            </style>
-
             <?php
-            $depts = DB::doc2Arr($data['depts'] ?? []);
-            $science_unit = $data['science_unit'] ?? $depts[0] ?? null;
+            $units = DB::doc2Arr($data['units'] ?? []);
             ?>
-            <table class="table small w-auto mb-10">
-                <tbody>
-                    <?php
-                    if (!empty($depts)) {
-                        $hierarchy = $Groups->getPersonHierarchyTree($depts);
-                        $tree = $Groups->readableHierarchy($hierarchy);
 
-                        foreach ($tree as $row) {
-                            $selected = in_array($row['id'], $depts);
-                            if ($selected) { ?>
-                                <tr class="selected primary">
-                                    <td style="padding-left: <?= ($row['indent'] * 2 + 2) . 'rem' ?>;">
-                                        <?= lang($row['name_en'], $row['name_de'] ?? null) ?>
-                                        <?php if ($science_unit == $row['id']) { ?>
-                                            <i class="ph ph-flask text-secondary"></i>
-                                        <?php } else { ?>
-                                            <!-- <form action="<?= ROOTPATH ?>/crud/users/update-science-unit" method="post">
-                                                <input type="hidden" name="username" value="<?= $data['username'] ?>">
-                                                <input type="hidden" name="science_unit" value="<?= $row['id'] ?>"> -->
-                                                <button class="btn small secondary visible-on-hover" type="button" onclick="updateScienceUnit('<?= $data['username'] ?>', '<?= $row['id'] ?>')">
-                                                <i class="ph ph-flask"></i>
-                                                    <?= lang('Set as research unit', 'Zur Forschungs-Einheit machen') ?>
-                                                </button>
-                                            <!-- </form> -->
-                                        <?php } ?>
-                                    </td>
-                                </tr>
-                            <?php } else { ?>
-                                <tr>
-                                    <td class="muted" style="padding-left: <?= ($row['indent'] * 2 + 2) . 'rem' ?>;">
-                                        <?= lang($row['name_en'], $row['name_de'] ?? null) ?>
-                                    </td>
-                                </tr>
-                        <?php }
-                        }
-                    } else { ?>
-                        <tr>
-                            <td>
-                                <?= lang('No organisational unit selected', 'Keine Organisationseinheit ausgewählt') ?>
-                            </td>
-                        </tr>
-                    <?php }
+            <a href="<?= ROOTPATH ?>/user/units/<?= $user ?>" target="_blank" rel="noopener noreferrer">
+                <i class="ph ph-edit"></i>
+                <?= lang('Edit units', 'Einheiten bearbeiten') ?>
+            </a>
+
+            <table class="table w-auto mt-10">
+                <thead>
+                    <tr>
+                        <th>
+                            <?= lang('Unit', 'Einheit') ?>
+                        </th>
+                        <th>
+                            <?= lang('Start', 'Start') ?>
+                        </th>
+                        <th>
+                            <?= lang('End', 'Ende') ?>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($units as $dept) {
+                        $d = $Groups->getName($dept['unit']);
                     ?>
+                        <tr data-id="<?= $dept['id'] ?>">
+                            <td><?= $d ?></td>
+                            <td><?= $dept['start'] ?? '<em class="text-danger">' . lang('unknown', 'unbekannt') . '</em>' ?></td>
+                            <td><?= $dept['end'] ?? '<em class="text-success">' . lang('current', 'laufend') . '</em>' ?></td>
+                        </tr>
+                    <?php } ?>
                 </tbody>
             </table>
 
-            <a onclick="$('#organisation-editor').slideToggle()"><i class="ph ph-edit"></i> <?= lang('Edit', 'Bearbeiten') ?></a>
+
         </div>
 
-        <div id="organisation-editor" class="alert mb-20" style="display:none">
-
-            <style>
-                #organization-tree {
-                    padding-left: 2rem;
-                }
-
-                #organization-tree ul {
-                    margin-top: 0;
-                    list-style-type: none;
-                }
-
-                #organization-tree ul li {
-                    margin: 5px 0;
-                    position: relative;
-                    /* display: flex; */
-                }
-
-                #organization-tree ul li.inactive {
-                    display: none;
-                    font-style: italic;
-                    color: var(--danger-color-dark);
-                }
-
-                #organization-tree.show-inactive ul li.inactive {
-                    display: block;
-                }
-
-                #organization-tree ul li span label {
-                    margin: 0;
-
-                    /* display: flex; */
-                }
-
-                #organization-tree ul li span {
-                    display: flex;
-                    align-items: center;
-                    flex-direction: row;
-                    flex-wrap: nowrap;
-                }
-
-                #organization-tree ul li [type=checkbox] {
-                    margin-right: .5rem;
-                }
-
-                .toggle-icon {
-                    cursor: pointer;
-                    margin-right: 5px;
-                    position: absolute;
-                    left: -2rem;
-                    font-size: 1em !important;
-                }
-
-                .toggle-icon.expanded::before {
-                    content: '\E136';
-                    /* Minus symbol for expanded state */
-                }
-            </style>
-            <input type="hidden" name="values[depts]" value="">
-            <!-- checkbox tree -->
-            <button type="button" class="btn m-10 position-absolute right-0 top-0 z-10" onclick="$('#organization-tree').toggleClass('show-inactive')">
-                <?= lang('Show inactive', 'Zeige Inaktive') ?>
-            </button>
-            <div id="organization-tree"></div>
-
-            <button class="btn primary small">
-                <?= lang('Save', 'Speichern') ?>
-            </button>
-        </div>
 
     </section>
 

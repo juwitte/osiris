@@ -19,6 +19,27 @@ Route::get('/migrate/test', function () {
     include_once BASEPATH . "/php/init.php";
     include_once BASEPATH . "/php/Groups.php";
 
+    $cursor = $osiris->persons->find(['depts' => ['$exists' => true]]);
+
+    foreach ($cursor as $person) {
+        $depts = DB::doc2Arr($person['depts'] ?? []);
+        $units = [];
+        // find the unit with the highest level
+        foreach ($depts as $dept) {
+            $units[] = [
+                'id' => uniqid(),
+                'unit' => $dept,
+                'start' => null,
+                'end' => null,
+                'scientific' => true
+            ];
+        }
+        
+        $osiris->persons->updateOne(
+            ['_id' => $person['_id']],
+            ['$set' => ['units' => $units]]
+        );
+    }
     
 
 
