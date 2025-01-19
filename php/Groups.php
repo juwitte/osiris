@@ -467,4 +467,23 @@ class Groups
         $tree = $this->getPersonHierarchyTree($personUnits);
         $this->printPersonHierarchyTree($tree);
     }
+
+    /**
+     * Get person unit from username and date
+     *
+     * @param string $user Username.
+     * @param string $date Date in ISO format.
+     * @param bool $include_parents Include parent units.
+     * @return array Unit array.
+     */
+    public function getPersonUnit($user, $date = null, $include_parents = false){
+        $person = $this->osiris->getPerson($user, $date);
+        if (empty($person) || empty($person['depts'])) return [];
+        $unit = $this->personDept($person['depts'], 1);
+        if ($include_parents) {
+            $parents = $this->getParents($unit['id']);
+            $unit['parents'] = $parents;
+        }
+        return $unit;
+    }
 }

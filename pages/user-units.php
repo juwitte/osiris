@@ -27,11 +27,6 @@
 $units = DB::doc2Arr($data['units'] ?? []);
 ?>
 
-<a href="#add-unit" class="btn primary">
-    <i class="ph ph-plus"></i>
-    <?= lang('Add unit', 'Einheit hinzufügen') ?>
-</a>
-
 <table class="table w-auto my-20">
     <thead>
         <tr>
@@ -164,6 +159,16 @@ $units = DB::doc2Arr($data['units'] ?? []);
             </tr>
         <?php } ?>
     </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="5">
+                <a href="#add-unit" class="btn primary">
+                    <i class="ph ph-plus"></i>
+                    <?= lang('Add unit', 'Einheit hinzufügen') ?>
+                </a>
+            </td>
+        </tr>
+    </tfoot>
 </table>
 
 <!-- explain scientific -->

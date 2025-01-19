@@ -263,48 +263,48 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
     <div id="units">
         <h5 class="mt-0">
             <?= lang('Organisational Unit(s)', 'Organisationseinheit(en)') ?>
+
+            <?php if ($currentuser || $Settings->hasPermission('user.edit')) { ?>
+                <a href="<?= ROOTPATH ?>/user/units/<?= $user ?>" class="font-size-14 ml-5">
+                    <i class="ph ph-edit"></i>
+                </a>
+            <?php } ?>
         </h5>
         <?php
-        $depts = DB::doc2Arr($scientist['depts'] ?? []);
-        if (in_array(null, $depts)) {
-            // filter and change in database
-            $depts = array_filter($depts);
-            $osiris->scientists->updateOne(
-                ['username' => $user],
-                ['$set' => ['depts' => $depts]]
-            );
-        }
-        $science_unit = $scientist['science_unit'] ?? $depts[0] ?? null;
+        $units = DB::doc2Arr($scientist['units'] ?? []);
+        // filter units from the past
+        $units = array_filter($units, function ($unit) {
+            return !isset($unit['end']) || strtotime($unit['end']) > time();
+        });
+        $unit_ids = array_column($units, 'unit');
         ?>
-        <table class="table small w-auto mb-10">
+        <table class="table unit-table">
             <tbody>
                 <?php
-                if (!empty($depts)) {
-                    $hierarchy = $Groups->getPersonHierarchyTree($depts);
+                if (!empty($unit_ids)) {
+                    $hierarchy = $Groups->getPersonHierarchyTree($unit_ids);
                     $tree = $Groups->readableHierarchy($hierarchy);
 
                     foreach ($tree as $row) {
-                        $selected = in_array($row['id'], $depts);
+                        $selected = in_array($row['id'], $unit_ids);
                         $dept = $Groups->getGroup($row['id']);
                         $head = (in_array($user, $dept['head'] ?? []));
                         if ($selected) { ?>
                             <tr>
-                                <td style="padding-left: <?= ($row['indent'] * 2 + 2) . 'rem' ?>;">
-                                    <?= lang($row['name_en'], $row['name_de'] ?? null) ?>
+                                <td class="indent-<?=$row['indent']?>">
+                                    <a href="<?= ROOTPATH ?>/group/<?= $row['id'] ?>">
+                                        <?= lang($row['name_en'], $row['name_de'] ?? null) ?>
+                                    </a>
                                     <?php if ($head) { ?>
-                                        <span data-toggle="tooltip" data-title="<?=lang('The person is leading this unit.', 'Die Person leitet diese Einheit.')?>">
-                                        <i class="ph ph-crown-simple text-signal"></i>
+                                        <span data-toggle="tooltip" data-title="<?= lang('The person is leading this unit.', 'Die Person leitet diese Einheit.') ?>">
+                                            <i class="ph ph-crown-simple text-signal"></i>
                                         </span>
-                                    <?php } ?>
-                                    <?php if ($science_unit == $row['id']) { ?>
-                                        <span data-toggle="tooltip" data-title="<?=lang('This is the organisational unit counting for research.', 'Dies ist die Einheit, die für Forschung gezählt wird.')?>">
-                                        <i class="ph ph-flask text-secondary"></i>
                                     <?php } ?>
                                 </td>
                             </tr>
                         <?php } else { ?>
                             <tr>
-                                <td class="text-muted" style="padding-left: <?= ($row['indent'] * 2 + 2) . 'rem' ?>;">
+                                <td class="text-muted indent-<?=$row['indent']?>">
                                     <?= lang($row['name_en'], $row['name_de'] ?? null) ?>
                                 </td>
                             </tr>
