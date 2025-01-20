@@ -563,7 +563,8 @@ $filters = array_map(function ($f) {
                     const filter = fields.find(f => f.id == field);
                     var r = {
                         data: field,
-                        title: filter ? filter.label : field
+                        title: filter ? filter.label : field,
+                        defaultContent: '-'
                     }
                     if (field == 'id') {
                         r.render = function(data, type, row, meta) {
