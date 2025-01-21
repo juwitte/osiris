@@ -153,7 +153,7 @@ class OpenAlexParser():
         # print(doi)
         typ = self.TYPES.get(work['type'])
         if not typ:
-            print(f'Activity type {work['type']} is unknown (DOI: {doi}).')
+            print(f'Activity type {work["type"]} is unknown (DOI: {doi}).')
             return False
 
         authors = []
