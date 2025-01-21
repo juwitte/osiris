@@ -18,14 +18,37 @@
 Route::get('/migrate/test', function () {
     include_once BASEPATH . "/php/init.php";
     include_once BASEPATH . "/php/Groups.php";
+    
+    set_time_limit(6000);
 
-    $cursor = $osiris->persons->find(['depts' => ['$exists' => true]]);
+    $cursor = $osiris->persons->find(['depts'=> ['$exists' => true]]);
 
     foreach ($cursor as $person) {
-        $depts = DB::doc2Arr($person['depts'] ?? []);
+        $depts = DB::doc2Arr($person['depts'] ??[]);
+        if (empty($depts)) continue;
+
+        // make sure that only the lowest level of the hierarchy is in the list
+        foreach ($depts as $dept) {
+            // check if parent is already in the list
+            $parents = $Groups->getParents($dept, true);
+            // remove last element
+            array_pop($parents);
+            foreach ($parents as $parent) {
+                if (in_array($parent, $depts)) {
+                    $key = array_search($parent, $depts);
+                    unset($depts[$key]);
+                }
+            }
+        }
+        $depts = array_values($depts);
+            
         $units = [];
         // find the unit with the highest level
         foreach ($depts as $dept) {
+            // check if parent is already in the list
+            $parents = $Groups->getParents($dept, true);
+            $parents = array_column($parents, 'id');
+
             $units[] = [
                 'id' => uniqid(),
                 'unit' => $dept,
@@ -40,7 +63,45 @@ Route::get('/migrate/test', function () {
             ['$set' => ['units' => $units]]
         );
     }
-    
+
+    // Precalculate activities: find all activities without units and calculate the units based on the authors    
+    $activities = $osiris->activities->find(['authors.units' => ['$exists' => false]]);
+
+    foreach ($activities as $doc) {
+        $units = [];
+        $startdate = strtotime($doc['start_date']);
+
+        $authors = $doc['authors'] ?? [];
+
+        foreach ($authors as $i => $author) {
+            if (!($author['aoi'] ?? false) || !isset($author['user'])) continue;
+            $user = $author['user'];
+            $person = $DB->getPerson($user);
+            if (isset($person['units']) && !empty($person['units'])) {
+                $u = DB::doc2Arr($person['units']);
+                // filter units that have been active at the time of activity
+                $u = array_filter($u, function ($unit) use ($startdate) {
+                    if (!$unit['scientific']) return false; // we are only interested in scientific units
+                    if (empty($unit['start'])) return true; // we have basically no idea when this unit was active
+                    return strtotime($unit['start']) <= $startdate && (empty($unit['end']) || strtotime($unit['end']) >= $startdate);
+                });
+                $u = array_column($u, 'unit');
+                $authors[$i]['units'] = $u;
+                $units = array_merge($units, $u);
+            }
+        }
+        $units = array_unique($units);
+        foreach ($units as $unit) {
+            $units = array_merge($units, $Groups->getParents($unit, true));
+        }
+        $units = array_unique($units);
+        $osiris->activities->updateOne(
+            ['_id' => $doc['_id']],
+            ['$set' => ['authors' => $authors, 'units' => $units]]
+        );
+    }
+
+    echo "Done";
 
 
     // $cursor = $osiris->activities->find(['units' => ['$exists' => false]]);
@@ -715,36 +776,6 @@ Route::get('/migrate', function () {
         }
 
         echo "<p>Migrated socials.</p>";
-
-
-        // update science units
-        $osiris->persons->updateMany(
-            ['science_unit' => ['$exists' => true]],
-            ['$unset' => ['science_unit' => 1]]
-        );
-        $cursor = $osiris->persons->find(['science_unit' => ['$exists' => false]]);
-        foreach ($cursor as $doc) {
-            $depts = DB::doc2Arr($doc['depts'] ?? []);
-
-            $groups = [];
-            // find the unit with the highest level
-            foreach ($depts as $dept) {
-                $D = $Groups->getGroup($dept);
-                if (empty($D)) continue;
-                if (!isset($groups[$D['level']]))
-                    $groups[$D['level']] = $D['id'];
-            }
-            ksort($groups);
-            $science_unit = array_pop($groups);
-
-
-            // $science_unit = $depts[0] ?? null;
-            $osiris->persons->updateOne(
-                ['_id' => $doc['_id']],
-                ['$set' => ['science_unit' => $science_unit]]
-            );
-        }
-        echo "<p>Migrated science units.</p>";
 
     }
 

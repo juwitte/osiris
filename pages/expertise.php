@@ -24,7 +24,7 @@ $cursor = $osiris->persons->aggregate([
             'is_active' => ['$ne'=>false]
         ]
     ],
-    ['$project' => ['expertise' => 1, 'displayname' => 1, 'depts' => 1, 'username' => 1]],
+    ['$project' => ['expertise' => 1, 'displayname' => 1, 'username' => 1]],
     ['$unwind' => '$expertise'],
     [
         '$group' => [
@@ -65,9 +65,9 @@ $cursor = $osiris->persons->aggregate([
                     <p class="text-muted"><?= $doc['count'] ?> <?= lang('experts found:', 'Expert:innen gefunden:') ?></p>
                     <?php foreach ($doc['users'] as $u) { 
                         $color = 'bg-light';
-                        if (isset($u['depts'][0])) {
-                            $color = $Groups->cssVar($u['depts'][0]);
-                        }
+                        // if (isset($u['depts'][0])) {
+                        //     $color = $Groups->cssVar($u['depts'][0]);
+                        // }
                         ?><a href="<?= ROOTPATH ?>/profile/<?= $u['username'] ?>" class="badge mr-5 mb-5" <?=$color?>><?= $u['displayname'] ?></a><?php 
                     } ?>
                 </div>

@@ -67,7 +67,7 @@ function navigate(key) {
             personsExists = true;
             // console.log(personsExists);
             userTable('#user-table', {
-                filter: { depts: { '$in': DEPT_TREE }, 'is_active': true },
+                filter: { 'units.unit': { '$in': DEPT_TREE }, 'is_active': true },
                 hide_usernames: true,
                 subtitle: 'position',
                 'path': PORTALPATH

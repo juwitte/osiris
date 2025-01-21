@@ -127,7 +127,15 @@ Route::post('/crud/groups/create', function () {
         foreach ($values['head'] as $head) {
             $osiris->persons->updateOne(
                 ['username' => $head],
-                ['$push' => ["depts" => $values['id']]]
+                ['$push' => [
+                    "units" => [
+                        'id' => uniqid(),
+                        'unit' => $values['id'],
+                        'start' => date('Y-m-d'),
+                        'end' => null,
+                        'scientific' => true
+                    ]
+                ]]
             );
         }
     }
@@ -171,8 +179,9 @@ Route::post('/crud/groups/update/([A-Za-z0-9]*)', function ($id) {
     if (isset($values['id']) && $group['id'] != $values['id']) {
         // change IDs of Members
         $osiris->persons->updateMany(
-            ['depts' => $group['id']],
-            ['$set' => ['depts.$[elem]' => $values['id']]],
+            ['units' => $group['id']],
+            // ['$set' => ['units.$[elem]' => $values['id']]],
+            ['$set' => ['units.$[elem].unit' => $values['id']]],
             ['arrayFilters' => [['elem' => ['$eq' => $group['id']]]], 'multi' => true]
         );
         // change ID of child elements
@@ -212,11 +221,19 @@ Route::post('/crud/groups/update/([A-Za-z0-9]*)', function ($id) {
     // check if head is connected 
     if (isset($values['head'])) {
         foreach ($values['head'] as $head) {
-            $N = $osiris->persons->count(['username' => $head, 'depts' => $values['id']]);
+            $N = $osiris->persons->count(['username' => $head, 'units.unit' => $values['id']]);
             if ($N == 0) {
                 $osiris->persons->updateOne(
                     ['username' => $head],
-                    ['$push' => ["depts" => $values['id']]]
+                    ['$push' => [
+                        "units" => [
+                            'id' => uniqid(),
+                            'unit' => $values['id'],
+                            'start' => date('Y-m-d'),
+                            'end' => null,
+                            'scientific' => true
+                        ]
+                    ]]
                 );
             }
         }
@@ -247,8 +264,11 @@ Route::post('/crud/groups/delete/([A-Za-z0-9]*)', function ($id) {
     // remove from all users
     $group = $osiris->groups->findOne(['_id' => $id]);
     $osiris->persons->updateOne(
-        ['depts' => $group['id']],
-        ['$pull' => ["depts" => $group['id']]]
+        ['units' => $group['id']],
+        [
+            '$pull' => ['units' => ['unit' => $group['id']]]
+        ],
+        ['multi' => true]
     );
 
     $updateResult = $osiris->groups->deleteOne(
@@ -274,8 +294,19 @@ Route::post('/crud/groups/addperson/(.*)', function ($id) {
     // add id to person dept
     $updateResult = $osiris->persons->updateOne(
         ['username' => $_POST['username']],
-        ['$push' => ["depts" => $id]]
+        [
+            '$push' => ["units" => [
+                'id' => uniqid(),
+                'unit' => $id,
+                'start' => date('Y-m-d'),
+                'end' => null,
+                'scientific' => true
+            ]]
+        ]
     );
+    // TODO: update activities from the period the person was in the group
+    // renderAuthorUnitsMany(['authors.user' => $_POST['username'], 'date' => ['$gte' => date('Y-m-d')]]);
+
 
     header("Location: " . ROOTPATH . "/groups/edit/$id?msg=added-person#section-personnel");
 });
@@ -285,8 +316,11 @@ Route::post('/crud/groups/removeperson/(.*)', function ($id) {
     // add id to person dept
     $updateResult = $osiris->persons->updateOne(
         ['username' => $_POST['username']],
-        ['$pull' => ["depts" => $id]]
+        ['$pull' => ["units" => ['unit' => $id]]]
     );
+
+    // TODO: update activities from the period the person was in the group
+    // renderAuthorUnitsMany(['authors.user' => $_POST['username'], 'date' => ['$gte' => date('Y-m-d')]]);
 
     header("Location: " . ROOTPATH . "/groups/edit/$id?msg=removed-person#section-personnel");
 });

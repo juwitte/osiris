@@ -9,7 +9,6 @@ function renderActivities($filter = [])
     $rendered = [
         'print' => '',
         'web' => '',
-        'depts' => '',
         'icon' => '',
         'type' => '',
     ];
@@ -19,7 +18,7 @@ function renderActivities($filter = [])
         $Format->usecase = 'web';
         $doc['authors'] = DB::doc2Arr($doc['authors']);
 
-        $depts = $Groups->getDeptFromAuthors($doc['authors']);
+        // $depts = $Groups->getDeptFromAuthors($doc['authors']);
 
         $f = $Format->format();
         $web = $Format->formatShort();
@@ -32,7 +31,6 @@ function renderActivities($filter = [])
             'plain' => strip_tags($f),
             'portfolio' => $portfolio,
             'web' => $web,
-            'depts' => $depts,
             'icon' => trim($Format->activity_icon()),
             'type' => $Format->activity_type(),
             'subtype' => $Format->activity_subtype(),
@@ -62,8 +60,8 @@ function renderActivities($filter = [])
         });
         $values['affiliated'] = !empty($aoi_authors);
         $values['affiliated_positions'] = $Format->getAffiliationTypes();
-        $values['cooperative'] = $Format->getCooperationType($values['affiliated_positions'], $depts);
-        
+        $values['cooperative'] = $Format->getCooperationType($values['affiliated_positions'], $doc['units'] ?? []);
+
         $DB->db->activities->updateOne(
             ['_id' => $id],
             ['$set' => $values]
@@ -71,4 +69,74 @@ function renderActivities($filter = [])
     }
     // return last element in case that only one id has been rendered
     return $rendered;
+}
+
+function renderAuthorUnits($doc, $old_doc = [])
+{
+    global $Groups;
+    if (!isset($doc['authors'])) return $doc;
+
+    $DB = new DB;
+    $osiris = $DB->db;
+
+    $units = [];
+    $startdate = strtotime($doc['start_date']);
+
+    $authors = $doc['authors'] ?? [];
+    $old = $old_doc['authors'] ?? [];
+
+    // check if old authors are equal to new authors
+    if (count($authors) == count($old) && $authors == $old) {
+        return $doc;
+    }
+
+    // add user as key to authors
+    $old = array_column($old, 'units', 'user');
+
+    foreach ($authors as $i => $author) {
+        if (!($author['aoi'] ?? false) || !isset($author['user'])) continue;
+        $user = $author['user'];
+
+        // check if author has been manually set, if so, do not update units
+        $old_author = $old[$user] ?? [];
+        if (!empty($old_author) && $old_author['manually']) {
+            $authors[$i]['units'] = $old_author['units'] ?? [];
+            $units = array_merge($units, $authors[$i]['units']);
+            continue;
+        }
+        $person = $DB->getPerson($user);
+        if (isset($person['units']) && !empty($person['units'])) {
+            $u = DB::doc2Arr($person['units']);
+            // filter units that have been active at the time of activity
+            $u = array_filter($u, function ($unit) use ($startdate) {
+                if (!$unit['scientific']) return false; // we are only interested in scientific units
+                if (empty($unit['start'])) return true; // we have basically no idea when this unit was active
+                return strtotime($unit['start']) <= $startdate && (empty($unit['end']) || strtotime($unit['end']) >= $startdate);
+            });
+            $u = array_column($u, 'unit');
+            $authors[$i]['units'] = $u;
+            $units = array_merge($units, $u);
+        }
+    }
+    $units = array_unique($units);
+    foreach ($units as $unit) {
+        $units = array_merge($units, $Groups->getParents($unit, true));
+    }
+    $units = array_unique($units);
+    $doc['units'] = $units;
+    $doc['authors'] = $authors;
+    return $doc;
+}
+
+
+function renderAuthorUnitsMany($filter = []){
+    $DB = new DB;
+    $cursor = $DB->db->activities->find($filter, ['projection' => ['authors' => 1, 'units' => 1, 'start_date' => 1]]);
+    foreach ($cursor as $doc) {
+        $doc = renderAuthorUnits($doc);
+        $DB->db->activities->updateOne(
+            ['_id' => $doc['_id']],
+            ['$set' => $doc]
+        );
+    }
 }

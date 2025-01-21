@@ -477,13 +477,30 @@ class Groups
      * @return array Unit array.
      */
     public function getPersonUnit($user, $date = null, $include_parents = false){
-        $person = $this->osiris->getPerson($user, $date);
-        if (empty($person) || empty($person['depts'])) return [];
-        $unit = $this->personDept($person['depts'], 1);
-        if ($include_parents) {
-            $parents = $this->getParents($unit['id']);
-            $unit['parents'] = $parents;
+        if (is_string($user)){
+            $person = $this->osiris->getPerson($user);
+        } else {
+            $person = $user;
         }
-        return $unit;
+        if (empty($person) || empty($person['units'])) return [];
+        if (empty($date)) $date = date('Y-m-d');
+
+        $units = DB::doc2Arr($person['units']);
+        $units = array_filter($units, function ($unit) use ($date) {
+            if (!$unit['scientific']) return false; // we are only interested in scientific units
+            if (empty($unit['start'])) return true; // we have basically no idea when this unit was active
+            return strtotime($unit['start']) <= $date && (empty($unit['end']) || strtotime($unit['end']) >= $date);
+        });
+
+        if ($include_parents) {
+            $result = [];
+            foreach ($units as $unit) {
+                $parents = $this->getParents($unit['unit']);
+                $result[] = $parents;
+            }
+            return $result;
+        }
+        return $units;
     }
 }
+

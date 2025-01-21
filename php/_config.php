@@ -36,8 +36,6 @@ function validateValues($values, $DB)
                 $value = explode('10.', $value, 2);
                 $values[$key] = "10." . $value[1];
             }
-            // dump($value);
-            // die;
         } else if ($key == 'authors' || $key == "editors") {
             $values[$key] = array();
             $i = 0;

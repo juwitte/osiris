@@ -143,7 +143,7 @@ $FIELDS = [
     ],
     [
         'id' => 'authors.first',
-        'module_of' => $typeModules['authors.first'] ?? [],
+        'module_of' => $typeModules['authors'] ?? [],
         'usage' => [
             'filter'
         ],
@@ -152,7 +152,7 @@ $FIELDS = [
     ],
     [
         'id' => 'authors.last',
-        'module_of' => $typeModules['authors.last'] ?? [],
+        'module_of' => $typeModules['authors'] ?? [],
         'usage' => [
             'filter'
         ],
@@ -161,7 +161,7 @@ $FIELDS = [
     ],
     [
         'id' => 'authors.user',
-        'module_of' => $typeModules['authors.user'] ?? [],
+        'module_of' => $typeModules['authors'] ?? [],
         'usage' => [
             'filter'
         ],
@@ -170,7 +170,7 @@ $FIELDS = [
     ],
     [
         'id' => 'authors.position',
-        'module_of' => $typeModules['authors.position'] ?? [],
+        'module_of' => $typeModules['authors'] ?? [],
         'usage' => [
             'filter'
         ],
@@ -181,7 +181,7 @@ $FIELDS = [
     ],
     [
         'id' => 'authors.approved',
-        'module_of' => $typeModules['authors.approved'] ?? [],
+        'module_of' => $typeModules['authors'] ?? [],
         'usage' => [
             'filter'
         ],
@@ -190,12 +190,31 @@ $FIELDS = [
     ],
     [
         'id' => 'authors.aoi',
-        'module_of' => $typeModules['authors.aoi'] ?? [],
+        'module_of' => $typeModules['authors'] ?? [],
         'usage' => [
             'filter'
         ],
         'label' => lang('Author (affiliated)', 'Autor (Affiliated)'),
         'type' => 'boolean',
+    ],
+    [
+        'id' => 'authors.unit',
+        'module_of' => $typeModules['authors'] ?? [],
+        'usage' => [
+            'filter', 'columns'
+        ],
+        'label' => lang('Author (unit)', 'Autor (Einheit)'),
+        'type' => 'string'
+    ],
+    [
+        'id' => 'authors.sws',
+        'module_of' => $typeModules['supervisor'] ?? [],
+        'usage' => [
+            'filter',
+            'columns'
+        ],
+        'label' => lang('Author (SWS)', 'Autor (SWS)'),
+        'type' => 'float'
     ],
     [
         'id' => 'affiliated',
@@ -649,8 +668,8 @@ $FIELDS = [
         'type' => 'string'
     ],
     [
-        'id' => 'rendered.depts',
-        'module_of' => $typeModules['rendered.depts'] ?? [],
+        'id' => 'units',
+        'module_of' => $typeModules['units'] ?? [],
         'usage' => [
             'filter',
             'columns'

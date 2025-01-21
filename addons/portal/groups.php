@@ -108,7 +108,7 @@ $style = $_GET['style'] ?? 'cards';
                             $children = $Groups->getChildren($group['id']);
                             ?>
                             <span class="unit-members">
-                                <?= $osiris->persons->count(['depts' => ['$in' => $children],  'is_active' => ['$ne'=>false]]) ?> <?= lang('Members', 'Mitglieder') ?>
+                                <?= $osiris->persons->count(['units.unit' => ['$in' => $children],  'is_active' => ['$ne'=>false]]) ?> <?= lang('Members', 'Mitglieder') ?>
                             </span>
                         </td>
                     </tr>

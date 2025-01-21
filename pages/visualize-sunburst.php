@@ -86,7 +86,7 @@ function updateRecursive(array &$arr, $activities, $parentusers = [])
 {
     global $osiris, $links;
     foreach ($arr as &$val) {
-        $users = $osiris->persons->find(['depts' => $val['id']])->toArray();
+        $users = $osiris->persons->find(['units.unit' => $val['id']])->toArray();
         $usernames = [];
         // uncomment if users that belong to parent group should be skipped
         // $usernames = array_column($users, 'username');

@@ -349,7 +349,8 @@ Route::post('/synchronize-users', function () {
             "first",
             "last",
             "name",
-            "depts",
+            // "depts",
+            "units",
             "username",
             "created",
             "created_by",
@@ -498,21 +499,6 @@ Route::post('/crud/users/update/(.*)', function ($user) {
         $person['cv'] = $cv;
     }
 
-    // // update science unit if needed
-    // if (isset($values['depts'])) {
-    //     $old_su = $old['science_unit'] ?? null;
-    //     // in case the science unit was removed from the list
-    //     if (!empty($old_su) && !in_array($old_su, $values['depts'])){
-    //         $person['science_unit'] = null;
-    //         $old_su = null;
-    //     }
-    //     // in case no science unit was set and a dept is added
-    //     if (empty($old_su) && count($values['depts']) > 0) {
-    //         $person['science_unit'] = $values['depts'][0];
-    //     }
-    // }
-
-
     // if new password is set, update password
     if (isset($_POST['password']) && !empty($_POST['password'])) {
         // check if old password matches
@@ -630,7 +616,8 @@ Route::post('/crud/users/delete/(.*)', function ($user) {
         "first",
         "last",
         "name",
-        "depts",
+        // "depts",
+        "units",
         "username",
         "created",
         "created_by",
@@ -779,24 +766,24 @@ Route::post('/crud/users/approve', function () {
     ]);
 });
 
-Route::post('/crud/users/update-science-unit', function () {
-    include_once BASEPATH . "/php/init.php";
-    $user = $_POST['user'] ?? $_SESSION['username'];
-    if (!isset($_POST['unit'])) {
-        echo "unit was not defined";
-        die();
-    }
+// Route::post('/crud/users/update-science-unit', function () {
+//     include_once BASEPATH . "/php/init.php";
+//     $user = $_POST['user'] ?? $_SESSION['username'];
+//     if (!isset($_POST['unit'])) {
+//         echo "unit was not defined";
+//         die();
+//     }
 
-    $updateResult = $osiris->persons->updateOne(
-        ['username' => $user],
-        ['$set' => ["science_unit" => $_POST['unit']]]
-    );
-    echo lang("Science unit updated.", "Haupt-Einheit für die Wissenschaft aktualisiert.");
-    die;
+//     $updateResult = $osiris->persons->updateOne(
+//         ['username' => $user],
+//         ['$set' => ["science_unit" => $_POST['unit']]]
+//     );
+//     echo lang("Science unit updated.", "Haupt-Einheit für die Wissenschaft aktualisiert.");
+//     die;
 
-    // header("Location: " . ROOTPATH . "/user/edit/".$user."#section-organization");
-    // die();
-});
+//     // header("Location: " . ROOTPATH . "/user/edit/".$user."#section-organization");
+//     // die();
+// });
 
 
 

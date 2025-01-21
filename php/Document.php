@@ -47,10 +47,6 @@ class Document extends Settings
         if (!is_array($doc)) {
             $doc = DB::doc2Arr($doc);
         }
-
-
-
-        // dump(($doc));
         $this->doc = $doc;
         $this->getActivityType();
         $this->initSchema();

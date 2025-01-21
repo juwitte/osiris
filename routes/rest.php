@@ -85,17 +85,6 @@ function help_getGroup($osiris, $id)
     return $group;
 }
 
-function help_groupUsers($osiris, $id, $Groups)
-{
-    $child_ids = $Groups->getChildren($id);
-    $users = $osiris->persons->find(
-        ['depts' => ['$in' => $child_ids], 'is_active' => ['$ne' => false], 'hide' => ['$ne' => true], 'hide' => ['$ne' => true]],
-        ['sort' => ['last' => 1]]
-    )->toArray();
-    $users = array_column($users, 'username');
-    return $users;
-}
-
 
 Route::get('/portfolio/units', function () {
     error_reporting(E_ERROR | E_PARSE);
@@ -232,7 +221,7 @@ Route::get('/portfolio/unit/([^/]*)/numbers', function ($id) {
         $group = $osiris->groups->findOne(['id' => $id]);
 
     $child_ids = $Groups->getChildren($id);
-    $users = $osiris->persons->find(['depts' => ['$in' => $child_ids]], ['projection' => ['username' => 1]])->toArray();
+    $users = $osiris->persons->find(['units.unit' => ['$in' => $child_ids]], ['projection' => ['username' => 1]])->toArray();
     $users = array_column($users, 'username');
 
     if (isset($group['description']) || isset($group['description_de'])) {
@@ -243,7 +232,7 @@ Route::get('/portfolio/unit/([^/]*)/numbers', function ($id) {
     }
 
     $filter = [
-        'depts' => ['$in' => $child_ids],
+        'units.unit' => ['$in' => $child_ids],
         'is_active' => ['$ne' => false],
         'hide' => ['$ne' => true]
     ];
@@ -291,12 +280,12 @@ Route::get('/portfolio/unit/([^/]*)/numbers', function ($id) {
             'type' => 'publication',
             'hide' => ['$ne' => true],
             'year' => ['$gte' => CURRENTYEAR - 4],
-            'rendered.depts' => $id
+            'units' => $id
         ];
         $coop = $osiris->activities->aggregate([
             ['$match' => $cooperation_filter],
-            ['$unwind' => '$rendered.depts'],
-            ['$group' => ['_id' => '$rendered.depts', 'count' => ['$sum' => 1]]],
+            ['$unwind' => '$units'],
+            ['$group' => ['_id' => '$units', 'count' => ['$sum' => 1]]],
             ['$sort' => ['count' => -1]]
         ])->toArray();
 
@@ -359,7 +348,7 @@ Route::get('/portfolio/(unit|person|project)/([^/]*)/(publications|activities|al
         }
 
         $child_ids = $Groups->getChildren($id);
-        $persons = $osiris->persons->find(['depts' => ['$in' => $child_ids]], ['sort' => ['last' => 1]])->toArray();
+        $persons = $osiris->persons->find(['units.unit' => ['$in' => $child_ids]], ['sort' => ['last' => 1]])->toArray();
         $users = array_column($persons, 'username');
         $filter = [
             'authors.user' => ['$in' => $users],
@@ -436,7 +425,7 @@ Route::get('/portfolio/(unit|person)/([^/]*)/teaching', function ($context, $id)
             $id = $group['id'];
         }
         $child_ids = $Groups->getChildren($id);
-        $persons = $osiris->persons->find(['depts' => ['$in' => $child_ids], 'is_active' => ['$ne' => false]], ['sort' => ['last' => 1]])->toArray();
+        $persons = $osiris->persons->find(['units.unit' => ['$in' => $child_ids], 'is_active' => ['$ne' => false]], ['sort' => ['last' => 1]])->toArray();
         $users = array_column($persons, 'username');
         $filter['authors.user'] = ['$in' => $users];
     } else {
@@ -498,7 +487,7 @@ Route::get('/portfolio/(unit|person)/([^/]*)/projects', function ($context, $id)
             $id = $group['id'];
         }
         $child_ids = $Groups->getChildren($id);
-        $persons = $osiris->persons->find(['depts' => ['$in' => $child_ids], 'is_active' => ['$ne' => false]], ['sort' => ['last' => 1]])->toArray();
+        $persons = $osiris->persons->find(['units.unit' => ['$in' => $child_ids], 'is_active' => ['$ne' => false]], ['sort' => ['last' => 1]])->toArray();
         $users = array_column($persons, 'username');
         $filter['persons.user'] = ['$in' => $users];
     } else {
@@ -555,7 +544,7 @@ Route::get('/portfolio/unit/([^/]*)/staff', function ($id) {
         $id = $group['id'];
     }
     $child_ids = $Groups->getChildren($id);
-    $filter['depts'] = ['$in' => $child_ids];
+    $filter['units.unit'] = ['$in' => $child_ids];
 
     $persons = $osiris->persons->find(
         $filter,
@@ -569,7 +558,7 @@ Route::get('/portfolio/unit/([^/]*)/staff', function ($id) {
             'academic_title' => $person['academic_title'],
             'position' => $person['position'],
             'position_de' => $person['position_de'],
-            'depts' => $Groups->personDepts($person['depts']),
+            'depts' => $Groups->personDepts($person['units'] ?? []),
         ];
         if ($person['public_image'] ?? false) {
             $row['img'] = $Settings->printProfilePicture($person['username'], 'profile-img');
@@ -1108,7 +1097,7 @@ Route::get('/portfolio/(unit|project)/([^/]*)/collaborators-map', function ($con
         $dept = $id;
 
         $child_ids = $Groups->getChildren($dept);
-        $persons = $osiris->persons->find(['depts' => ['$in' => $child_ids], 'is_active' => ['$ne' => false], 'hide' => ['$ne' => true]], ['sort' => ['last' => 1]])->toArray();
+        $persons = $osiris->persons->find(['units.unit' => ['$in' => $child_ids], 'is_active' => ['$ne' => false], 'hide' => ['$ne' => true]], ['sort' => ['last' => 1]])->toArray();
         $users = array_column($persons, 'username');
         $filter = [
             'persons.user' => ['$in' => $users],
@@ -1165,11 +1154,11 @@ Route::get('/portfolio/unit/([^/]*)/cooperation', function ($id) {
         'type' => 'publication',
         'hide' => ['$ne' => true],
         'year' => ['$gte' => CURRENTYEAR - 4],
-        'rendered.depts' => $id
+        'units' => $id
     ];
     $options = [
         'projection' => [
-            'depts' => '$rendered.depts'
+            'depts' => '$units'
         ]
     ];
 

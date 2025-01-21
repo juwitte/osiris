@@ -490,7 +490,7 @@ if (!$Settings->hasPermission('projects.view')) {
                         ${renderTopic(row.topics)}
                         <div class="d-flex flex-column h-full">
                         <h4 class="m-0">
-                            <a href="<?= ROOTPATH ?>/projects/view/${row.id}">${data}</a>
+                            <a href="<?= ROOTPATH ?>/projects/view/${row._id['$oid']}">${data}</a>
                         </h4>
                        
                         <div class="flex-grow-1">
