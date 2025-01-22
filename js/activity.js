@@ -86,7 +86,6 @@ function coauthors() {
             var legend = d3.select('#dept-legend')
                 .append('div')
             // .attr('class', 'content')
-            console.log(legend);
 
             legend.append('h5')
                 .attr('class', 'mt-0')
@@ -114,6 +113,11 @@ function coauthors() {
                 });
             });
 
+            if (data.multi){
+                legend.append('p')
+                    .text(lang('* Multiple affiliations', '* Mehrere Zugehörigkeiten'))
+                    .style('font-size', 'small')
+            }
         },
         error: function (response) {
             console.log(response);

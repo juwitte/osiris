@@ -1786,7 +1786,7 @@ Route::get('/api/dashboard/activity-authors', function () {
     $doc = $osiris->activities->findOne($filter);
 
     $depts = [];
-
+    $multi = false;
     if (isset($doc['authors']) && !empty($doc['authors'])) {
         // $users = array_column(DB::doc2Arr($doc['authors']), 'user');
         foreach ($doc['authors'] as $a) {
@@ -1808,6 +1808,14 @@ Route::get('/api/dashboard/activity-authors', function () {
                 if (!empty($p)) {
                     $d[] = $p['id'];
                 }
+            }
+            $d = array_unique($d);
+            if (count($d) == 0) {
+                $depts['unknown'][] = $name;
+                continue;
+            } elseif (count($d) > 1) {
+                $name .= '*';
+                $multi = true;
             }
             foreach ($d as $unit) {
                 if (!isset($depts[$unit])) $depts[$unit] = [];
@@ -1839,7 +1847,8 @@ Route::get('/api/dashboard/activity-authors', function () {
         'y' => $y,
         'colors' => $colors,
         'labels' => $labels,
-        'persons' => $persons
+        'persons' => $persons,
+        'multi' => $multi
     ], count($labels));
 });
 
