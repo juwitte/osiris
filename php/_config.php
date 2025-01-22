@@ -42,6 +42,12 @@ function validateValues($values, $DB)
             foreach ($value as $author) {
                 if (is_array($author)) {
                     $author['approved'] = ($author['user'] ?? '') == $_SESSION['username'];
+                    if (isset($author['aoi'])) {
+                        $author['aoi'] = boolval($author['aoi']);
+                    }
+                    if (isset($author['sws'])) {
+                        $author['sws'] = floatval($author['sws']);
+                    }
                     $values[$key][] = $author;
                     continue;
                 }

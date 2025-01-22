@@ -495,14 +495,19 @@ class Document extends Settings
 
     public function getAffiliationTypes()
     {
-        $aoi_authors = array_filter(DB::doc2Arr($this->doc['authors']), function ($a) {
+        $authors = DB::doc2Arr($this->doc['authors']);
+        $aoi_authors = array_filter($authors, function ($a) {
             return $a['aoi'] ?? false;
         });
         $pos = array_unique(array_column($aoi_authors, 'position'));
         $aff = [];
-        if (count($this->doc['authors']) == 1 && count($aoi_authors) == 1)
+        if (empty($authors) || empty($pos)){
+            $aff[] = 'unspecified';
+            return $aff;
+        }
+        if (count($authors) == 1 && count($aoi_authors) == 1)
             $aff[] = 'single';
-        if (count($this->doc['authors']) == count($aoi_authors))
+        if (count($authors) == count($aoi_authors))
             $aff[] = 'all';
         if (in_array('first', $pos))
             $aff[] = 'first';
@@ -516,8 +521,6 @@ class Document extends Settings
             $aff[] = 'middle';
         if (empty($aoi_authors))
             $aff[] = 'none';
-        elseif (empty($pos))
-            $aff[] = 'unspecified';
         if (in_array('corresponding', $pos))
             $aff[] = 'corresponding';
         if (!in_array('first', $pos))

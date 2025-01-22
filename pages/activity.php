@@ -952,7 +952,9 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                     'not_last' => lang('Not last author', 'Nicht letzter Autor:in'),
                     'not_middle' => lang('Not middle author', 'Nicht Mittelautor:in'),
                     'not_corresponding' => lang('Not corresponding author', 'Nicht korrespondierender Autor:in'),
-                    'not_first_or_last' => lang('Not first or last author', 'Nicht Erst- oder Letztautor:in')
+                    'not_first_or_last' => lang('Not first or last author', 'Nicht Erst- oder Letztautor:in'),
+                    'not_first_and_last' => lang('Not first and last author', 'Nicht Erst- und Letztautor:in'),
+                    'unspecified' => lang('Unspecified (no position specified)', 'Unspezifiziert (keine Positionsangabe)'),
                 ];
             ?>
             
