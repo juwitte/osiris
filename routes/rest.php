@@ -558,7 +558,7 @@ Route::get('/portfolio/unit/([^/]*)/staff', function ($id) {
             'academic_title' => $person['academic_title'],
             'position' => $person['position'],
             'position_de' => $person['position_de'],
-            'depts' => $Groups->personDepts($person['units'] ?? []),
+            'depts' => $Groups->deptHierarchies($person['units'] ?? []),
         ];
         if ($person['public_image'] ?? false) {
             $row['img'] = $Settings->printProfilePicture($person['username'], 'profile-img');
@@ -843,7 +843,7 @@ Route::get('/portfolio/project/([^/]*)', function ($id) {
             $row['role'] = Project::personRoleRaw($row['role']);
             $depts = [];
             if (!empty($person['depts'])) {
-                foreach ($Groups->personDepts($person['depts']) as $d) {
+                foreach ($Groups->deptHierarchies($person['depts']) as $d) {
                     $dept = $Groups->getGroup($d);
                     if ($dept['level'] !== 1) continue;
                     $depts[$d] = [

@@ -210,11 +210,11 @@ Route::get('/api/activities', function () {
     if (isset($_GET['columns'])) {
         $columns = $_GET['columns'];
         foreach ($columns as $c) {
-           if (in_array($c, ['web', 'print', 'icon', 'type', 'subtype', 'authors', 'title', 'departments'])) {
-               $projection[$c] = '$rendered.' . $c;
-           } else {
-               $projection[$c] = '$' . $c;
-           }
+            if (in_array($c, ['web', 'print', 'icon', 'type', 'subtype', 'authors', 'title', 'departments'])) {
+                $projection[$c] = '$rendered.' . $c;
+            } else {
+                $projection[$c] = '$' . $c;
+            }
         }
     } else {
         $projection = [
@@ -591,7 +591,7 @@ Route::get('/api/users', function () {
                 'telephone' => $user['telephone'] ?? '',
                 'orcid' => $user['orcid'] ?? '',
                 'academic_title' => $user['academic_title'],
-                'dept' => $Groups->personDept($user['depts'] ?? [], 1)['id'],
+                'dept' => $Groups->deptHierarchy($user['depts'] ?? [], 1)['id'],
                 'active' => ($user['is_active'] ?? true) ? 'yes' : 'no',
                 'public_image' => $user['public_image'] ?? true,
                 'topics' => $user['topics'] ?? array()
@@ -1170,7 +1170,7 @@ Route::get('/api/dashboard/collaborators', function () {
             $dept = $_GET['dept'];
 
             $child_ids = $Groups->getChildren($dept);
-            $persons = $osiris->persons->find(['units.unit' => ['$in' => $child_ids], 'is_active' => ['$ne'=>false]], ['sort' => ['last' => 1]])->toArray();
+            $persons = $osiris->persons->find(['units.unit' => ['$in' => $child_ids], 'is_active' => ['$ne' => false]], ['sort' => ['last' => 1]])->toArray();
             $users = array_column($persons, 'username');
             $filter = [
                 'persons.user' => ['$in' => $users],
@@ -1669,6 +1669,7 @@ Route::get('/api/dashboard/author-network', function () {
 
     $scientist = $_GET['user'] ?? '';
     $selectedUser = $osiris->persons->findone(['username' => $scientist]);
+    $userUnits = array_column(DB::doc2Arr($selectedUser['units']), 'unit');
     // generate graph json
     $labels = [];
     $combinations = [];
@@ -1681,36 +1682,39 @@ Route::get('/api/dashboard/author-network', function () {
         $filter['year'] = ['$gte' => CURRENTYEAR - 4];
     }
 
-    $activities = $osiris->activities->find($filter);
+    $activities = $osiris->activities->find($filter, ['projection' => ['authors' => 1]]);
     $activities = $activities->toArray();
     $N = count($activities);
 
     foreach ($activities as $doc) {
         $authors = [];
-        foreach ($doc['authors'] as $aut) {
-            if (empty($aut['user'])) continue;
-            //!($aut['aoi'] ?? false) || 
-
-            $id = $aut['user'];
+        foreach ($doc['authors'] as $a) {
+            if (empty($a['user'])) continue;
+            if (!($a['aoi'] ?? false)) continue;
+            $id = $a['user'];
+            // dump($a['units']);
             if (array_key_exists($id, $labels)) {
                 // $name = $labels[$id]['name'];
                 $labels[$id]['count']++;
             } else {
-                $person = $osiris->persons->findone(['username' => $aut['user']]);
-                if (empty($person)) continue;
-                $abbr_name = Document::abbreviateAuthor($person['last'], $person['first'], true, ' ');
-
+                $name = Document::abbreviateAuthor($a['last'], $a['first'] ?? null, true, ' ');
                 // get top level unit
-                $units = $Groups->getPersonUnit($person, null, true);
-                $units = array_filter($units, function ($a) {
-                    return $a[1] ?? '';
-                });
+                $units = [];
+                foreach ($a['units'] as $unit) {
+                    // get unit on 1st level
+                    $p = $Groups->getUnitParent($unit, 1);
+                    if (!empty($p)) {
+                        $units[] = $p;
+                    } else {
+                        $units[] = 'unknown';
+                    }
+                }
 
                 $labels[$id] = [
-                    'name' => $abbr_name,
+                    'name' => $name,
                     'id' => $id,
-                    'user' => $aut['user'],
-                    'dept' => $units,
+                    'user' => $a['user'],
+                    'dept' => $units[0] ?? '',
                     'count' => 1
                 ];
             }
@@ -1719,17 +1723,19 @@ Route::get('/api/dashboard/author-network', function () {
 
         $combinations = array_merge($combinations, combinations($authors));
     }
+
+    // sort labels by department
     $departments = array_filter($Groups->groups, function ($a) {
         return ($a['level'] ?? '') == 1;
     });
+
+    // sort by user depts to have the own dept on top
     $depts = array_column($departments, 'id');
-    usort($depts, function ($a, $b) use ($selectedUser) {
-        if (in_array($a, DB::doc2Arr($selectedUser['depts']))) return -1;
+    usort($depts, function ($a, $b) use ($userUnits) {
+        if (in_array($a, $userUnits)) return -1;
         return 1;
     });
-    // $labels = array_filter($labels, function ($a) {
-    //     return !empty($a['dept']);
-    // });
+    
     uasort($labels, function ($a, $b) use ($depts) {
         $a = array_search($a['dept']['id'] ?? '', $depts);
         $b = array_search($b['dept']['id'] ?? '', $depts);
@@ -1796,38 +1802,21 @@ Route::get('/api/dashboard/activity-authors', function () {
             }
 
             $d = [];
-            // if (!empty($a['units'] ?? null)){
-            //     // $p = $Groups->getParents($unit, true);
-            //     // if (!isset($p[$lvl])) $p = end($p);
-            //     // else $p = $p[$lvl];
-
-            //     // // in case the selected unit is not the science unit
-            //     // if ($p != $person['science_unit']) {
-            //     //     $name = $name . ' <small>(' . $Groups->getGroup($unit)['name'] . ')</small>';
-            //     // }
-            //     // if (!in_array($p, $d)) {
-            //     //     if (!empty($d)) $warnings[] =  $person['displayname'] . ' has multiple associations.';
-            //     //     $d[] = $p;
-            //     //     $dept_users[$p][] = $person['username'];
-            //     //     $users[$person['username']] = $p;
-            //     // }
-            // } else 
             foreach ($a['units'] as $unit) {
-                // get parent dept
-                $p = $Groups->getParents($unit, true);
-                if (!isset($p[$lvl])) $p = end($p);
-                else $p = $p[$lvl];
-                if (!in_array($p, $d)) {
-                    // if (!empty($d)) $warnings[] =  $person['displayname'] . ' has multiple associations.';
+                // get unit on 1st level
+                $p = $Groups->getUnitParent($unit, 1);
+                if (!empty($p)) {
                     $d[] = $p;
-                    $dept_users[$p][] = $person['username'];
-                    $users[$person['username']] = $p;
+                }
+
+                if (empty($d)) {
+                    $depts['unknown'][] = $name;
+                    continue;
                 }
             }
             $depts[$d[0]][] = $name;
         }
     }
-
     // $depts = array_count_values($depts);
 
     $labels = [];
@@ -1868,7 +1857,7 @@ Route::get('/api/dashboard/department-graph', function () {
     }
     $group = $Groups->getGroup($_GET['dept']);
     $children = $Groups->getChildren($group['id']);
-    $persons = $osiris->persons->find(['units.unit' => ['$in' => $children], 'is_active' => ['$ne'=>false]], ['sort' => ['last' => 1]])->toArray();
+    $persons = $osiris->persons->find(['units.unit' => ['$in' => $children], 'is_active' => ['$ne' => false]], ['sort' => ['last' => 1]])->toArray();
     $users = array_column($persons, 'username');
     $nodes = [];
     $links = [];
@@ -1986,7 +1975,7 @@ Route::get('/api/dashboard/concept-search', function () {
 
     if (!isset($_GET['concept'])) return return_rest([], 0);
     $name = $_GET['concept'];
-    $active_users = $osiris->persons->distinct('username', ['is_active' => ['$ne'=>false]]);
+    $active_users = $osiris->persons->distinct('username', ['is_active' => ['$ne' => false]]);
     $concepts = $osiris->activities->aggregate(
         [
             ['$match' => ['concepts.display_name' => $name]],
@@ -2156,7 +2145,7 @@ Route::get('/api/calendar', function () {
     $activities = $osiris->activities->find($filter, [
         'projection' => ['start' => '$start_date', 'end' => '$end_date', 'title' => 1, 'id' => ['$toString' => '$_id'], 'type' => 'activity']
     ])->toArray();
-   
+
     $events = array_merge($events, $activities);
 
     // projects

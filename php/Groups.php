@@ -162,7 +162,7 @@ class Groups
         return "style=\"--highlight-color: $color;\"";
     }
 
-    public function personDept($depts, $level = false)
+    public function deptHierarchy($depts, $level = false)
     {
         $result = ['level' => 0, 'name' => '', 'id' => ''];
         if (empty($depts)) return $result;
@@ -177,7 +177,7 @@ class Groups
         }
         return $result;
     }
-    public function personDepts($depts)
+    public function deptHierarchies($depts)
     {
         $result = [];
         foreach ($depts as $d) {
@@ -234,7 +234,7 @@ class Groups
         foreach ($users as $user) {
             $user = $this->osiris->getPerson($user);
             if (empty($user) || empty($user['depts'])) continue;
-            $dept = $this->personDept($user['depts'], 1)['id'];
+            $dept = $this->deptHierarchy($user['depts'], 1)['id'];
             if (in_array($dept, $result)) continue;
             $result[] = $dept;
         }
@@ -290,6 +290,17 @@ class Groups
         return $tree;
     }
 
+    // get the parent of a unit with a certain level
+    public function getUnitParent($unit, $level = 1)
+    {
+        $el = $this->getGroup($unit);
+        $i = 0;
+        while ($el['level'] > $level) {
+            $el = $this->getGroup($el['parent']);
+            if ($i++ > 9) break;
+        }
+        return $el;
+    }
 
     public function getParents($id, $to0 = false)
     {
