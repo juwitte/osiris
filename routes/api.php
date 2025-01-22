@@ -1806,18 +1806,15 @@ Route::get('/api/dashboard/activity-authors', function () {
                 // get unit on 1st level
                 $p = $Groups->getUnitParent($unit, 1);
                 if (!empty($p)) {
-                    $d[] = $p;
-                }
-
-                if (empty($d)) {
-                    $depts['unknown'][] = $name;
-                    continue;
+                    $d[] = $p['id'];
                 }
             }
-            $depts[$d[0]][] = $name;
+            foreach ($d as $unit) {
+                if (!isset($depts[$unit])) $depts[$unit] = [];
+                if (!in_array($name, $depts[$unit])) $depts[$unit][] = $name;
+            }
         }
     }
-    // $depts = array_count_values($depts);
 
     $labels = [];
     $y = [];
