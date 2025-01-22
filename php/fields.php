@@ -210,11 +210,10 @@ $FIELDS = [
         'id' => 'authors.sws',
         'module_of' => $typeModules['supervisor'] ?? [],
         'usage' => [
-            'filter',
-            'columns'
+            'filter'
         ],
         'label' => lang('Author (SWS)', 'Autor (SWS)'),
-        'type' => 'float'
+        'type' => 'integer'
     ],
     [
         'id' => 'affiliated',
