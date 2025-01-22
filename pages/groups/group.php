@@ -19,7 +19,8 @@
 $level = $Groups->getLevel($id);
 
 $children = $Groups->getChildren($group['id']);
-$persons = $osiris->persons->find(['units.unit' => ['$in' => $children], 'is_active' => ['$in' => [true, 'true', 1, '1']]], ['sort' => ['last' => 1]])->toArray();
+
+$persons = $Groups->getAllPersons($children);
 
 if (isset($group['head'])) {
     $head = $group['head'];
@@ -52,7 +53,7 @@ $edit_perm = ($Settings->hasPermission('units.add') || $Groups->editPermission($
     const DEPT_TREE = <?= json_encode($children) ?>;
     const DEPT = '<?= $id ?>';
 </script>
-<script src="<?= ROOTPATH ?>/js/units.js?v=2"></script>
+<script src="<?= ROOTPATH ?>/js/units.js?v=3"></script>
 
 
 <style>
@@ -178,7 +179,7 @@ $edit_perm = ($Settings->hasPermission('units.add') || $Groups->editPermission($
 
             <?php
             $publication_filter = [
-                'authors.user' => ['$in' => $users],
+                'authors.units' => ['$in' => $children],
                 'type' => 'publication'
             ];
             $count_publications = $osiris->activities->count($publication_filter);
@@ -193,7 +194,7 @@ $edit_perm = ($Settings->hasPermission('units.add') || $Groups->editPermission($
 
             <?php
             $activities_filter = [
-                'authors.user' => ['$in' => $users],
+                'authors.units' => ['$in' => $children],
                 'type' => ['$ne' => 'publication']
             ];
             $count_activities = $osiris->activities->count($activities_filter);

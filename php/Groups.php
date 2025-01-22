@@ -22,7 +22,7 @@ class Groups
 {
     public $groups = array();
     public $tree = array();
-    private $osiris;
+    private $DB;
     private $UNITS = [
         'institute' => [
             'name' => 'Institute',
@@ -70,9 +70,9 @@ class Groups
 
     function __construct()
     {
-        $this->osiris = new DB;
+        $this->DB = new DB;
 
-        $groups = $this->osiris->db->groups->find(
+        $groups = $this->DB->db->groups->find(
             [],
             ['sort' => ['level' => 1, 'inactive' => 1]]
         )->toArray();
@@ -232,7 +232,7 @@ class Groups
         if (empty($authors)) return [];
         $users = array_filter(array_column($authors, 'user'));
         foreach ($users as $user) {
-            $user = $this->osiris->getPerson($user);
+            $user = $this->DB->getPerson($user);
             if (empty($user) || empty($user['depts'])) continue;
             $dept = $this->deptHierarchy($user['depts'], 1)['id'];
             if (in_array($dept, $result)) continue;
@@ -487,9 +487,10 @@ class Groups
      * @param bool $include_parents Include parent units.
      * @return array Unit array.
      */
-    public function getPersonUnit($user, $date = null, $include_parents = false){
-        if (is_string($user)){
-            $person = $this->osiris->getPerson($user);
+    public function getPersonUnit($user, $date = null, $include_parents = false, $only_scientific = true)
+    {
+        if (is_string($user)) {
+            $person = $this->DB->getPerson($user);
         } else {
             $person = $user;
         }
@@ -497,8 +498,8 @@ class Groups
         if (empty($date)) $date = date('Y-m-d');
 
         $units = DB::doc2Arr($person['units']);
-        $units = array_filter($units, function ($unit) use ($date) {
-            if (!$unit['scientific']) return false; // we are only interested in scientific units
+        $units = array_filter($units, function ($unit) use ($date, $only_scientific) {
+            if ($only_scientific && !$unit['scientific']) return false; // we are only interested in scientific units
             if (empty($unit['start'])) return true; // we have basically no idea when this unit was active
             return strtotime($unit['start']) <= $date && (empty($unit['end']) || strtotime($unit['end']) >= $date);
         });
@@ -513,5 +514,33 @@ class Groups
         }
         return $units;
     }
-}
 
+
+    function getAllPersons($units, $date = null, $include_parents = false, $only_scientific = true)
+    {
+        if (is_string($units)) {
+            $units = [$units];
+        }
+        if (empty($date)) $date = date('Y-m-d');
+        $persons = $this->DB->db->persons->aggregate([
+            ['$match' => ['units.unit' => ['$in' => $units], 'is_active' => ['$in' => [true, 'true', 1, '1']]]],
+            // ['$project' => ['username' => 1, 'name' => 1, 'units' => 1]],
+            ['$unwind' => '$units'],
+            ['$match' => [
+                'units.unit' => ['$in' => $units],
+                '$and' => [
+                    ['$or' => [
+                        ['units.start' => null],
+                        ['units.start' => ['$lte' => $date]]
+                    ]],
+                    ['$or' => [
+                        ['units.end' => null],
+                        ['units.end' => ['$gte' => $date]]
+                    ]]
+                ]
+            ]],
+            ['$sort' => ['last' => 1]],
+        ])->toArray();
+        return $persons;
+    }
+}

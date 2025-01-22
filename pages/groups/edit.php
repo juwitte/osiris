@@ -452,14 +452,16 @@ function sel($index, $value)
             <tr>
                 <th><?= lang('Name', 'Name') ?></th>
                 <th><?= lang('Position', 'Position') ?></th>
+                <th><?=lang('Since', 'seit')?></th>
                 <th><?= lang('Actions', 'Aktionen') ?></th>
             </tr>
         </thead>
         <tbody>
             <?php
-            $persons = $osiris->persons->find(['units.unit' => $id, 'is_active' => ['$ne' => false]], ['sort' => ['last' => 1]]);
+            $persons = $Groups->getAllPersons($id);
             foreach ($persons as $p) {
                 $is_head = in_array($p['username'], $heads);
+                $unit = $p['units'] ?? [];
             ?>
                 <tr>
                     <td><?= $p['last'] ?>, <?= $p['first'] ?></td>
@@ -469,6 +471,13 @@ function sel($index, $value)
                         <?php } ?>
 
                         <?= $p['position'] ?? '-' ?>
+                    </td>
+                    <td>
+                        <?php if ($unit['start'] ?? false) { ?>
+                            <?= date('d.m.Y', strtotime($unit['start'])) ?>
+                        <?php } else { ?>
+                            <em class="text-muted"><?= lang('undefined', 'undefiniert') ?></em>
+                        <?php } ?>
                     </td>
                     <td>
                         <a href="<?= ROOTPATH ?>/profile/<?= $p['username'] ?>" class="btn small">

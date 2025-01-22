@@ -62,7 +62,7 @@ function navigate(key) {
             if (personsExists) break;
             personsExists = true;
             userTable('#user-table', {
-                filter: { 'units.unit': { '$in': DEPT_TREE }, 'is_active': true },
+                filter: { 'username': { '$in': USERS } },
                 subtitle: 'position'
             })
             break;

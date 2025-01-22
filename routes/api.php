@@ -354,7 +354,7 @@ Route::get('/api/all-activities', function () {
         }
 
         // $depts = $Groups->getDeptFromAuthors($doc['authors']??[]);
-        $depts = DB::doc2Arr($rendered['depts'] ?? []);
+        $depts = DB::doc2Arr($doc['units'] ?? []);
 
         $type = $doc['type'];
         $format_full = $rendered['print'];
