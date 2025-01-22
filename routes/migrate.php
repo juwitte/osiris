@@ -21,53 +21,55 @@ Route::get('/migrate/test', function () {
     
     set_time_limit(6000);
 
-    $cursor = $osiris->persons->find(['depts'=> ['$exists' => true]]);
+    // $cursor = $osiris->persons->find(['depts'=> ['$exists' => true]]);
 
-    foreach ($cursor as $person) {
-        $depts = DB::doc2Arr($person['depts'] ??[]);
-        if (empty($depts)) continue;
+    // foreach ($cursor as $person) {
+    //     $depts = DB::doc2Arr($person['depts'] ??[]);
+    //     if (empty($depts)) continue;
 
-        // make sure that only the lowest level of the hierarchy is in the list
-        foreach ($depts as $dept) {
-            // check if parent is already in the list
-            $parents = $Groups->getParents($dept, true);
-            // remove last element
-            array_pop($parents);
-            foreach ($parents as $parent) {
-                if (in_array($parent, $depts)) {
-                    $key = array_search($parent, $depts);
-                    unset($depts[$key]);
-                }
-            }
-        }
-        $depts = array_values($depts);
+    //     // make sure that only the lowest level of the hierarchy is in the list
+    //     foreach ($depts as $dept) {
+    //         // check if parent is already in the list
+    //         $parents = $Groups->getParents($dept, true);
+    //         // remove last element
+    //         array_pop($parents);
+    //         foreach ($parents as $parent) {
+    //             if (in_array($parent, $depts)) {
+    //                 $key = array_search($parent, $depts);
+    //                 unset($depts[$key]);
+    //             }
+    //         }
+    //     }
+    //     $depts = array_values($depts);
             
-        $units = [];
-        // find the unit with the highest level
-        foreach ($depts as $dept) {
-            // check if parent is already in the list
-            $parents = $Groups->getParents($dept, true);
-            $parents = array_column($parents, 'id');
+    //     $units = [];
+    //     // find the unit with the highest level
+    //     foreach ($depts as $dept) {
+    //         // check if parent is already in the list
+    //         $parents = $Groups->getParents($dept, true);
+    //         $parents = array_column($parents, 'id');
 
-            $units[] = [
-                'id' => uniqid(),
-                'unit' => $dept,
-                'start' => null,
-                'end' => null,
-                'scientific' => true
-            ];
-        }
+    //         $units[] = [
+    //             'id' => uniqid(),
+    //             'unit' => $dept,
+    //             'start' => null,
+    //             'end' => null,
+    //             'scientific' => true
+    //         ];
+    //     }
         
-        $osiris->persons->updateOne(
-            ['_id' => $person['_id']],
-            ['$set' => ['units' => $units]]
-        );
-    }
+    //     $osiris->persons->updateOne(
+    //         ['_id' => $person['_id']],
+    //         ['$set' => ['units' => $units]]
+    //     );
+    // }
 
     // Precalculate activities: find all activities without units and calculate the units based on the authors    
-    $activities = $osiris->activities->find(['authors.units' => ['$exists' => false]]);
+    $activities = $osiris->activities->find(['authors' => ['$exists' => true]]);
+
 
     foreach ($activities as $doc) {
+        // dump($doc['rendered']['print'], true);
         $units = [];
         $startdate = strtotime($doc['start_date']);
 

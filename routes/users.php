@@ -556,24 +556,51 @@ Route::post('/crud/users/update/(.*)', function ($user) {
 
 Route::post('/crud/users/units/(.*)', function ($user) {
     include_once BASEPATH . "/php/init.php";
+    include_once BASEPATH . "/php/Render.php";
 
     if (!isset($_POST['values']) && isset($_POST['id'])) {
+        // first get the unit that should be deleted
+        $unit = $osiris->persons->findOne(
+            ['username' => $user, 'units.id' => $_POST['id']],
+            ['projection' => ['units.$' => 1]]
+        );
+        if (empty($unit)) {
+            echo "Unit not found.";
+            die();
+        }
+        $unit = $unit['units'][0];
+
         // delete unit
         $osiris->persons->updateOne(
             ['username' => $user],
             ['$pull' => ['units' => ['id' => $_POST['id']]]]
         );
+
+        // update all activities that have this user as author
+        if ($unit['scientific']) {
+            // only necessary if unit is scientific
+            $filter = ['authors.user' => $user];
+            if (isset($unit['start'])) {
+                $filter['start_date'] = ['$gte' => $unit['start']];
+            }
+            if (isset($unit['end'])) {
+                $filter['start_date'] = ['$lte' => $unit['end']];
+            }
+            // render all activities that match the filter
+            renderAuthorUnitsMany($filter);
+        }
+
         header("Location: " . ROOTPATH . "/user/units/$user?msg=delete-success");
         die();
     }
-    
+
     // transform values if needed
     $values = $_POST['values'];
     $values['scientific'] = boolval($values['scientific'] ?? false);
     $values['start'] = !empty($values['start']) ? $values['start'] : null;
     $values['end'] = !empty($values['end']) ? $values['end'] : null;
 
-    if (isset($_POST['id'])){
+    if (isset($_POST['id'])) {
         // update existing unit
         $values['id'] = $_POST['id'];
         $osiris->persons->updateOne(
@@ -588,6 +615,17 @@ Route::post('/crud/users/units/(.*)', function ($user) {
             ['$push' => ['units' => $values]]
         );
     }
+
+    // update all activities that have this user as author
+
+    $filter = ['authors.user' => $user];
+    if (isset($values['start'])) {
+        $filter['start_date'] = ['$gte' => $values['start']];
+    }
+    if (isset($values['end'])) {
+        $filter['start_date'] = ['$lte' => $values['end']];
+    }
+    renderAuthorUnitsMany($filter);
 
     if (isset($_POST['redirect']) && !str_contains($_POST['redirect'], "//")) {
         header("Location: " . $_POST['redirect'] . "?msg=update-success");
