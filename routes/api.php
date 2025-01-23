@@ -1559,10 +1559,15 @@ Route::get('/api/dashboard/department-network', function () {
     if (!empty($dept)) $lvl = $Groups->getLevel($dept);
 
     $dept_ids = array_keys($Departments);
+    $filter = ['type' => 'publication', 'year' => ['$gte' => CURRENTYEAR - 4]];
+
+    if (!empty($dept)) {
+        $filter['units'] = $dept;
+    }
 
     $pipeline = [
         [
-            '$match' => ['type' => 'publication', 'year' => ['$gte' => CURRENTYEAR - 4], 'units' => $dept]
+            '$match' => $filter
         ],
         [
             '$project' => [
@@ -1633,20 +1638,38 @@ Route::get('/api/dashboard/department-network', function () {
     // dump($combinations, true);
     // die;
 
-    $other_depts = array_diff($dept_ids, [$dept]);
-    $individual = $osiris->activities->count(
-        [
-            'type' => 'publication',
-            'year' => ['$gte' => CURRENTYEAR - 4],
-            // unit is $dept but not in depts_ids
-            'units' => ['$in' => [$dept], '$nin' => $other_depts]
-        ]
-    );
-    $combinations[] = [
-        'count' => $individual / 2,
-        'unit1' => $dept,
-        'unit2' => $dept
-    ];
+    if (!empty($dept)) {
+        $other_depts = array_values(array_diff($dept_ids, [$dept]));
+        $individual = $osiris->activities->count(
+            [
+                'type' => 'publication',
+                'year' => ['$gte' => CURRENTYEAR - 4],
+                // unit is $dept but not in depts_ids
+                'units' => ['$in' => [$dept], '$nin' => $other_depts]
+            ]
+        );
+        $combinations[] = [
+            'count' => $individual / 2,
+            'unit1' => $dept,
+            'unit2' => $dept
+        ];
+    } else {
+        foreach ($dept_ids as $id) {
+            $other_depts = array_values(array_diff($dept_ids, [$id]));
+            $individual = $osiris->activities->count(
+                [
+                    'type' => 'publication',
+                    'year' => ['$gte' => CURRENTYEAR - 4],
+                    'units' => ['$in' => [$id], '$nin' => $other_depts]
+                ]
+            );
+            $combinations[] = [
+                'count' => $individual / 2,
+                'unit1' => $id,
+                'unit2' => $id
+            ];
+        }
+    }
 
     $ids = [];
     foreach ($combinations as $row) {
@@ -1659,11 +1682,12 @@ Route::get('/api/dashboard/department-network', function () {
         $filter = [
             'type' => 'publication',
             'year' => ['$gte' => CURRENTYEAR - 4],
-            'units' => ['$all' => [$dept, $id]]
+            'units' => $id
         ];
-        if ($id == $dept) {
-            $filter['units'] = $dept;
+        if (!empty($dept) || $id == $dept) {
+            $filter['units'] = ['$all' => [$dept, $id]];
         }
+
         return [
             'name' => $g['name'],
             'name_de' => $g['name_de'],
