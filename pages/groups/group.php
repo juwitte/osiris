@@ -170,10 +170,12 @@ $edit_perm = ($Settings->hasPermission('units.add') || $Groups->editPermission($
             <span class="index"><?= count($users) ?></span>
         </a>
 
-        <a onclick="navigate('graph')" id="btn-graph" class="btn">
-            <i class="ph ph-graph" aria-hidden="true"></i>
-            <?= lang('Graph')  ?>
-        </a>
+        <?php if ($level !== 0) { ?>
+            <a onclick="navigate('graph')" id="btn-graph" class="btn">
+                <i class="ph ph-graph" aria-hidden="true"></i>
+                <?= lang('Graph')  ?>
+            </a>
+        <?php } ?>
 
         <?php if ($level !== 0) { ?>
 
@@ -243,12 +245,12 @@ $edit_perm = ($Settings->hasPermission('units.add') || $Groups->editPermission($
                 <?php } ?>
             <?php } ?>
 
-        <?php } ?>
+            <a onclick="navigate('collab')" id="btn-collab" class="btn">
+                <i class="ph ph-users-three" aria-hidden="true"></i>
+                <?= lang('Other units', 'Andere Einheiten')  ?>
+            </a>
 
-        <a onclick="navigate('collab')" id="btn-collab" class="btn">
-            <i class="ph ph-users-three" aria-hidden="true"></i>
-            <?= lang('Other units', 'Andere Einheiten')  ?>
-        </a>
+        <?php } ?>
 
     </nav>
 
@@ -595,16 +597,18 @@ $edit_perm = ($Settings->hasPermission('units.add') || $Groups->editPermission($
 
     </section>
 
+    <?php if ($level !== 0) { ?>
 
-    <section id="graph" style="display:none">
-        <h3><?= lang('Graph', 'Graph') ?></h3>
+        <section id="graph" style="display:none">
+            <h3><?= lang('Graph', 'Graph') ?></h3>
 
-        <p class="text-muted m-0">
-            <?= lang('Based on publications with associated affiliations.', 'Basierend auf affilierten Publikationen.') ?>
-        </p>
-        <div id="collabGraph" class="mw-full w-800"></div>
+            <p class="text-muted m-0">
+                <?= lang('Based on publications with associated affiliations.', 'Basierend auf affilierten Publikationen.') ?>
+            </p>
+            <div id="collabGraph" class="mw-full w-800"></div>
 
-    </section>
+        </section>
+    <?php } ?>
 
 </div>
 
