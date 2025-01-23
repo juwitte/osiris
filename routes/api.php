@@ -1643,7 +1643,7 @@ Route::get('/api/dashboard/department-network', function () {
         ]
     );
     $combinations[] = [
-        'count' => $individual/2,
+        'count' => $individual / 2,
         'unit1' => $dept,
         'unit2' => $dept
     ];
@@ -1675,7 +1675,7 @@ Route::get('/api/dashboard/department-network', function () {
         ];
     }, $ids);
     $labels = array_values($labels);
-    
+
     // // init matrix of n x n
     $matrix = array_fill(0, count($labels), 0);
     $matrix = array_fill(0, count($labels), $matrix);
@@ -1690,102 +1690,12 @@ Route::get('/api/dashboard/department-network', function () {
         // if ($a != $b)
         $matrix[$b][$a] += $c['count'];
     }
-    
+
 
     echo return_rest([
         'matrix' => $matrix,
         'labels' => $labels,
         'warnings' => []
-    ], count($labels));
-
-
-    die;
-    // select activities from database
-    $filter = [
-        'type' => 'publication'
-    ];
-    if (isset($_GET['type']))
-        $filter['type'] = $_GET['type'];
-    if (!empty($dept)) {
-        $filter['authors.units'] = ['$in' => $Groups->getChildren($dept)];
-    }
-    if (isset($_GET['year'])) {
-        $filter['year'] = $_GET['year'];
-    } else {
-        // past 5 years is default
-        $filter['year'] = ['$gte' => CURRENTYEAR - 4];
-    }
-    if (isset($_GET['activity'])) {
-        //overwrite
-        $filter = ['_id' => DB::to_ObjectID($_GET['activity'])];
-    }
-    $activities = $osiris->activities->find(
-        $filter,
-        ['projection' => ['authors' => 1]]
-    )->toArray();
-
-    // generate graph json
-    $combinations = [];
-
-    $labels = [];
-    foreach ($Departments as $id => $name) {
-        $labels[$id]['count'] = 0;
-    }
-
-    foreach ($activities as $doc) {
-        $authors = [];
-        foreach ($doc['authors'] as $aut) {
-            if (!($aut['aoi'] ?? false) || empty($aut['user']) || !array_key_exists($aut['user'], $users)) continue;
-
-            $id = $aut['user'];
-
-            // get top level unit
-            $dept = $users[$id];
-
-            if (!empty($dept) && !in_array($dept, $authors)) {
-                if (!isset($labels[$dept])) {
-                    $labels[$dept] = $Groups->getGroup($dept);
-                    $labels[$dept]['count'] = 0;
-                }
-                $labels[$dept]['count']++;
-                $authors[] = $dept;
-            }
-        }
-        if (count($authors) == 1)
-            $combinations = array_merge($combinations, [[$authors[0], $authors[0]]]);
-        else
-            $combinations = array_merge($combinations, combinations($authors));
-    }
-
-    // remove depts without publications
-    $labels = array_filter($labels, function ($d) {
-        return $d['count'] !== 0;
-    });
-
-    // add index (needed for following steps)
-    $i = 0;
-    foreach ($labels as $key => $val) {
-        $labels[$key]['index'] = $i++;
-    }
-
-    // init matrix of n x n
-    $matrix = array_fill(0, count($labels), 0);
-    $matrix = array_fill(0, count($labels), $matrix);
-
-    // fill matrix based on all combinations
-    foreach ($combinations as $c) {
-        $a = $labels[$c[0]]['index'];
-        $b = $labels[$c[1]]['index'];
-
-        $matrix[$a][$b] += 1;
-        if ($a != $b)
-            $matrix[$b][$a] += 1;
-    }
-
-    echo return_rest([
-        'matrix' => $matrix,
-        'labels' => $labels,
-        'warnings' => $warnings
     ], count($labels));
 });
 
@@ -1808,6 +1718,14 @@ Route::get('/api/dashboard/author-network', function () {
     $combinations = [];
     $filter = ['authors.user' => $scientist, 'type' => 'publication'];
 
+    $single_authors = $_GET['single'] ?? false;
+
+    $depts = null;
+    if (isset($_GET['dept'])) {
+        $depts = $Groups->getChildren($_GET['dept']);
+        $filter = ['authors.units' => ['$in' => $depts], 'type' => 'publication'];
+    }
+
     if (isset($_GET['year'])) {
         $filter['year'] = $_GET['year'];
     } else {
@@ -1815,9 +1733,7 @@ Route::get('/api/dashboard/author-network', function () {
         $filter['year'] = ['$gte' => CURRENTYEAR - 4];
     }
 
-    $activities = $osiris->activities->find($filter, ['projection' => ['authors' => 1]]);
-    $activities = $activities->toArray();
-    $N = count($activities);
+    $activities = $osiris->activities->find($filter, ['projection' => ['authors' => 1]])->toArray();
 
     foreach ($activities as $doc) {
         $authors = [];
@@ -1825,6 +1741,10 @@ Route::get('/api/dashboard/author-network', function () {
             if (empty($a['user'])) continue;
             if (!($a['aoi'] ?? false)) continue;
             $id = $a['user'];
+            if (!empty($depts)) {
+                if (empty($a['units'])) continue;
+                if (empty(array_intersect(DB::doc2Arr($a['units']), $depts))) continue;
+            }
             // dump($a['units']);
             if (array_key_exists($id, $labels)) {
                 // $name = $labels[$id]['name'];
@@ -1853,8 +1773,11 @@ Route::get('/api/dashboard/author-network', function () {
             }
             $authors[] = $id;
         }
-
-        $combinations = array_merge($combinations, combinations($authors));
+        if (count($authors) > 1) {
+            $combinations = array_merge($combinations, combinations($authors));
+        } elseif ($single_authors && count($authors) == 1) {
+            $combinations[] = [$authors[0], $authors[0]];
+        }
     }
 
     // sort labels by department
@@ -1893,6 +1816,11 @@ Route::get('/api/dashboard/author-network', function () {
         $matrix[$b][$a] += 1;
     }
 
+    // self connections are counted twice before
+    foreach ($labels as $key => $value) {
+        $index = $value['index'];
+        $matrix[$index][$index] /= 2;
+    }
 
     echo return_rest([
         'matrix' => $matrix,
@@ -1996,7 +1924,7 @@ Route::get('/api/dashboard/department-graph', function () {
     }
     $group = $Groups->getGroup($_GET['dept']);
     $children = $Groups->getChildren($group['id']);
-    $persons = $osiris->persons->find(['units.unit' => ['$in' => $children], 'is_active' => ['$ne' => false]], ['sort' => ['last' => 1]])->toArray();
+    $persons = $Groups->getAllPersons($children);
     $users = array_column($persons, 'username');
     $nodes = [];
     $links = [];
@@ -2005,21 +1933,9 @@ Route::get('/api/dashboard/department-graph', function () {
 
     function getNode($p)
     {
-        global $Groups;
         // $user = $p['username'] ?? null;
         $name = ($p['first_abbr'] ?? $p['first'][0] . ".") . ' ' . $p['last'];
         $color = '#000000';
-        if (isset($p['depts'])) {
-            $D = $p['depts'];
-            foreach ($D as $d) {
-                $c = $Groups->getGroup($d)['color'];
-                if (isset($c) && $c != '#000000') {
-                    $color = $c;
-                    break;
-                }
-            }
-        }
-
         return [
             'id' => $p['username'],
             'name' => $name,

@@ -45,7 +45,7 @@ $edit_perm = ($Settings->hasPermission('units.add') || $Groups->editPermission($
 <script src="<?= ROOTPATH ?>/js/popover.js"></script>
 <script src="<?= ROOTPATH ?>/js/d3-chords.js?v=2"></script>
 <script src="<?= ROOTPATH ?>/js/d3.layout.cloud.js"></script>
-<script src="<?= ROOTPATH ?>/js/d3-graph.js"></script>
+<!-- <script src="<?= ROOTPATH ?>/js/d3-graph.js"></script> -->
 
 <!-- all variables for this page -->
 <script>
@@ -602,7 +602,7 @@ $edit_perm = ($Settings->hasPermission('units.add') || $Groups->editPermission($
         <p class="text-muted m-0">
             <?= lang('Based on publications with associated affiliations.', 'Basierend auf affilierten Publikationen.') ?>
         </p>
-        <div id="collabGraph"></div>
+        <div id="collabGraph" class="mw-full w-800"></div>
 
     </section>
 

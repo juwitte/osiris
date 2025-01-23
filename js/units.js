@@ -55,7 +55,7 @@ function navigate(key) {
         case 'graph':
             if (collabGraphExists) break;
             collabGraphExists = true;
-            collabGraph('#collabGraph', { dept: DEPT })
+            collabGraph('#collabGraph', { dept: DEPT, single: true })
             break;
 
         case 'persons':
@@ -131,17 +131,78 @@ function collabChart(selector, data) {
 
 
 function collabGraph(selector, data) {
+    // coauthorNetwork(selector, data)
     $.ajax({
         type: "GET",
-        url: ROOTPATH + "/api/dashboard/department-graph",
+        url: ROOTPATH + "/api/dashboard/author-network",
         data: data,
         dataType: "json",
         success: function (response) {
             console.log(response);
-            Graph(response.data, selector, 800, 500);
+            var matrix = response.data.matrix;
+            var DEPTS = response.data.labels;
+
+            var data = Object.values(DEPTS);
+            var labels = data.map(item => item['name']);
+
+            // var colors = []
+            var links = []
+            var depts_in_use = {};
+
+            data.forEach(function (d, i) {
+                // colors.push(d.dept.color ?? '#cccccc');
+                var link = null
+                if (i !== 0) link = ROOTPATH + "/profile/" + d.user
+                links.push(link)
+
+                if (d.dept.id && depts_in_use[d.dept.id] === undefined)
+                    depts_in_use[d.dept.id] = d.dept;
+            })
+
+            Chords(selector, matrix, labels, null, data, links, false, null);
+
+
+            var legend = d3.select('#legend')
+                .append('div').attr('class', 'content')
+
+            legend.append('div')
+                .style('font-weight', 'bold')
+                .attr('class', 'mb-5')
+                .text(lang("Departments", "Abteilungen"))
+
+            for (const dept in depts_in_use) {
+                if (Object.hasOwnProperty.call(depts_in_use, dept)) {
+                    const d = depts_in_use[dept];
+                    var row = legend.append('div')
+                        .attr('class', 'd-flex mb-5')
+                        .style('color', d.color)
+                    row.append('div')
+                        .style('background-color', d.color)
+                        .style("width", "2rem")
+                        .style("height", "2rem")
+                        .style("border-radius", ".5rem")
+                        .style("display", "inline-block")
+                        .style("margin-right", "1rem")
+                    row.append('span').text(d.name)
+                }
+            }
+
         },
         error: function (response) {
             console.log(response);
         }
     });
+    // $.ajax({
+    //     type: "GET",
+    //     url: ROOTPATH + "/api/dashboard/department-graph",
+    //     data: data,
+    //     dataType: "json",
+    //     success: function (response) {
+    //         console.log(response);
+    //         Graph(response.data, selector, 800, 500);
+    //     },
+    //     error: function (response) {
+    //         console.log(response);
+    //     }
+    // });
 }
