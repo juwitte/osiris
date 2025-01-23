@@ -516,31 +516,64 @@ class Groups
     }
 
 
-    function getAllPersons($units, $date = null, $include_parents = false, $only_scientific = true)
+    function getAllPersons($units, $date = null, $include_parents = false, $only_scientific = false)
     {
         if (is_string($units)) {
             $units = [$units];
         }
         if (empty($date)) $date = date('Y-m-d');
-        $persons = $this->DB->db->persons->aggregate([
-            ['$match' => ['units.unit' => ['$in' => $units], 'is_active' => ['$in' => [true, 'true', 1, '1']]]],
-            // ['$project' => ['username' => 1, 'name' => 1, 'units' => 1]],
-            ['$unwind' => '$units'],
-            ['$match' => [
-                'units.unit' => ['$in' => $units],
-                '$and' => [
-                    ['$or' => [
-                        ['units.start' => null],
-                        ['units.start' => ['$lte' => $date]]
-                    ]],
-                    ['$or' => [
-                        ['units.end' => null],
-                        ['units.end' => ['$gte' => $date]]
-                    ]]
+
+        $filter = [
+            'units' => [
+                '$elemMatch' => [
+                    'unit' => ['$in' => $units],
+                    '$and' => [
+                        ['$or' => [
+                            ['start' => null],
+                            ['start' => ['$lte' => $date]]
+                        ]],
+                        ['$or' => [
+                            ['end' => null],
+                            ['end' => ['$gte' => $date]]
+                        ]]
+                    ]
                 ]
-            ]],
-            ['$sort' => ['last' => 1]],
-        ])->toArray();
+            ],
+            'is_active' => ['$ne' => false]
+        ];
+        if ($only_scientific) {
+            $filter['units']['$elemMatch']['scientific'] = true;
+        }
+
+        $persons = $this->DB->db->persons->find($filter)->toArray();
+        return $persons;
+    }
+
+
+    function countAllPersons($units, $date = null, $include_parents = false, $only_scientific = true)
+    {
+        if (is_string($units)) {
+            $units = [$units];
+        }
+        if (empty($date)) $date = date('Y-m-d');
+        $persons = $this->DB->db->persons->find(
+            [
+                'units' => ['$elemMatch' => [
+                    'unit' => ['$in' => $units],
+                    '$and' => [
+                        ['$or' => [
+                            ['start' => null],
+                            ['start' => ['$lte' => $date]]
+                        ]],
+                        ['$or' => [
+                            ['end' => null],
+                            ['end' => ['$gte' => $date]]
+                        ]]
+                    ]
+                ]],
+                'is_active' => ['$ne' => false]
+            ]
+        )->toArray();
         return $persons;
     }
 }

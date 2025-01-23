@@ -537,39 +537,60 @@ Route::get('/api/users', function () {
     if (isset($_GET['json'])) {
         $filter = json_decode($_GET['json'], true);
     }
+    if (isset($filter['units'])) {
+        $filter['units'] = [
+            '$elemMatch' => [
+                'unit' => ['$in' => $filter['units']],
+                '$and' => [
+                    ['$or' => [
+                        ['start' => null],
+                        ['start' => ['$lte' => date('Y-m-d')]]
+                    ]],
+                    ['$or' => [
+                        ['end' => null],
+                        ['end' => ['$gte' => date('Y-m-d')]]
+                    ]]
+                ]
+            ]
+        ];
+    }
     $result = $osiris->persons->find($filter)->toArray();
 
-    if (!isset($_GET['full'])) {
-        $table = [];
-        foreach ($result as $user) {
-            $subtitle = "";
-            if (isset($user['is_active']) && !$user['is_active']) {
-                $subtitle = '<span class="badge text-danger">' . lang('Former employee', 'Ehemalige Beschäftigte') . '</span>';
-            } elseif (isset($_GET['subtitle'])) {
-                if ($_GET['subtitle'] == 'position') {
-                    $subtitle = lang($user['position'] ?? '', $user['position_de'] ?? null);
-                } else {
-                    $subtitle = $user[$_GET['subtitle']] ?? '';
-                }
-            } else foreach (($user['depts'] ?? []) as $i => $d) {
-                $dept = implode('/', $Groups->getParents($d));
-                $subtitle .= '<a href="' . $path . '/groups/view/' . $d . '">
+    if (isset($_GET['full'])) {
+        echo return_rest($result, count($result));
+        die;
+    }
+
+    $table = [];
+    foreach ($result as $user) {
+        $subtitle = "";
+        if (isset($user['is_active']) && !$user['is_active']) {
+            $subtitle = '<span class="badge text-danger">' . lang('Former employee', 'Ehemalige Beschäftigte') . '</span>';
+        } elseif (isset($_GET['subtitle'])) {
+            if ($_GET['subtitle'] == 'position') {
+                $subtitle = lang($user['position'] ?? '', $user['position_de'] ?? null);
+            } else {
+                $subtitle = $user[$_GET['subtitle']] ?? '';
+            }
+        } else foreach (($user['depts'] ?? []) as $i => $d) {
+            $dept = implode('/', $Groups->getParents($d));
+            $subtitle .= '<a href="' . $path . '/groups/view/' . $d . '">
                     ' . $dept . '
                 </a>';
+        }
+        $topics = '';
+        if ($user['topics'] ?? false) {
+            $topics = '<span class="float-right topic-icons">';
+            foreach ($user['topics'] as $topic) {
+                $topics .= '<a href="' . ROOTPATH . '/topics/view/' . $topic . '" class="topic-icon topic-' . $topic . '"></a> ';
             }
-            $topics = '';
-            if ($user['topics'] ?? false) {
-                $topics = '<span class="float-right topic-icons">';
-                foreach ($user['topics'] as $topic) {
-                    $topics .= '<a href="' . ROOTPATH . '/topics/view/' . $topic . '" class="topic-icon topic-' . $topic . '"></a> ';
-                }
-                $topics .= '</span>';
-            }
-            $table[] = [
-                'id' => strval($user['_id']),
-                'username' => $user['username'],
-                'img' => $Settings->printProfilePicture($user['username'], 'profile-img'),
-                'html' =>  "<div class='w-full'>
+            $topics .= '</span>';
+        }
+        $table[] = [
+            'id' => strval($user['_id']),
+            'username' => $user['username'],
+            'img' => $Settings->printProfilePicture($user['username'], 'profile-img'),
+            'html' =>  "<div class='w-full'>
                     <div style='display: none;'>" . $user['first'] . " " . $user['last'] . "</div>
                     $topics
                     <h5 class='my-0'>
@@ -582,24 +603,22 @@ Route::get('/api/users', function () {
                     </small>
                     <span class='hidden'>$user[username]</span>
                 </div>",
-                'name' => $user['first'] . " " . $user['last'],
-                'names' => !empty($user['names'] ?? null) ? implode(', ', DB::doc2Arr($user['names'])) : '',
-                'first' => $user['first'],
-                'last' => $user['last'],
-                'position' => $user['position'] ?? '',
-                'mail' => $user['mail'] ?? '',
-                'telephone' => $user['telephone'] ?? '',
-                'orcid' => $user['orcid'] ?? '',
-                'academic_title' => $user['academic_title'],
-                'dept' => $Groups->deptHierarchy($user['depts'] ?? [], 1)['id'],
-                'active' => ($user['is_active'] ?? true) ? 'yes' : 'no',
-                'public_image' => $user['public_image'] ?? true,
-                'topics' => $user['topics'] ?? array()
-            ];
-        }
-        $result = $table;
+            'name' => $user['first'] . " " . $user['last'],
+            'names' => !empty($user['names'] ?? null) ? implode(', ', DB::doc2Arr($user['names'])) : '',
+            'first' => $user['first'],
+            'last' => $user['last'],
+            'position' => $user['position'] ?? '',
+            'mail' => $user['mail'] ?? '',
+            'telephone' => $user['telephone'] ?? '',
+            'orcid' => $user['orcid'] ?? '',
+            'academic_title' => $user['academic_title'],
+            'dept' => $Groups->deptHierarchy($user['depts'] ?? [], 1)['id'],
+            'active' => ($user['is_active'] ?? true) ? 'yes' : 'no',
+            'public_image' => $user['public_image'] ?? true,
+            'topics' => $user['topics'] ?? array()
+        ];
     }
-    echo return_rest($result, count($result));
+    echo return_rest($table, count($table));
 });
 
 
@@ -1472,21 +1491,19 @@ Route::get('/api/dashboard/wordcloud', function () {
         return $ret;
     }
 
-    $filter = ['status' => 'approved'];
+    $filter = ['type' => 'publication'];
     if (isset($_GET['user'])) {
-        $filter['persons.user'] = $_GET['user'];
+        $filter['authors.user'] = $_GET['user'];
+    }
+    if (isset($_GET['units'])) {
+        $units = $_GET['units'];
+        if (!is_array($units)) $units = [$units];
+        $filter['authors.units'] = ['$in' => $units];
     }
 
     $result = $osiris->activities->find(
-        [
-            'authors.user' => $_GET['user'] ?? $_SESSION['username'] ?? '',
-            // 'type' => ['$in' => ['publication', 'poster', 'lecture']]
-            'type' => 'publication'
-        ],
+        $filter,
         ['projection' => ['title' => 1, 'abstract' => 1, '_id' => 0]]
-        // ['$unwind' => '$persons'],
-        // ['$match' => $filter],
-        // ['$sort' => ['start' => 1]]
     )->toArray();
 
     $text = "";
@@ -1536,46 +1553,161 @@ Route::get('/api/dashboard/department-network', function () {
         die;
     }
 
-    $dept_filter = $_GET['dept'] ?? null;
+    $dept = $_GET['dept'] ?? null;
     $lvl = 1;
     if (isset($_GET['level'])) $lvl = intval($_GET['level']);
-    if (!empty($dept_filter)) $lvl = $Groups->getLevel($dept_filter);
+    if (!empty($dept)) $lvl = $Groups->getLevel($dept);
 
-    $departments = array_filter($Groups->groups, function ($a) use ($lvl) {
-        return true;
-        // return ($a['level'] ?? '') == $lvl;
-    });
+    $dept_ids = array_keys($Departments);
 
-    $dept_users = [];
-    foreach (array_column($departments, 'id') as $id) {
-        $dept_users[$id] = [];
+    $pipeline = [
+        [
+            '$match' => ['type' => 'publication', 'year' => ['$gte' => CURRENTYEAR - 4], 'units' => $dept]
+        ],
+        [
+            '$project' => [
+                'filtered_units' => [
+                    '$setIntersection' => ['$units', $dept_ids]
+                ]
+            ]
+        ],
+        [
+            '$project' => [
+                'combinations' => [
+                    '$reduce' => [
+                        'input' => '$filtered_units',
+                        'initialValue' => [],
+                        'in' => [
+                            '$concatArrays' => [
+                                '$$value',
+                                [
+                                    '$map' => [
+                                        'input' => [
+                                            '$filter' => [
+                                                'input' => '$filtered_units',
+                                                'as' => 'unit',
+                                                'cond' => [
+                                                    '$gt' => ['$$unit', '$$this']
+                                                ]
+                                            ]
+                                        ],
+                                        'as' => 'unit',
+                                        'in' => ['$$this', '$$unit']
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ],
+        [
+            '$unwind' => '$combinations'
+        ],
+        [
+            '$group' => [
+                '_id' => [
+                    'unit1' => ['$arrayElemAt' => ['$combinations', 0]],
+                    'unit2' => ['$arrayElemAt' => ['$combinations', 1]]
+                ],
+                'count' => ['$sum' => 1]
+            ]
+        ],
+        [
+            '$project' => [
+                'unit1' => '$_id.unit1',
+                'unit2' => '$_id.unit2',
+                'count' => 1,
+                '_id' => 0
+            ]
+        ],
+        [
+            '$sort' => ['count' => -1]
+        ]
+    ];
+
+    // try a new approach
+    $combinations = $osiris->activities->aggregate(
+        $pipeline
+    )->toArray();
+    // dump($combinations, true);
+    // die;
+
+    $other_depts = array_diff($dept_ids, [$dept]);
+    $individual = $osiris->activities->count(
+        [
+            'type' => 'publication',
+            'year' => ['$gte' => CURRENTYEAR - 4],
+            // unit is $dept but not in depts_ids
+            'units' => ['$in' => [$dept], '$nin' => $other_depts]
+        ]
+    );
+    $combinations[] = [
+        'count' => $individual/2,
+        'unit1' => $dept,
+        'unit2' => $dept
+    ];
+
+    $ids = [];
+    foreach ($combinations as $row) {
+        $ids[] = $row['unit1'];
+        $ids[] = $row['unit2'];
     }
-    $users = [];
-    $warnings = [];
-    foreach ($osiris->persons->find() as $person) {
-        if (!isset($person['depts'])) continue;
-        $d = [];
-        foreach ($person['depts'] as $key) {
-            // get parent dept
-            $p = $Groups->getParents($key, true);
-            if (!isset($p[$lvl])) $p = end($p);
-            else $p = $p[$lvl];
-            if (!in_array($p, $d)) {
-                if (!empty($d)) $warnings[] =  $person['displayname'] . ' has multiple associations.';
-                $d[] = $p;
-                $dept_users[$p][] = $person['username'];
-                $users[$person['username']] = $p;
-            }
+    $ids = array_unique($ids);
+    $labels = array_map(function ($id) use ($Groups, $osiris, $dept) {
+        $g = $Groups->getGroup($id);
+        $filter = [
+            'type' => 'publication',
+            'year' => ['$gte' => CURRENTYEAR - 4],
+            'units' => ['$all' => [$dept, $id]]
+        ];
+        if ($id == $dept) {
+            $filter['units'] = $dept;
         }
+        return [
+            'name' => $g['name'],
+            'name_de' => $g['name_de'],
+            'color' => $g['color'],
+            'id' => $id,
+            'count' => $osiris->activities->count(
+                $filter
+            )
+        ];
+    }, $ids);
+    $labels = array_values($labels);
+    
+    // // init matrix of n x n
+    $matrix = array_fill(0, count($labels), 0);
+    $matrix = array_fill(0, count($labels), $matrix);
+
+    $ids = array_column($labels, 'id');
+    // fill matrix based on all combinations
+    foreach ($combinations as $c) {
+        $a = array_search($c['unit1'], $ids);
+        $b = array_search($c['unit2'], $ids);
+
+        $matrix[$a][$b] += $c['count'];
+        // if ($a != $b)
+        $matrix[$b][$a] += $c['count'];
     }
+    
+
+    echo return_rest([
+        'matrix' => $matrix,
+        'labels' => $labels,
+        'warnings' => []
+    ], count($labels));
 
 
+    die;
     // select activities from database
-    $filter = [];
+    $filter = [
+        'type' => 'publication'
+    ];
     if (isset($_GET['type']))
         $filter['type'] = $_GET['type'];
-    if (!empty($dept_filter)) {
-        $filter['authors.user'] = ['$in' => $dept_users[$dept_filter] ?? []];
+    if (!empty($dept)) {
+        $filter['authors.units'] = ['$in' => $Groups->getChildren($dept)];
     }
     if (isset($_GET['year'])) {
         $filter['year'] = $_GET['year'];
@@ -1587,16 +1719,17 @@ Route::get('/api/dashboard/department-network', function () {
         //overwrite
         $filter = ['_id' => DB::to_ObjectID($_GET['activity'])];
     }
-    $activities = $osiris->activities->find($filter);
-    $activities = $activities->toArray();
-
+    $activities = $osiris->activities->find(
+        $filter,
+        ['projection' => ['authors' => 1]]
+    )->toArray();
 
     // generate graph json
     $combinations = [];
 
-    $labels = $departments;
-    foreach ($departments as $dept) {
-        $labels[$dept['id']]['count'] = 0;
+    $labels = [];
+    foreach ($Departments as $id => $name) {
+        $labels[$id]['count'] = 0;
     }
 
     foreach ($activities as $doc) {
@@ -1735,7 +1868,7 @@ Route::get('/api/dashboard/author-network', function () {
         if (in_array($a, $userUnits)) return -1;
         return 1;
     });
-    
+
     uasort($labels, function ($a, $b) use ($depts) {
         $a = array_search($a['dept']['id'] ?? '', $depts);
         $b = array_search($b['dept']['id'] ?? '', $depts);

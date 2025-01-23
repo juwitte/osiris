@@ -123,6 +123,16 @@ $FIELDS = [
         'input' => 'date',
     ],
     [
+        'id' => 'units',
+        'module_of' => $typeModules['units'] ?? [],
+        'usage' => [
+            'filter',
+            'columns'
+        ],
+        'label' => lang('Department (abbr.)', 'Abteilung (Kürzel)'),
+        'type' => 'string'
+    ],
+    [
         'id' => 'abstract',
         'module_of' => $typeModules['abstract'] ?? [],
         'usage' => [
@@ -664,16 +674,6 @@ $FIELDS = [
             'columns'
         ],
         'label' => lang('Country', 'Land'),
-        'type' => 'string'
-    ],
-    [
-        'id' => 'units',
-        'module_of' => $typeModules['units'] ?? [],
-        'usage' => [
-            'filter',
-            'columns'
-        ],
-        'label' => lang('Department (abbr.)', 'Abteilung (Kürzel)'),
         'type' => 'string'
     ],
     [

@@ -299,7 +299,7 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                 break;
             case 'departmental': ?>
                 <span class="badge block primary" data-toggle="tooltip" data-title="<?= lang('Authors from the same department of this institute', 'Autoren aus der gleichen Abteilung des Instituts') ?>">
-                    <?= lang('Institutional', 'Institutionell') ?>
+                    <?= lang('Departmental', 'Abteilungsübergreifend') ?>
                 </span>
             <?php
                 break;

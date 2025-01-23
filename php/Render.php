@@ -61,7 +61,6 @@ function renderActivities($filter = [])
         $values['affiliated'] = !empty($aoi_authors);
         $values['affiliated_positions'] = $Format->getAffiliationTypes();
         $values['cooperative'] = $Format->getCooperationType($values['affiliated_positions'], $doc['units'] ?? []);
-
         $DB->db->activities->updateOne(
             ['_id' => $id],
             ['$set' => $values]
@@ -123,7 +122,7 @@ function renderAuthorUnits($doc, $old_doc = [])
         $units = array_merge($units, $Groups->getParents($unit, true));
     }
     $units = array_unique($units);
-    $doc['units'] = $units;
+    $doc['units'] = array_values($units);
     $doc['authors'] = $authors;
     return $doc;
 }

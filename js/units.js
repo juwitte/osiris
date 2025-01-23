@@ -22,7 +22,7 @@ function navigate(key) {
             initActivities('#publication-table', {
                 page: 'my-activities',
                 display_activities: 'web',
-                user: { '$in': USERS },
+                'authors.units': DEPT,
                 type: 'publication'
             })
             // impactfactors('chart-impact', 'chart-impact-canvas', { user: {'$in': USERS} })
@@ -35,7 +35,7 @@ function navigate(key) {
             initActivities('#activities-table', {
                 page: 'my-activities',
                 display_activities: 'web',
-                user: { '$in': USERS },
+                'authors.units': DEPT,
                 type: { '$ne': 'publication' }
             })
             // activitiesChart('chart-activities', 'chart-activities-canvas', { user: {'$in': USERS} })
@@ -62,8 +62,11 @@ function navigate(key) {
             if (personsExists) break;
             personsExists = true;
             userTable('#user-table', {
-                filter: { 'username': { '$in': USERS } },
-                subtitle: 'position'
+                filter: {
+                    'units': DEPT_TREE,
+                    is_active: { '$ne': false }
+                },
+                subtitle: 'position',
             })
             break;
 
@@ -85,7 +88,7 @@ function navigate(key) {
         case 'wordcloud':
             if (wordcloudExists) break;
             wordcloudExists = true;
-            wordcloud('#wordcloud-chart', { user: { '$in': USERS } })
+            wordcloud('#wordcloud-chart', { 'units': DEPT_TREE })
             break;
         default:
             break;

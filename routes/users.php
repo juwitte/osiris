@@ -619,12 +619,12 @@ Route::post('/crud/users/units/(.*)', function ($user) {
     // update all activities that have this user as author
 
     $filter = ['authors.user' => $user];
-    if (isset($values['start'])) {
-        $filter['start_date'] = ['$gte' => $values['start']];
-    }
-    if (isset($values['end'])) {
-        $filter['start_date'] = ['$lte' => $values['end']];
-    }
+    // if (isset($values['start'])) {
+    //     $filter['start_date'] = ['$gte' => $values['start']];
+    // }
+    // if (isset($values['end'])) {
+    //     $filter['start_date'] = ['$lte' => $values['end']];
+    // }
     renderAuthorUnitsMany($filter);
 
     if (isset($_POST['redirect']) && !str_contains($_POST['redirect'], "//")) {

@@ -538,6 +538,11 @@ class Document extends Settings
 
     public function getCooperationType($affPos=null, $depts = [])
     {
+        global $Departments;
+        if (!empty($depts)) {
+           $departments = array_keys($Departments);
+           $depts = array_intersect(DB::doc2Arr($depts), $departments);
+        }
         if (is_null($affPos)) $affPos = $this->getAffiliationTypes();
         if (in_array('none', $affPos)) return 'none';
         if (in_array('single', $affPos)) return 'individual';
