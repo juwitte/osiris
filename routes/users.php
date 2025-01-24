@@ -804,26 +804,6 @@ Route::post('/crud/users/approve', function () {
     ]);
 });
 
-// Route::post('/crud/users/update-science-unit', function () {
-//     include_once BASEPATH . "/php/init.php";
-//     $user = $_POST['user'] ?? $_SESSION['username'];
-//     if (!isset($_POST['unit'])) {
-//         echo "unit was not defined";
-//         die();
-//     }
-
-//     $updateResult = $osiris->persons->updateOne(
-//         ['username' => $user],
-//         ['$set' => ["science_unit" => $_POST['unit']]]
-//     );
-//     echo lang("Science unit updated.", "Haupt-Einheit für die Wissenschaft aktualisiert.");
-//     die;
-
-//     // header("Location: " . ROOTPATH . "/user/edit/".$user."#section-organization");
-//     // die();
-// });
-
-
 
 Route::post('/crud/queries', function () {
     include_once BASEPATH . "/php/init.php";

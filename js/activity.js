@@ -25,7 +25,7 @@ function navigate(key) {
 $(document).ready(function () {
     // get hash
     var hash = window.location.hash
-    if (hash) {
+    if (hash && hash.includes('#section-')) {
         navigate(hash.replace('#section-', ''))
     }
 });

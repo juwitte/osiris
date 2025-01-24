@@ -291,21 +291,40 @@ Route::post('/crud/groups/delete/([A-Za-z0-9]*)', function ($id) {
 Route::post('/crud/groups/addperson/(.*)', function ($id) {
     include_once BASEPATH . "/php/init.php";
 
+    if (!isset($_POST['username'])) die("no username given");
+    $user = $_POST['username'];
+    
+    $mode = $_POST['change-or-add'] ?? 'add';
+    if ($mode == 'change' && isset($_POST['start'])) {
+        // set end date of all other units with null date to one day before start date
+        $osiris->persons->updateMany(
+            ['username' => $user, 'units.end' => null],
+            [
+            '$set' => ['units.$[elem].end' => date('Y-m-d', strtotime($_POST['start'] . ' -1 day'))]
+            ],
+            ['arrayFilters' => [['elem.end' => null]]]
+        );
+    }
     // add id to person dept
-    $updateResult = $osiris->persons->updateOne(
-        ['username' => $_POST['username']],
+    $osiris->persons->updateOne(
+        ['username' => $user],
         [
             '$push' => ["units" => [
                 'id' => uniqid(),
                 'unit' => $id,
-                'start' => date('Y-m-d'),
+                'start' => $_POST['start'] ?? null,
                 'end' => null,
-                'scientific' => true
+                'scientific' => boolval($_POST['scientific'] ?? true)
             ]]
         ]
     );
-    // TODO: update activities from the period the person was in the group
-    // renderAuthorUnitsMany(['authors.user' => $_POST['username'], 'date' => ['$gte' => date('Y-m-d')]]);
+    // update activities from the period the person was in the group
+    include_once BASEPATH . "/php/Render.php";
+    if (isset($_POST['start'])) {
+        renderAuthorUnitsMany(['authors.user' => $user, 'date' => ['$gte' => $_POST['start']]]);
+    } else {
+        renderAuthorUnitsMany(['authors.user' => $user]);
+    }
 
 
     header("Location: " . ROOTPATH . "/groups/edit/$id?msg=added-person#section-personnel");
@@ -319,8 +338,9 @@ Route::post('/crud/groups/removeperson/(.*)', function ($id) {
         ['$pull' => ["units" => ['unit' => $id]]]
     );
 
-    // TODO: update activities from the period the person was in the group
-    // renderAuthorUnitsMany(['authors.user' => $_POST['username'], 'date' => ['$gte' => date('Y-m-d')]]);
+    // update activities from the period the person was in the group
+    include_once BASEPATH . "/php/Render.php";
+    renderAuthorUnitsMany(['authors.user' => $_POST['username']]);
 
     header("Location: " . ROOTPATH . "/groups/edit/$id?msg=removed-person#section-personnel");
 });

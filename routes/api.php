@@ -622,6 +622,40 @@ Route::get('/api/users', function () {
 });
 
 
+
+Route::get('/api/users/(.*)', function ($id) {
+    error_reporting(E_ERROR | E_PARSE);
+    include_once BASEPATH . "/php/init.php";
+
+    if (!apikey_check($_GET['apikey'] ?? null)) {
+        echo return_permission_denied();
+        die;
+    }
+
+    if (DB::is_ObjectID($id)){
+        $filter = ['_id' => DB::to_ObjectID($id)];
+    } else {
+        $filter = ['username' => $id];
+    }
+    $options = [];
+    if (isset($_GET['columns'])){
+        $options['projection'] = [
+            'id' => ['$toString' => '$_id']
+        ];
+        foreach ($_GET['columns'] as $c){
+            $options['projection'][$c] = 1;
+        }
+    }
+    $user = $osiris->persons->findOne($filter, $options);
+
+    if (empty($user)) {
+        echo return_rest('User not found', 0, 404);
+        die;
+    }
+
+    echo return_rest($user, 1);
+});
+
 Route::get('/api/reviews', function () {
     error_reporting(E_ERROR | E_PARSE);
     include_once BASEPATH . "/php/init.php";

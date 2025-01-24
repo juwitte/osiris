@@ -20,10 +20,12 @@ Route::get('/rerender', function () {
     renderActivities();
     echo "Done.";
 });
-Route::get('/rerender-units', function () {
+Route::get('/rerender-units/?(.*)', function ($username) {
     set_time_limit(6000);
     include_once BASEPATH . "/php/Render.php";
-    renderAuthorUnitsMany();
+    $filter = [];
+    if (!empty($username)) $filter['authors.user'] = $username;
+    renderAuthorUnitsMany($filter);
     echo "Done.";
 });
 
