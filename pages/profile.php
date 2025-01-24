@@ -17,18 +17,6 @@
  */
 ?>
 
-<?php
-
-if (defined('OSIRIS_DB_VERSION') && OSIRIS_DB_VERSION != OSIRIS_VERSION) { ?>
-    <div class="alert danger mb-20">
-        <h3 class="title"><?= lang('Warning', 'Warnung') ?></h3>
-        <?= lang('
-        A new OSIRIS-Version has been found. Please click <a href="' . ROOTPATH . '/migrate">here</a> to migrate', '
-        Eine neue OSIRIS-Version wurde gefunden. Bitte klicke <a href="' . ROOTPATH . '/migrate">hier</a>, um zu migrieren.') ?>
-        <small>Installed: <?= OSIRIS_DB_VERSION ?></small>
-    </div>
-<?php } ?>
-
 
 <!-- all necessary javascript -->
 <script src="<?= ROOTPATH ?>/js/chart.min.js"></script>
