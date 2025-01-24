@@ -759,13 +759,21 @@ Route::post('/crud/activities/claim/([A-Za-z0-9]*)', function ($id) {
         ]
     );
 
+    $units = $author['units'] ?? null;
+
     $updateResult = $osiris->activities->updateOne(
         $filter,
         [
-            '$set' => ["$role.$index.user" => $_SESSION['username'], "$role.$index.approved" => true]
+            '$set' => [
+                "$role.$index.user" => $_SESSION['username'], 
+                "$role.$index.approved" => true,
+                "$role.$index.aoi" => true,
+                ]
         ]
     );
 
+    include_once BASEPATH . "/php/Render.php";
+    renderAuthorUnitsMany(['_id' => $id]);
 
     // $updateCount = $updateResult->getModifiedCount();
 
