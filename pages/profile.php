@@ -280,7 +280,7 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
                         if ($selected) { ?>
                             <tr>
                                 <td class="indent-<?=$row['indent']?>">
-                                    <a href="<?= ROOTPATH ?>/group/<?= $row['id'] ?>">
+                                    <a href="<?= ROOTPATH ?>/groups/view/<?= $row['id'] ?>">
                                         <?= lang($row['name_en'], $row['name_de'] ?? null) ?>
                                     </a>
                                     <?php if ($head) { ?>
