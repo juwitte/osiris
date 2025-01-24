@@ -125,7 +125,7 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
 
 <script src="<?= ROOTPATH ?>/js/chart.min.js"></script>
 <script src="<?= ROOTPATH ?>/js/chartjs-plugin-datalabels.min.js"></script>
-<script src="<?= ROOTPATH ?>/js/activity.js?v=1"></script>
+<script src="<?= ROOTPATH ?>/js/activity.js?v=<?=CSS_JS_VERSION?>"></script>
 
 
 

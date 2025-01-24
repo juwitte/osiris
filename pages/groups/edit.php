@@ -102,7 +102,7 @@ function sel($index, $value)
 <script>
     const UNIT = '<?=$id?>';
 </script>
-<script src="<?= ROOTPATH ?>/js/quill.min.js?v=2"></script>
+<script src="<?= ROOTPATH ?>/js/quill.min.js?v=<?=CSS_JS_VERSION?>"></script>
 <script src="<?= ROOTPATH ?>/js/groups-editor.js"></script>
 
 

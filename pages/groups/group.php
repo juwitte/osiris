@@ -43,7 +43,7 @@ $edit_perm = ($Settings->hasPermission('units.add') || $Groups->editPermission($
 <script src="<?= ROOTPATH ?>/js/chart.min.js"></script>
 <script src="<?= ROOTPATH ?>/js/d3.v4.min.js"></script>
 <script src="<?= ROOTPATH ?>/js/popover.js"></script>
-<script src="<?= ROOTPATH ?>/js/d3-chords.js?v=2"></script>
+<script src="<?= ROOTPATH ?>/js/d3-chords.js?v=<?=CSS_JS_VERSION?>"></script>
 <script src="<?= ROOTPATH ?>/js/d3.layout.cloud.js"></script>
 <!-- <script src="<?= ROOTPATH ?>/js/d3-graph.js"></script> -->
 
@@ -53,7 +53,7 @@ $edit_perm = ($Settings->hasPermission('units.add') || $Groups->editPermission($
     const DEPT_TREE = <?= json_encode($children) ?>;
     const DEPT = '<?= $id ?>';
 </script>
-<script src="<?= ROOTPATH ?>/js/units.js?v=3"></script>
+<script src="<?= ROOTPATH ?>/js/units.js?v=<?=CSS_JS_VERSION?>"></script>
 
 
 <style>

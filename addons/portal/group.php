@@ -127,7 +127,7 @@ $_SESSION['last_group'] = $id;
     <script src="<?= ROOTPATH ?>/js/plotly-2.27.1.min.js" charset="utf-8"></script>
 
 
-    <!-- <script src="<?= ROOTPATH ?>/js/d3-chords.js?v=2"></script> -->
+    <!-- <script src="<?= ROOTPATH ?>/js/d3-chords.js?v=<?=CSS_JS_VERSION?>"></script> -->
     <!-- <script src="<?= ROOTPATH ?>/js/d3.layout.cloud.js"></script> -->
 
     <!-- all variables for this page -->
@@ -139,7 +139,7 @@ $_SESSION['last_group'] = $id;
         const DEPT = '<?= $id ?>';
         const PORTALPATH = '<?=PORTALPATH?>';
     </script>
-    <script src="<?= ROOTPATH ?>/js/units.portfolio.js?v=3"></script>
+    <script src="<?= ROOTPATH ?>/js/units.portfolio.js?v=<?=CSS_JS_VERSION?>"></script>
 
 
     <style>
