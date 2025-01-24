@@ -76,10 +76,10 @@ $pageactive = function ($p) use ($page) {
     <title><?= $pagetitle ?? 'OSIRIS' ?></title>
 
     <!-- Icon font -->
-    <link href="<?= ROOTPATH ?>/css/phosphoricons/regular/style.css?v=2" rel="stylesheet" />
-    <link href="<?= ROOTPATH ?>/css/phosphoricons/fill/style.css?v=2" rel="stylesheet" />
+    <link href="<?= ROOTPATH ?>/css/phosphoricons/regular/style.css?v=<?=CSS_JS_VERSION?>" rel="stylesheet" />
+    <link href="<?= ROOTPATH ?>/css/phosphoricons/fill/style.css?v=<?=CSS_JS_VERSION?>" rel="stylesheet" />
     <!-- for open access icons -->
-    <link href="<?= ROOTPATH ?>/css/fontello/css/osiris.css?v=2" rel="stylesheet" />
+    <link href="<?= ROOTPATH ?>/css/fontello/css/osiris.css?v=<?=CSS_JS_VERSION?>" rel="stylesheet" />
 
     <link rel="stylesheet" href="<?= ROOTPATH ?>/css/main.css?<?= filemtime(BASEPATH . '/css/main.css') ?>">
     <?php
@@ -470,7 +470,7 @@ $pageactive = function ($p) use ($page) {
                         </a>
                         <a href="<?= ROOTPATH ?>/groups" class="with-icon <?= $pageactive('groups') ?>">
                             <i class="ph ph-users-three" aria-hidden="true"></i>
-                            <?= lang('Organisational Units', 'Organisationen') ?>
+                            <?= lang('Organisational Units', 'Einheiten') ?>
                         </a>
 
                         <!-- <a href="<?= ROOTPATH ?>/expertise" class="with-icon <?= $pageactive('expertise') ?>">
@@ -491,10 +491,10 @@ $pageactive = function ($p) use ($page) {
                         <?= lang('Visualization', 'Visualisierung') ?>
                     </div>
                     <nav>
-                        <!-- <a href="<?= ROOTPATH ?>/activities/search" class="with-icon <?= $pageactive('search') ?>">
+                        <a href="<?= ROOTPATH ?>/activities/search" class="with-icon <?= $pageactive('activities/search') ?>">
                             <i class="ph ph-magnifying-glass-plus" aria-hidden="true"></i>
                             <?= lang('Advanced search', 'Erweiterte Suche') ?>
-                        </a> -->
+                        </a>
 
                         <a href="<?= ROOTPATH ?>/dashboard" class="with-icon <?= $pageactive('dashboard') ?>">
                             <i class="ph ph-chart-line" aria-hidden="true"></i>

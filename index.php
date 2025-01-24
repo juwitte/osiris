@@ -21,13 +21,14 @@ if (file_exists('CONFIG.php')) {
     require_once 'CONFIG.default.php';
 }
 require_once 'php/_config.php';
+define('CSS_JS_VERSION', '1.0.0');
 
 // error_reporting(E_ERROR);
 
 session_start();
 
 define('BASEPATH', $_SERVER['DOCUMENT_ROOT'] . ROOTPATH);
-define('OSIRIS_VERSION', '1.4.0-beta');
+define('OSIRIS_VERSION', '1.4.0');
 
 // set time constants
 $year = date("Y");

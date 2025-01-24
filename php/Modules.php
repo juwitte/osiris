@@ -604,7 +604,9 @@ class Modules
                     '<option value="" ' . (empty($val) ? 'selected' : '') . '>-</option>';
                 }
                 foreach ($field['values'] as $opt) {
-                    $opt = lang(...$opt);
+                    if (is_array($opt)) {
+                        $opt = lang(...$opt);
+                    }
                     echo '<option ' . ($val == $opt ? 'selected' : '') . ' value="' . $opt . '">' . $opt . '</option>';
                 }
                 echo '</select>';

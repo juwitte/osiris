@@ -16,19 +16,6 @@
  * @license     MIT
  */
 
-// get OSIRIS version
-$version = $osiris->system->findOne(['key' => 'version']);
-if ($version['value'] != OSIRIS_VERSION) { ?>
-    <div class="alert danger mb-20">
-        <h3 class="title"><?= lang('Warning', 'Warnung') ?></h3>
-        <?= lang('
-        A new OSIRIS-Version has been found. Please click <a href="' . ROOTPATH . '/migrate">here</a> to migrate', '
-        Eine neue OSIRIS-Version wurde gefunden. Bitte klicke <a href="' . ROOTPATH . '/migrate">hier</a>, um zu migrieren.') ?>
-    </div>
-<?php
-    die;
-}
-
 
 if (isset($_GET['redirect'])) {?>
 

@@ -103,6 +103,26 @@ Route::get('/user/edit/(.*)', function ($user) {
     include BASEPATH . "/footer.php";
 }, 'login');
 
+
+Route::get('/user/units/(.*)', function ($user) {
+    include_once BASEPATH . "/php/init.php";
+
+    $data = $DB->getPerson($user);
+    if (empty($data)) {
+        header("Location: " . ROOTPATH . "/user/browse");
+        die;
+    }
+    $breadcrumb = [
+        ['name' => lang('Users', 'Personen'), 'path' => "/user/browse"],
+        ['name' => $data['name'], 'path' => "/profile/$user"],
+        ['name' => lang("Edit units", "Einheiten bearbeiten")]
+    ];
+
+    include BASEPATH . "/header.php";
+    include BASEPATH . "/pages/user-units.php";
+    include BASEPATH . "/footer.php";
+}, 'login');
+
 Route::get('/user/visibility/(.*)', function ($user) {
     include_once BASEPATH . "/php/init.php";
     // include_once BASEPATH . "/php/Document.php";
@@ -329,7 +349,8 @@ Route::post('/synchronize-users', function () {
             "first",
             "last",
             "name",
-            "depts",
+            // "depts",
+            "units",
             "username",
             "created",
             "created_by",
@@ -478,21 +499,6 @@ Route::post('/crud/users/update/(.*)', function ($user) {
         $person['cv'] = $cv;
     }
 
-    // update science unit if needed
-    if (isset($values['depts'])) {
-        $old_su = $old['science_unit'] ?? null;
-        // in case the science unit was removed from the list
-        if (!empty($old_su) && !in_array($old_su, $values['depts'])){
-            $person['science_unit'] = null;
-            $old_su = null;
-        }
-        // in case no science unit was set and a dept is added
-        if (empty($old_su) && count($values['depts']) > 0) {
-            $person['science_unit'] = $values['depts'][0];
-        }
-    }
-
-
     // if new password is set, update password
     if (isset($_POST['password']) && !empty($_POST['password'])) {
         // check if old password matches
@@ -548,6 +554,89 @@ Route::post('/crud/users/update/(.*)', function ($user) {
 });
 
 
+Route::post('/crud/users/units/(.*)', function ($user) {
+    include_once BASEPATH . "/php/init.php";
+    include_once BASEPATH . "/php/Render.php";
+
+    if (!isset($_POST['values']) && isset($_POST['id'])) {
+        // first get the unit that should be deleted
+        $unit = $osiris->persons->findOne(
+            ['username' => $user, 'units.id' => $_POST['id']],
+            ['projection' => ['units.$' => 1]]
+        );
+        if (empty($unit)) {
+            echo "Unit not found.";
+            die();
+        }
+        $unit = $unit['units'][0];
+
+        // delete unit
+        $osiris->persons->updateOne(
+            ['username' => $user],
+            ['$pull' => ['units' => ['id' => $_POST['id']]]]
+        );
+
+        // update all activities that have this user as author
+        if ($unit['scientific']) {
+            // only necessary if unit is scientific
+            $filter = ['authors.user' => $user];
+            if (isset($unit['start'])) {
+                $filter['start_date'] = ['$gte' => $unit['start']];
+            }
+            if (isset($unit['end'])) {
+                $filter['start_date'] = ['$lte' => $unit['end']];
+            }
+            // render all activities that match the filter
+            renderAuthorUnitsMany($filter);
+        }
+
+        header("Location: " . ROOTPATH . "/user/units/$user?msg=delete-success");
+        die();
+    }
+
+    // transform values if needed
+    $values = $_POST['values'];
+    $values['scientific'] = boolval($values['scientific'] ?? false);
+    $values['start'] = !empty($values['start']) ? $values['start'] : null;
+    $values['end'] = !empty($values['end']) ? $values['end'] : null;
+
+    if (isset($_POST['id'])) {
+        // update existing unit
+        $values['id'] = $_POST['id'];
+        $osiris->persons->updateOne(
+            ['username' => $user, 'units.id' => $_POST['id']],
+            ['$set' => ['units.$' => $values]]
+        );
+    } else {
+        // add new unit
+        $values['id'] = uniqid();
+        $osiris->persons->updateOne(
+            ['username' => $user],
+            ['$push' => ['units' => $values]]
+        );
+    }
+
+    // update all activities that have this user as author
+
+    $filter = ['authors.user' => $user];
+    // if (isset($values['start'])) {
+    //     $filter['start_date'] = ['$gte' => $values['start']];
+    // }
+    // if (isset($values['end'])) {
+    //     $filter['start_date'] = ['$lte' => $values['end']];
+    // }
+    renderAuthorUnitsMany($filter);
+
+    if (isset($_POST['redirect']) && !str_contains($_POST['redirect'], "//")) {
+        header("Location: " . $_POST['redirect'] . "?msg=update-success");
+        die();
+    }
+    echo json_encode([
+        'updated' => $updateResult->getModifiedCount()
+    ]);
+});
+
+
 Route::post('/crud/users/delete/(.*)', function ($user) {
     include_once BASEPATH . "/php/init.php";
 
@@ -565,7 +654,8 @@ Route::post('/crud/users/delete/(.*)', function ($user) {
         "first",
         "last",
         "name",
-        "depts",
+        // "depts",
+        "units",
         "username",
         "created",
         "created_by",
@@ -713,26 +803,6 @@ Route::post('/crud/users/approve', function () {
         'updated' => $updateResult->getModifiedCount()
     ]);
 });
-
-Route::post('/crud/users/update-science-unit', function () {
-    include_once BASEPATH . "/php/init.php";
-    $user = $_POST['user'] ?? $_SESSION['username'];
-    if (!isset($_POST['unit'])) {
-        echo "unit was not defined";
-        die();
-    }
-
-    $updateResult = $osiris->persons->updateOne(
-        ['username' => $user],
-        ['$set' => ["science_unit" => $_POST['unit']]]
-    );
-    echo lang("Science unit updated.", "Haupt-Einheit für die Wissenschaft aktualisiert.");
-    die;
-
-    // header("Location: " . ROOTPATH . "/user/edit/".$user."#section-organization");
-    // die();
-});
-
 
 
 Route::post('/crud/queries', function () {

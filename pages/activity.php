@@ -125,7 +125,7 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
 
 <script src="<?= ROOTPATH ?>/js/chart.min.js"></script>
 <script src="<?= ROOTPATH ?>/js/chartjs-plugin-datalabels.min.js"></script>
-<script src="<?= ROOTPATH ?>/js/activity.js?v=1"></script>
+<script src="<?= ROOTPATH ?>/js/activity.js?v=<?=CSS_JS_VERSION?>"></script>
 
 
 
@@ -299,7 +299,7 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                 break;
             case 'departmental': ?>
                 <span class="badge block primary" data-toggle="tooltip" data-title="<?= lang('Authors from the same department of this institute', 'Autoren aus der gleichen Abteilung des Instituts') ?>">
-                    <?= lang('Institutional', 'Institutionell') ?>
+                    <?= lang('Departmental', 'Abteilungsübergreifend') ?>
                 </span>
             <?php
                 break;
@@ -733,16 +733,16 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                 if ($locked && !$Settings->hasPermission('activities.delete-locked')) : ?>
                     <p class="mt-0">
                         <?= lang(
-                            'This activity has been locked because it was already used by Controlling in a report. Due to the documentation and verification obligation, activities may not be easily changed or deleted after the report. However, if a change is necessary, please contact the responsible persons.',
-                            'Diese Aktivität wurde gesperrt, da sie bereits vom Controlling in einem Report verwendet wurde. Wegen der Dokumentations- und Nachweispflicht dürfen Aktivitäten nach dem Report nicht mehr so einfach verändert oder gelöscht werden. Sollte dennoch eine Änderung notwenig sein, meldet euch bitte bei den Verantwortlichen.'
+                            'This activity has been locked because it was already used by reporters in a report. Due to the documentation and verification obligation, activities may not be easily changed or deleted after the report. However, if a change is necessary, please contact the responsible persons.',
+                            'Diese Aktivität wurde gesperrt, da sie bereits von den Berichterstattenden in einem Report verwendet wurde. Wegen der Dokumentations- und Nachweispflicht dürfen Aktivitäten nach dem Report nicht mehr so einfach verändert oder gelöscht werden. Sollte dennoch eine Änderung notwenig sein, meldet euch bitte bei den Verantwortlichen.'
                         ) ?>
                     </p>
                     <?php
-                    $body = $USER['displayname'] . " möchte folgenden OSIRIS-Eintrag bearbeiten/löschen: $name%0D%0A%0D%0ABegründung/Reason:%0D%0A%0D%0Ahttp://osiris.int.dsmz.de/activities/view/$id";
+                    // $body = $USER['displayname'] . " möchte folgenden OSIRIS-Eintrag bearbeiten/löschen: $name%0D%0A%0D%0ABegründung/Reason:%0D%0A%0D%0Ahttp://osiris.int.dsmz.de/activities/view/$id";
                     ?>
-                    <!-- <a class="btn danger" href="mailto:dominic.koblitz@dsmz.de?cc=julia.koblitz@dsmz.de&subject=[OSIRIS] Antrag auf Änderung&body=<?= $body ?>">
+                    <!-- <a class="btn danger" href="mailto:someone&subject=[OSIRIS] Antrag auf Änderung&body=<?= $body ?>">
                     <i class="ph ph-envelope" aria-hidden="true"></i>
-                    <?= lang('Contact controlling', 'Controlling kontaktieren') ?>
+                    <?= lang('Contact editors', 'Editoren kontaktieren') ?>
                 </a> -->
                 <?php
                 elseif ($Settings->hasPermission('activities.delete')) :
@@ -793,27 +793,38 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
 
         <div class="col-lg-6">
 
-
             <div class="">
                 <?php
+                // calculate units based on publication date and authors
+                // $units = [];
+                // $startdate = strtotime($doc['start_date']);
 
-                // get units based on project persons
-                $units = [];
-                $Groups = new Groups();
+                // foreach (array_filter($doc['authors']) as $i => $author) {
+                //     if (!($author['aoi'] ?? false) || !isset($author['user'])) continue;
+                //     $user = $author['user'];
+                //     $person = $DB->getPerson($user);
+                //     if (isset($person['units']) && !empty($person['units'])) {
+                //         $u = DB::doc2Arr($person['units']);
+                //         // dump($u);
+                //         // filter units that have been active at the time of activity
+                //         $u = array_filter($u, function ($unit) use ($startdate) {
+                //             if (!$unit['scientific']) return false; // we are only interested in scientific units
+                //             if (empty($unit['start'])) return true; // we have basically no idea when this unit was active
+                //             return strtotime($unit['start']) <= $startdate && (empty($unit['end']) || strtotime($unit['end']) >= $startdate);
+                //         });
+                //         $u = array_column($u, 'unit');
+                //         $activity['authors'][$i]['units'] = $u;
+                //         $units = array_merge($units, $u);
+                //     }
+                // }
 
-                $authors = array_filter($doc['authors'], function ($a) {
-                    return isset($a['user']) && !empty($a['user']);
-                });
-                foreach ($authors as $a) {
-                    $p = $DB->getPerson($a['user']);
-                    if (!isset($p['science_unit'])) continue;
-                    $parents = $Groups->getParents($p['science_unit']);
-
-                    foreach ($parents as $parent) {
-                        $units[] = $parent;
-                    }
-                }
-                $units = array_unique($units);
+                // $units = array_unique($units);
+                // // add parent units
+                // foreach ($units as $unit) {
+                //     $units = array_merge($units, $Groups->getParents($unit, true));
+                // }
+                // $units = array_unique($units);
+                $units = $doc['units'] ?? [];
                 ?>
             </div>
 
@@ -881,11 +892,9 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                                 <?php endif; ?>
                                 <td>
                                     <?php
-                                    if (isset($author['user']) && !empty($author['user'])) {
-                                        $person = $DB->getPerson($author['user']);
-                                        if (isset($person['science_unit']) && !empty($person['science_unit'])) {
-                                            $unit = $Groups->getName($person['science_unit']);
-                                            echo "<a href='" . ROOTPATH . "/groups/view/{$person['science_unit']}' data-toggle='tooltip' data-title='$unit'>{$person['science_unit']}</a>";
+                                    if (isset($author['units']) && !empty($author['units'])) {
+                                        foreach ($author['units'] as $unit) {
+                                            echo "<a href='" . ROOTPATH . "/groups/view/$unit' class='mr-10'>$unit</a>";
                                         }
                                     } ?>
                                 </td>
@@ -924,17 +933,72 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                 </table>
             <?php } ?>
 
-            <h5>
-                <?=lang('Participating units', 'Beteiligte Einheiten')?>
-            </h5>
-           <div class="btn-toolbar">
-           <?php
-                foreach ($units as $unit) {
-                    $name = $Groups->getName($unit);
-                    echo "<a class='btn' href='" . ROOTPATH . "/groups/$unit' data-toggle='tooltip' data-title='$name'>$unit</a>";
-                }
+            <h3>
+                <?=lang('Affiliated positions', 'Affilierte Positionen')?>
+            </h3>
+
+            <?php
+                $positions = [
+                    'first' => lang('First author', 'Erstautor:in'),
+                    'last' => lang('Last author', 'Letztautor:in'),
+                    'first_and_last' => lang('First and last author', 'Erst- und Letztautor:in'),
+                    'first_or_last' => lang('First or last author', 'Erst- oder Letztautor:in'),
+                    'middle' => lang('Middle author', 'Mittelautor:in'),
+                    'single' => lang('One single affiliated author', 'Ein einzelner affiliierter Autor'),
+                    'none' => lang('No author affiliated', 'Kein:e Autor:in affiliert'),
+                    'all' => lang('All authors affiliated', 'Alle Autoren affiliert'),
+                    'corresponding' => lang('Corresponding author', 'Korrespondierender Autor:in'),
+                    'not_first' => lang('Not first author', 'Nicht Erstautor:in'),
+                    'not_last' => lang('Not last author', 'Nicht letzter Autor:in'),
+                    'not_middle' => lang('Not middle author', 'Nicht Mittelautor:in'),
+                    'not_corresponding' => lang('Not corresponding author', 'Nicht korrespondierender Autor:in'),
+                    'not_first_or_last' => lang('Not first or last author', 'Nicht Erst- oder Letztautor:in'),
+                    'not_first_and_last' => lang('Not first and last author', 'Nicht Erst- und Letztautor:in'),
+                    'unspecified' => lang('Unspecified (no position specified)', 'Unspezifiziert (keine Positionsangabe)'),
+                ];
             ?>
-           </div>
+            
+
+            <?php foreach ($doc['affiliated_positions'] ?? [] as $key) { ?>
+                <span class="badge bg-white mr-5 mb-5"><?=$positions[$key] ?? $key?></span>
+            <?php } ?>
+            <br>
+            <small class="text-muted">
+                <?=lang('Automatically calculated', 'Automatisch berechnet')?>
+            </small>
+
+            <h3>
+                <?= lang('Participating units', 'Beteiligte Einheiten') ?>
+            </h3>
+            <table class="table unit-table w-full">
+                <tbody>
+                    <?php
+                    if (!empty($units)) {
+                        $hierarchy = $Groups->getPersonHierarchyTree($units);
+                        $tree = $Groups->readableHierarchy($hierarchy);
+
+                        foreach ($tree as $row) {
+                            $dept = $Groups->getGroup($row['id']);
+                    ?>
+                            <tr>
+                                <td class="indent-<?= $row['indent'] ?>">
+                                    <a href="<?= ROOTPATH ?>/group/<?= $row['id'] ?>">
+                                        <?= lang($row['name_en'], $row['name_de'] ?? null) ?>
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php
+                        }
+                    } else { ?>
+                        <tr>
+                            <td>
+                                <?= lang('No organisational unit connected', 'Keine Organisationseinheit verknüpft') ?>
+                            </td>
+                        </tr>
+                    <?php }
+                    ?>
+                </tbody>
+            </table>
         </div>
     </div>
 </section>
