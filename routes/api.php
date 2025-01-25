@@ -632,17 +632,17 @@ Route::get('/api/users/(.*)', function ($id) {
         die;
     }
 
-    if (DB::is_ObjectID($id)){
+    if (DB::is_ObjectID($id)) {
         $filter = ['_id' => DB::to_ObjectID($id)];
     } else {
         $filter = ['username' => $id];
     }
     $options = [];
-    if (isset($_GET['columns'])){
+    if (isset($_GET['columns'])) {
         $options['projection'] = [
             'id' => ['$toString' => '$_id']
         ];
-        foreach ($_GET['columns'] as $c){
+        foreach ($_GET['columns'] as $c) {
             $options['projection'][$c] = 1;
         }
     }
@@ -927,7 +927,7 @@ Route::get('/api/journal', function () {
             ['issn' => $_GET['search']]
         ]];
     }
-    $result = $osiris->journals->find($filter)->toArray();
+    $result = $osiris->journals->find($filter,)->toArray();
     echo return_rest($result, count($result));
 });
 
@@ -972,38 +972,55 @@ Route::get('/api/journals', function () {
     header("Content-Type: application/json");
     header("Pragma: no-cache");
     header("Expires: 0");
+    $pipeline = [
+        [
+            '$project' => [
+                'id' => ['$toString' => '$_id'],
+                'name' => '$journal',
+                'abbr' => '$abbr',
+                'publisher' => 1,
+                'open_access' => '$oa',
+                'issn' => '$issn',
+                'country' => '$country',
+                'if' => ['$arrayElemAt' => ['$impact', -1]]
+            ]
+        ],
+        [
+            '$lookup' => [
+                'from' => 'activities',
+                'localField' => 'id',
+                'foreignField' => 'journal_id',
+                'as' => 'related_activities'
+            ]
+        ],
+        [
+            '$addFields' => [
+                'count' => ['$size' => '$related_activities'],
+            ]
+        ],
+        [
+            '$sort' => ['count' => -1]
+        ],
+        [
+            '$project' => [
+                'id' => 1,
+                'name' => 1,
+                'abbr' => 1,
+                'publisher' => 1,
+                'open_access' => 1,
+                'issn' => 1,
+                'country' => 1,
+                'if' => 1,
+                'count' => 1
+            ]
+        ]
 
-    $journals = $osiris->journals->find()->toArray();
-    $result = ['data' => []];
-    // $i = 0;
-    $activities = $osiris->activities->find(['journal_id' => ['$exists' => 1, '$ne' => null]], ['projection' => ['journal_id' => 1]])->toArray();
-    $activities = array_column($activities, 'journal_id');
-    $activities = array_count_values($activities);
-    $no = lang('No', 'Nein');
-    $yes = lang('Yes', 'Ja');
-    $since = lang('since ', 'seit ');
-    foreach ($journals as $doc) {
-        if (!isset($doc['oa']) || $doc['oa'] === false) {
-            $oa = $no;
-        } elseif ($doc['oa'] > 1900) {
-            $oa =  $since . $doc['oa'];
-        } else {
-            $oa =  $yes;
-        }
-        $result['data'][] = [
-            'id' => strval($doc['_id']),
-            'name' => $doc['journal'],
-            'abbr' => $doc['abbr'],
-            'publisher' => $doc['publisher'] ?? '',
-            'open_access' => $oa,
-            'issn' => $doc['issn'],
-            'country' => $doc['country'] ?? '',
-            'if' => $DB->latest_impact($doc) ?? '',
-            'count' => $activities[strval($doc['_id'])] ?? 0
-        ];
-    }
+       
+    ];
 
-    echo json_encode($result);
+    $journals = $osiris->journals->aggregate($pipeline)->toArray();
+
+    echo return_rest($journals, count($journals));
 });
 
 
