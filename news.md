@@ -11,29 +11,50 @@
 #### <i class="ph ph-siren"></i> Wichtige Änderungen am Interface
 - Das Menü wurde etwas umstrukturiert: Aktivitäten, Projekte, und Personen wurden mitsamt zugehörigen Daten in eigene Kategorien gepackt
 - Der Menüpunkt "Meine Aktivitäten" ist zurück (nur Wissenschaftler-Ansicht)
-- Die "Erweiterte Suche" ist jetzt nicht mehr im Seitenmenü zu finden. Um die erweiterte Suche (Aktivitäten) zu sinden, klickt bitte auf "Alle Aktivitäten" und dann neben der Suche auf "Erweiterte Suche" (**Achtung**: die URL hat sich geändert, evtl. Bookmarks müssen also neu gesetzt werden)
+- Die User Experience wurde verbessert, wenn man versucht hat, eine Seite zu erreichen, obwohl man nicht eingeloggt ist
+- gaaaaaanz viele kleine Verbesserungen am Interface, z.B. in der Expertise-Suche
 
 #### <i class="ph ph-puzzle-piece"></i> Forschungsbereiche
 - Forschungsbereiche wurden als neue Entität hinzugefügt
 - Forschungsbereiche können zentral eingeschaltet, definiert und danach zu anderen Entitäten hinzugefügt werden, z.B. zu Aktivitäten, Projekten und Personen
 - Es wurden Detailseiten für alle Forschungsbereiche hinzugefügt, auf denen alle Informationen und verlinkte Details dargestellt sind
 - Es wurden zu allen verlinkbaren Aktivitäten Filter hinzugefügt
+- <i class="ph ph-warnung"></i> Bitte beachte, dass die Forschungsbereiche zurzeit noch nicht über die API ausgeliefert werden. Dies ist für den kommenden Release 1.4.1 geplant.
 
-<!-- #### Anmeldung von Gästen -->
+#### <i class="ph ph-users-three"></i> Organisationseinheiten
+- Der Graph für die Zusammenarbeit innerhalb einer Einheit wurde deutlich verbessert und zeigt jetzt auch individuelle Arbeiten an
+- Einheiten können jetzt als inaktiv markiert werden und werden dann nicht mehr in Filtern etc. angezeigt
+- Es wurden neue Felder angelegt, beispielsweise kann nun eine interne ID vergeben werden
+
+<i class="ph ph-clock"></i> **Zeitaufgelöste Organisationseinheiten**
+- Organisationseinheiten können jetzt zeitlich aufgelöst werden, d.h. es können Start- und Enddaten für die Zugehörigkeit von Personen zu Organisationseinheiten angegeben werden
+- Die Zugehörigkeit zur Einheit wird auch bei den Aktivitäten gespeichert, wenn eine Person also die Einheit wechselt, bleiben die zuvor angelegten Aktivitäten weiterhin der ursprünglichen Einheit zugeordnet
+- Aktivitäten und Projekte werden automatisch der Einheit zugeordnet, die die Person zum Zeitpunkt der Aktivität hatte. Dies lässt sich aber auch manuell ändern und wird dann nicht mehr automatisch aktualisiert
+- Es wurde eine neue Seite hinzugefügt, auf der die zeitliche Entwicklung der Einheiten dargestellt wird und auf der die Zugehörigkeit von Personen zu Einheiten bearbeitet werden kann
+- Die Darstellung der Einheiten wurde global verbessert, beispielweise im Profil, in der Aktivitäten- und Projekte-Übersicht
 
 
-#### <i class="ph ph-magnifying-glass-plus"></i> Verbesserungen bei der Suche von Aktivitäten
+#### <i class="ph ph-magnifying-glass-plus"></i> Verbesserungen bei der Suche und Darstellung Aktivitäten
+**Die Detailansicht von Aktivitäten**
+- Eine Reihe von wichtigen Meta-Informationen wird jetzt ganz oben angezeigt, darunter das Datum/Zeitraum, die Metriken (Impact und Quartil), Information über die Zusammenarbeit und Affiliation, sowie ggf. die Forschungsbereiche
+- Das Interface wurde generell verbessert und ist jetzt übersichtlicher
+
 **Alle Aktivitäten**
-- Die Kategorien lassen sich nach dem Auswählen jetzt noch weiter als Typen differenziert filtern
+- Im Filter lassen sich Kategorien lassen nach dem Auswählen jetzt noch weiter als Typen differenziert filtern
 
-**Erweiterten Suche**
+**Erweiterte Aktivitäten-Suche**
+- Das Interface wurde deutlich verbessert und ist jetzt übersichtlicher. Die gespeicherten Abfragen sind jetzt in einem Popup zu finden und zeigen nun mehr Informationen an. Der Filter ist ebenfalls in ein eigenes Fenster gewandert. Dadurch wird die Suche deutlich intuitiver und einfacher zu bedienen.
+- **Neu**: Es können jetzt Spalten für die Anzeige ausgewählt werden. 
+  - Die Liste enthält dabei alle Felder und jeweils Icons, um zu kennzeichnen, in welchen Aktivitätstypen diese vorkommen.
+  - Die Tabelle lässt sich inklusive der Spalten sortieren und filtern
+  - Die Tabelle lässt sich inklusive aller gewählten Spalten als Excel-Datei herunterladen
+- Filter:
+  - Es wurde ein neuer Filter für das Start- und Enddatum hinzugefügt, durch den sich Zeiträume jetzt auch leicht mit "größer" und "kleiner" definieren lassen 
+  - Es wurde ein Filter für die Forschungsbereiche hinzugefügt
+  - Der Filter für die Organisationseinheiten wurde verbessert
 - Ein Fehler wurde behoben, durch den die Experten-Suche nicht gespeichert werden konnte
-- Das Interface wurde etwas verbessert
-- Es wurde ein neuer Filter für das Start- und Enddatum hinzugefügt, durch den sich Zeiträume jetzt auch leicht mit "größer" und "kleiner" definieren lassen 
-- Die Suche ist jetzt über die Seite "Alle Aktivitäten" erreichbar
+- Die Suche ist jetzt auch über die Seite "Alle Aktivitäten" erreichbar
 
-#### <i class="ph ph-magnifying-glass-plus"></i> Aus "Pubmed-Suche" wird "Online-Suche"
-- Die Suche nach Aktivitäten in Online-Repositorien wurde umstrukturiert, ausgeweitet und verbessert
 
 #### <i class="ph ph-text-aa"></i> Rich Text-Editoren und mehr Übersetzungen
 - Mehr Felder lassen sich jetzt zweisprachig definieren:
@@ -47,14 +68,14 @@
 
 #### <i class="ph ph-newspaper-clipping"></i> Metriken von Journalen
 - Die Metriken (z.B. 2-Jahres-Impact Faktor) können jetzt über die neue zentrale OSIRIS-API abgerufen werden
-- TODO: das muss zurzeit noch manuell für jedes Journal gemacht werden. Eine Lösung ist in Arbeit.
-
+- Es gibt auch eine Funktion, mit der alle Metriken auf einmal abgerufen werden können
+- Um Metriken für ein Journal zu aktualisieren, gehe auf die Seite des Journals und drucke auf *Metriken aktualisieren*
 
 #### <i class="ph ph-tree-structure"></i> Verbesserung von Projekten
 - Beantragte Projekte sind jetzt auf dem eigenen Profil zu sehen
 
-**Projektübersicht**
-- In der Projektübersicht sieht man jetzt nicht nur die eigenen sondern auch noch alle anderen bewilligten Projekte
+**Projektliste**
+- In der Projektliste sieht man jetzt nicht nur die eigenen sondern auch noch alle anderen bewilligten Projekte
 - Die Ansicht ist komplett überarbeitet worden 
 - Filtermöglichkeiten wurden deutlich verbessert und erweitert
 - Forschungsbereiche wurden hinzugefügt
@@ -72,14 +93,17 @@
 **Erweiterte Suche**
 - Eine komplett neue erweiterte Suche wurde hinzugefügt
 - Unterstützung für alle Funktionen, die die Aktivitäten-Suche ebenfalls bietet, inkl. Speichern von Abfragen und der Experten-Suche
+- <i class="ph ph-warnung"></i> Bitte beachte, dass du hier noch keine Spalten auswählen kannst. Dies wird in der nächsten Version hinzugefügt.
 
 #### <i class="ph ph-gear"></i> Verbesserte Nutzereinstellungen
 Die Nutzereinstellungen sind in den letzten Monaten gewachsen und sehr unübersichtlich geworden. Deshalb wude das ganze Interface stark überarbeitet.
 - Die einzelnen Abschnitte sind jetzt in einzelne Reiter unterteilt
 - Hier ist jetzt auch die Biographie (CV) und die Forschungsinteressen zu finden, die vorher etwas ausgegliedert waren.
-- Das Interface zur Bearbeitung der Organisationseinheiten wurde grundlegend überarbeitet und enorm verbessert. Vorher musste man sich durch ewig lange Listen scrollen und mit gedrückter Strg-Taste die Gruppen auswählen. Jetzt handelt es sich um einen sogenannten Checkbox-Tree, der deutlich intuitiver zu bedienen ist.
+- Das Interface zur Bearbeitung der Organisationseinheiten wurde nun wie bereits oben erwähnt in die neue Einheitsstruktur ausgelagert
 - Die Forschungsbereiche wurden im Reiter "Organisation" hinzugefügt
 - Im Reiter "Account" kann jetzt zudem das Password geändert werden (nur bei Auth-Addon)
+- Es wurden neue Felder hinzugefügt, zum Beispiel eine Biographie, Forschungsinteressen (Freitext), Raumnummer, und eine interne ID 
+- Die Position einer Person kann nun entweder wie zuvor ein Freitext sein oder aus einer Liste ausgewählt werden. Die Liste kann im Admin-Bereich definiert werden.
 
 
 #### <i class="ph ph-presentation-chart"></i> Events
@@ -106,8 +130,13 @@ Die Nutzereinstellungen sind in den letzten Monaten gewachsen und sehr unübersi
 
 
 #### <i class="ph ph-gear"></i> Admin-Bereich
-- Es wurde eine Möglichkeit hinzugefügt, User zentral anzulegen (nur Auth-Addon)
+- Die generellen Einstellungen wurden überarbeitet und sind jetzt übersichtlicher
+- Es ist jetzt möglich, die Farben des UIs anzupassen
 - Es ist jetzt möglich, eigene Rollen anzulegen
+- Es ist jetzt möglich, eine Liste mit möglichen Positionen anzulegen (für Personen)
+- Es ist jetzt möglich, Nutzende zentral anzulegen (nur Auth-Addon)
+- Es können nun über LDAP synchronisierte Attribute ausgelesen und in OSIRIS gespeichert werden. Diese werden ebenfalls in den generellen Einstellungen definiert. Auf diese Art und Weise festgelegte Attribute (zum Beispiel Raumnummer) können dann nicht mehr manuell in den Nutzereinstellungen bearbeitet werden.
+- 
 
 #### <i class="ph ph-code"></i> Bug Fixes und Verbesserungen
 - Es werden jetzt alle Namen einer Person bei der Suche in der Personenliste berücksichtigt  
@@ -119,7 +148,8 @@ Die Nutzereinstellungen sind in den letzten Monaten gewachsen und sehr unübersi
 - Es wurde ein Fehler behoben, durch den Template-Bausteine im Berichte-Editor nicht löschbar waren
 - Die Bezeichnung "Epub" wurde überall einheitlich in "Online ahead of Print" umbenannt
 - Untereinheiten können jetzt sortiert werden
-- Bei der Eingabe der Google Scholar-ID wird diese jetzt auf Fehler überprüft
+- Bei der Eingabe der Google Scholar-ID wird diese jetzt auf Fehler überprüft, da dies immer wieder zu Problemen beim Importieren führte
+
 
 
 
