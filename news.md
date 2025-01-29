@@ -23,6 +23,7 @@
 - Der Graph für die Zusammenarbeit innerhalb einer Einheit wurde deutlich verbessert und zeigt jetzt auch individuelle Arbeiten an
 - Einheiten können jetzt als inaktiv markiert werden und werden dann nicht mehr in Filtern etc. angezeigt
 - Es wurden neue Felder angelegt, beispielsweise kann nun eine interne ID vergeben werden
+- Das Interface für die Bearbeitung von Einheiten wurde verbessert; insbesondere die Zuordnung von Personen zu Einheiten
 
 <i class="ph ph-clock"></i> **Zeitaufgelöste Organisationseinheiten**
 - Organisationseinheiten können jetzt zeitlich aufgelöst werden, d.h. es können Start- und Enddaten für die Zugehörigkeit von Personen zu Organisationseinheiten angegeben werden
@@ -53,6 +54,9 @@
 - Ein Fehler wurde behoben, durch den die Experten-Suche nicht gespeichert werden konnte
 - Die Suche ist jetzt auch über die Seite "Alle Aktivitäten" erreichbar
 
+#### <i class="ph ph-calendar-dots"></i> Kalender
+- Es wurde ein Kalender hinzugefügt, der alle Aktivitäten, Gastaufenthalte und Events anzeigt
+- Es kann auch in der Organisationsstruktur nach oben navigiert werden, um die Aktivitäten der übergeordneten Einheiten zu sehen
 
 #### <i class="ph ph-text-aa"></i> Rich Text-Editoren und mehr Übersetzungen
 - Mehr Felder lassen sich jetzt zweisprachig definieren:
@@ -91,7 +95,7 @@
 **Erweiterte Suche**
 - Eine komplett neue erweiterte Suche wurde hinzugefügt
 - Unterstützung für alle Funktionen, die die Aktivitäten-Suche ebenfalls bietet, inkl. Speichern von Abfragen und der Experten-Suche
-- <i class="ph ph-warnung"></i> Bitte beachte, dass du hier noch keine Spalten auswählen kannst. Dies wird in der nächsten Version hinzugefügt.
+- <i class="ph ph-warnung"></i> Bitte beachte, dass du hier noch keine Spalten auswählen kannst. Dies wird in einer nächsten Version hinzugefügt.
 
 #### <i class="ph ph-gear"></i> Verbesserte Nutzereinstellungen
 Die Nutzereinstellungen sind in den letzten Monaten gewachsen und sehr unübersichtlich geworden. Deshalb wude das ganze Interface stark überarbeitet.
