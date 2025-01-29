@@ -2238,7 +2238,6 @@ Route::get('/api/calendar', function () {
         echo return_permission_denied();
         die;
     }
-
     
 
     $filter = [];
@@ -2254,13 +2253,24 @@ Route::get('/api/calendar', function () {
         ];
     }
 
-    // options for FullCalendar
+    $users = [$_SESSION['username']];
+    if (isset($_GET['unit'])){
+        // get all people associated with this unit rn
+        $units = $Groups->getChildren($_GET['unit']);
+        $users = $Groups->getAllPersons($units);
+        $users = array_column($users, 'username');
+    } 
+    $filter['participants'] = ['$in' => $users];
+
     // conferences
     $events = $osiris->conferences->find($filter, [
         'projection' => ['start' => 1, 'end' => 1, 'title' => 1, 'id' => ['$toString' => '$_id'], 'type' => 'event']
     ])->toArray();
 
-    // activities $filter = [];
+    
+
+    // get activities
+    
     if (isset($_GET['start']) && isset($_GET['end'])) {
         $start = $_GET['start'];
         $end = $_GET['end'];
@@ -2273,6 +2283,12 @@ Route::get('/api/calendar', function () {
             ]
         ];
     }
+    if (isset($_GET['unit'])){
+        $filter['units'] = $_GET['unit'];
+    } else {
+        $filter['authors.user'] = $_SESSION['username'] ?? '';
+    }
+
 
     $activities = $osiris->activities->find($filter, [
         'projection' => ['start' => '$start_date', 'end' => '$end_date', 'title' => 1, 'id' => ['$toString' => '$_id'], 'type' => 'activity']
