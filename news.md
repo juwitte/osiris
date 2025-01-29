@@ -2,11 +2,9 @@
 
 
 <span class="badge float-right">07.11.2024</span>
-<a class="anchor" href="#version-1.4.0" id="version-1.4.0-beta"></a>
+<a class="anchor" href="#version-1.4.0" id="version-1.4.0"></a>
 
-## Version 1.4.0 <span class="badge danger">BETA</span>
-
-**Achtung: Beta-Version**. Neue Features können sich eventuell noch ändern und sind teilweise noch nicht zu ihrer Endversion ausgebaut.
+## Version 1.4.0
 
 #### <i class="ph ph-siren"></i> Wichtige Änderungen am Interface
 - Das Menü wurde etwas umstrukturiert: Aktivitäten, Projekte, und Personen wurden mitsamt zugehörigen Daten in eigene Kategorien gepackt
@@ -136,7 +134,7 @@ Die Nutzereinstellungen sind in den letzten Monaten gewachsen und sehr unübersi
 - Es ist jetzt möglich, eine Liste mit möglichen Positionen anzulegen (für Personen)
 - Es ist jetzt möglich, Nutzende zentral anzulegen (nur Auth-Addon)
 - Es können nun über LDAP synchronisierte Attribute ausgelesen und in OSIRIS gespeichert werden. Diese werden ebenfalls in den generellen Einstellungen definiert. Auf diese Art und Weise festgelegte Attribute (zum Beispiel Raumnummer) können dann nicht mehr manuell in den Nutzereinstellungen bearbeitet werden.
-- 
+- Es wurde ein neuer Template-Editor hinzugefügt (Beta), der bei der Formatierung von Templates hilft
 
 #### <i class="ph ph-code"></i> Bug Fixes und Verbesserungen
 - Es werden jetzt alle Namen einer Person bei der Suche in der Personenliste berücksichtigt  

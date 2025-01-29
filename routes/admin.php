@@ -49,6 +49,20 @@ Route::get('/admin/(general|roles|features)', function ($page) {
 }, 'login');
 
 
+Route::get('/admin/templates', function () {
+    include_once BASEPATH . "/php/init.php";
+    $breadcrumb = [
+        ['name' => lang("Categories", "Kategorien"), 'path' => "/admin/categories"],
+        ['name' => lang("New", "Neu")],
+        ['name' => lang("Template builder")]
+    ];
+    include BASEPATH . "/header.php";
+    include BASEPATH . "/pages/admin/template-builder.php";
+    include BASEPATH . "/footer.php";
+}, 'login');
+
+
+
 Route::get('/admin/categories', function () {
     include_once BASEPATH . "/php/init.php";
     if (!$Settings->hasPermission('admin.see')) die('You have no permission to be here.');

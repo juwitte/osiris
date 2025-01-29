@@ -2234,10 +2234,12 @@ Route::get('/api/calendar', function () {
     error_reporting(E_ERROR | E_PARSE);
     include_once BASEPATH . "/php/init.php";
 
-    // if (!apikey_check($_GET['apikey'] ?? null)) {
-    //     echo return_permission_denied();
-    //     die;
-    // }
+    if (!apikey_check($_GET['apikey'] ?? null)) {
+        echo return_permission_denied();
+        die;
+    }
+
+    
 
     $filter = [];
     if (isset($_GET['start']) && isset($_GET['end'])) {
