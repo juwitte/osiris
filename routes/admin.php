@@ -61,6 +61,17 @@ Route::get('/admin/templates', function () {
     include BASEPATH . "/footer.php";
 }, 'login');
 
+Route::get('/admin/module-helper', function () {
+    include_once BASEPATH . "/php/init.php";
+    $breadcrumb = [
+        ['name' => lang("Categories", "Kategorien"), 'path' => "/admin/categories"],
+        ['name' => lang("New", "Neu")],
+        ['name' => lang("Data fields", "Datenfelder")]
+    ];
+    include BASEPATH . "/header.php";
+    include BASEPATH . "/pages/admin/module-helper.php";
+    include BASEPATH . "/footer.php";
+}, 'login');
 
 
 Route::get('/admin/categories', function () {
