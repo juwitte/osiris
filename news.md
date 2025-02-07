@@ -137,8 +137,10 @@ Die Nutzereinstellungen sind in den letzten Monaten gewachsen und sehr unübersi
 - Es ist jetzt möglich, eigene Rollen anzulegen
 - Es ist jetzt möglich, eine Liste mit möglichen Positionen anzulegen (für Personen)
 - Es ist jetzt möglich, Nutzende zentral anzulegen (nur Auth-Addon)
+- Im Bereich Rollen und Rechte ist der Header der Tabelle nun fixiert, sodass er beim Scrollen stehts zu sehen ist
 - Es können nun über LDAP synchronisierte Attribute ausgelesen und in OSIRIS gespeichert werden. Diese werden ebenfalls in den generellen Einstellungen definiert. Auf diese Art und Weise festgelegte Attribute (zum Beispiel Raumnummer) können dann nicht mehr manuell in den Nutzereinstellungen bearbeitet werden.
 - Es wurde ein neuer Template-Editor hinzugefügt (Beta), der bei der Formatierung von Templates hilft
+- Es wurde eine Übersicht über alle vorhandenen Formularfelder hinzugefügt (Beta), die sowohl den Namen des Feldes enthält als auch  das Aussehen und die entsprechenden gespeicherten Informationen.
 
 #### <i class="ph ph-code"></i> Bug Fixes und Verbesserungen
 - Es werden jetzt alle Namen einer Person bei der Suche in der Personenliste berücksichtigt  

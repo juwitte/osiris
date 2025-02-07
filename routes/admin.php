@@ -63,6 +63,7 @@ Route::get('/admin/templates', function () {
 
 Route::get('/admin/module-helper', function () {
     include_once BASEPATH . "/php/init.php";
+    include_once BASEPATH . "/php/Modules.php";
     $breadcrumb = [
         ['name' => lang("Categories", "Kategorien"), 'path' => "/admin/categories"],
         ['name' => lang("New", "Neu")],
