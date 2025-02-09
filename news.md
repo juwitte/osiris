@@ -1,7 +1,7 @@
 # Neuigkeiten
 
 
-<span class="badge float-right">07.11.2024</span>
+<span class="badge float-right">07.02.2025</span>
 <a class="anchor" href="#version-1.4.0" id="version-1.4.0"></a>
 
 ## Version 1.4.0
@@ -138,7 +138,7 @@ Die Nutzereinstellungen sind in den letzten Monaten gewachsen und sehr unübersi
 - Es ist jetzt möglich, eine Liste mit möglichen Positionen anzulegen (für Personen)
 - Es ist jetzt möglich, Nutzende zentral anzulegen (nur Auth-Addon)
 - Im Bereich Rollen und Rechte ist der Header der Tabelle nun fixiert, sodass er beim Scrollen stehts zu sehen ist
-- Es können nun über LDAP synchronisierte Attribute ausgelesen und in OSIRIS gespeichert werden. Diese werden ebenfalls in den generellen Einstellungen definiert. Auf diese Art und Weise festgelegte Attribute (zum Beispiel Raumnummer) können dann nicht mehr manuell in den Nutzereinstellungen bearbeitet werden.
+<!-- - Es können nun über LDAP synchronisierte Attribute ausgelesen und in OSIRIS gespeichert werden. Diese werden ebenfalls in den generellen Einstellungen definiert. Auf diese Art und Weise festgelegte Attribute (zum Beispiel Raumnummer) können dann nicht mehr manuell in den Nutzereinstellungen bearbeitet werden. -->
 - Es wurde ein neuer Template-Editor hinzugefügt (Beta), der bei der Formatierung von Templates hilft
 - Es wurde eine Übersicht über alle vorhandenen Formularfelder hinzugefügt (Beta), die sowohl den Namen des Feldes enthält als auch  das Aussehen und die entsprechenden gespeicherten Informationen.
 
