@@ -448,6 +448,7 @@ Route::post('/crud/(categories|types)/update/([A-Za-z0-9]*)', function ($col, $i
     if (!$Settings->hasPermission('admin.see')) die('You have no permission to be here.');
 
     if (!isset($_POST['values'])) die("no values given");
+    $values = validateValues($_POST['values'], $DB);
 
     if ($col == 'categories') {
         $collection = $osiris->adminCategories;
@@ -455,9 +456,12 @@ Route::post('/crud/(categories|types)/update/([A-Za-z0-9]*)', function ($col, $i
     } else {
         $collection = $osiris->adminTypes;
         $key = 'subtype';
+        // types need a categorie a.k.a. parent
+        if (!isset($values['parent'])) {
+            die("Type must have a parent category.");
+        }
     }
 
-    $values = validateValues($_POST['values'], $DB);
 
     // check if ID has changed
     if (isset($_POST['original_id']) && $_POST['original_id'] != $values['id']) {
@@ -466,13 +470,19 @@ Route::post('/crud/(categories|types)/update/([A-Za-z0-9]*)', function ($col, $i
             [$key => $_POST['original_id']],
             ['$set' => [$key => $values['id']]]
         );
+        $_POST['redirect'] = ROOTPATH."/admin/types/" . $values['id'];
+
+        if ($col == 'categories') {
+            // update all connected types
+            $osiris->adminTypes->updateMany(
+                ['parent' => $_POST['original_id']],
+                ['$set' => ['parent' => $values['id']]]
+            );
+            $_POST['redirect'] = ROOTPATH."/admin/categories/" . $values['id'];
+        }
     }
 
     if ($col == 'types') {
-        // types need a categorie a.k.a. parent
-        if (!isset($values['parent'])) {
-            die("Type must have a parent category.");
-        }
         // check if parent has changed
         if (isset($_POST['original_parent']) && $_POST['original_parent'] != $values['parent']) {
             // update all connected activities 
