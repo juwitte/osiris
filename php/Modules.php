@@ -731,12 +731,15 @@ class Modules
                 echo '<input type="number" class="form-control" name="values[' . $module . ']" id="' . $module . '" ' . $required . ' value="' . $this->val($module, $field['default'] ?? '') . '" placeholder="custom-field">';
                 break;
             case 'list':
-                echo '<select class="form-control" name="values[' . $module . ']" id="' . $module . '" ' . $required . '>';
+                $multiple = $field['multiple'] ?? false;
+                echo '<select class="form-control" name="values[' . $module . ']" id="' . $module . '" ' . $required . ' '.($multiple ? 'multiple': '').'>';
                 $val = $this->val($module, $field['default'] ?? '');
                 if (!$req) {
                     '<option value="" ' . (empty($val) ? 'selected' : '') . '>-</option>';
                 }
                 foreach ($field['values'] as $opt) {
+                    // if is type MongoDB\Model\BSONArray, convert to array
+                    if ($opt instanceof MongoDB\Model\BSONArray) { $opt = DB::doc2Arr($opt); }
                     if (is_array($opt)) {
                         $opt = lang(...$opt);
                     }
