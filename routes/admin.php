@@ -52,10 +52,23 @@ Route::get('/admin/(general|roles|features)', function ($page) {
 Route::get('/admin/templates', function () {
     include_once BASEPATH . "/php/init.php";
     $breadcrumb = [
-        ['name' => lang("Categories", "Kategorien"), 'path' => "/admin/categories"],
-        ['name' => lang("New", "Neu")],
-        ['name' => lang("Template builder")]
+        ['name' => lang("Activity Types", "Aktivitäts-Typen"), 'path' => "/admin/categories"],
     ];
+
+    $type = null;
+    $template = '';
+    if (isset($_GET['type']) && !empty($_GET['type'])) {
+        $type = $_GET['type'];
+        $typeArr = $osiris->adminTypes->findOne(['id' => $type]);
+        if (!empty($typeArr)) {
+            $breadcrumb[] = ['name' => lang($typeArr['name'], $typeArr['name_de']), 'path' => "/admin/types/$type"];
+
+            $templates = $typeArr['template'];
+            $template = $templates['print'];
+        }
+    }
+    $breadcrumb[] = ['name' => lang("Templates", "Vorlagen")];
+
     include BASEPATH . "/header.php";
     include BASEPATH . "/pages/admin/template-builder.php";
     include BASEPATH . "/footer.php";
@@ -65,7 +78,7 @@ Route::get('/admin/module-helper', function () {
     include_once BASEPATH . "/php/init.php";
     include_once BASEPATH . "/php/Modules.php";
     $breadcrumb = [
-        ['name' => lang("Categories", "Kategorien"), 'path' => "/admin/categories"],
+        ['name' => lang("Activity Types", "Aktivitäts-Kategorien"), 'path' => "/admin/categories"],
         ['name' => lang("New", "Neu")],
         ['name' => lang("Data fields", "Datenfelder")]
     ];
@@ -81,7 +94,7 @@ Route::get('/admin/categories', function () {
 
     $user = $_SESSION['username'];
     $breadcrumb = [
-        ['name' => lang("Categories", "Kategorien")]
+        ['name' => lang("Activity Types", "Aktivitäts-Kategorien")]
     ];
     include BASEPATH . "/header.php";
     include BASEPATH . "/pages/admin/categories.php";
@@ -94,7 +107,7 @@ Route::get('/admin/categories/new', function () {
 
     $user = $_SESSION['username'];
     $breadcrumb = [
-        ['name' => lang("Categories", "Kategorien"), 'path' => "/admin/categories"],
+        ['name' => lang("Activity Types", "Aktivitäts-Kategorien"), 'path' => "/admin/categories"],
         ['name' => lang("New", "Neu")]
     ];
     include BASEPATH . "/header.php";
@@ -116,7 +129,7 @@ Route::get('/admin/categories/(.*)', function ($id) {
     }
     $name = lang($category['name'], $category['name_de']);
     $breadcrumb = [
-        ['name' => lang("Categories", "Kategorien"), 'path' => "/admin/categories"],
+        ['name' => lang("Activity Types", "Aktivitäts-Kategorien"), 'path' => "/admin/categories"],
         ['name' => $name]
     ];
 
@@ -137,7 +150,7 @@ Route::get('/admin/types/new', function () {
     $user = $_SESSION['username'];
 
     $breadcrumb = [
-        ['name' => lang("Categories", "Kategorien"), 'path' => "/admin/categories"],
+        ['name' => lang("Activity Types", "Aktivitäts-Kategorien"), 'path' => "/admin/categories"],
         ['name' => lang("New Type", "Neuer Typ")]
     ];
     $t = $_GET['parent'] ?? '';
@@ -190,7 +203,7 @@ Route::get('/admin/types/(.*)', function ($id) {
     $submember = $osiris->activities->count(['type' => $t, 'subtype' => $st]);
 
     $breadcrumb = [
-        ['name' => lang("Categories", "Kategorien"), 'path' => "/admin/categories"],
+        ['name' => lang("Activity Types", "Aktivitäts-Kategorien"), 'path' => "/admin/categories"],
         ['name' => lang($parent['name'], $parent['name_de']), 'path' => "/admin/categories/" . $t],
         ['name' => $name]
     ];
@@ -262,7 +275,7 @@ Route::post('/crud/admin/general', function () {
         }
     }
 
-    if (isset($_POST['staff'])){
+    if (isset($_POST['staff'])) {
         $staff = [];
         if (isset($_POST['staff']['free'])) {
             $staff['free'] = boolval($_POST['staff']['free']);
@@ -270,7 +283,7 @@ Route::post('/crud/admin/general', function () {
         if (isset($_POST['staff']['positions']) && !empty($_POST['staff']['positions'])) {
             $en = $_POST['staff']['positions'];
             $de = $_POST['staff']['positions_de'] ?? $en;
-    
+
             $staff['positions'] = [];
             foreach ($en as $i => $e) {
                 $staff['positions'][] = [
@@ -285,7 +298,7 @@ Route::post('/crud/admin/general', function () {
             'value' => $staff
         ]);
     }
-    
+
 
     if (isset($_FILES["logo"])) {
         $filename = htmlspecialchars(basename($_FILES["logo"]["name"]));
@@ -617,7 +630,7 @@ Route::post('/crud/admin/add-user', function () {
     include_once BASEPATH . "/php/init.php";
     if (!$Settings->hasPermission('user.synchronize')) die('You have no permission to be here.');
 
-    
+
     if ($osiris->persons->count(['username' => $_POST['username']]) > 0) {
         $msg = lang("The username is already taken. Please try again.", "Der Nutzername ist bereits vergeben. Versuche es erneut.");
         include BASEPATH . "/header.php";
@@ -645,7 +658,7 @@ Route::post('/crud/admin/add-user', function () {
     }
     $person['created'] = date('d.m.Y');
     $person['roles'] = array_keys($person['roles'] ?? []);
-    
+
     $person['new'] = true;
     $person['is_active'] = true;
 
