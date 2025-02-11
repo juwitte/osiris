@@ -55,11 +55,16 @@ Route::post('/auth/forgot-password', function () {
         );
 
 
+        $link = $_SERVER['HTTP_HOST'] . ROOTPATH . "/auth/reset-password?hash=$hash";
         // send mail
         sendMail(
             $user['mail'],
             lang('Password reset', 'Passwort zurücksetzen'),
-            lang('You have requested a password reset. Please click the following link to reset your password:', 'Du hast ein Passwort zurücksetzen angefordert. Bitte klicke auf den folgenden Link, um dein Passwort zurückzusetzen:') . "<br><a href='" . ROOTPATH . "/auth/reset-password?hash=$hash'>" . ROOTPATH . "/auth/forgot-password?hash=$hash</a>"
+            lang(
+                'You have requested a password reset from OSIRIS. Please click the following link to reset your password:', 
+            'Du hast ein in OSIRIS Passwort zurücksetzen angefordert. Bitte klicke auf den folgenden Link, um dein Passwort zurückzusetzen:') . 
+            "<br><a href='" . $link . "'>$link</a><br>" .
+            lang('If you did not request a password reset, please ignore this email.', 'Wenn du kein Passwort zurücksetzen angefordert hast, ignoriere diese E-Mail.')
         );
 
         $_SESSION['msg'] = lang('If the mail address is correct, you will receive an email with further instructions.', 'Wenn die Mail-Adresse korrekt ist, erhältst du eine E-Mail mit weiteren Anweisungen.');
