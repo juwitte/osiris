@@ -153,6 +153,7 @@ Die Nutzereinstellungen sind in den letzten Monaten gewachsen und sehr unübersi
 - Die Bezeichnung "Epub" wurde überall einheitlich in "Online ahead of Print" umbenannt
 - Untereinheiten können jetzt sortiert werden
 - Bei der Eingabe der Google Scholar-ID wird diese jetzt auf Fehler überprüft, da dies immer wieder zu Problemen beim Importieren führte
+- Es wurde ein Fehler behoben, durch den beim Ändern der ID einer Aktivitätskategorie alle Typen verloren gingen
 
 
 
