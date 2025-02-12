@@ -1,13 +1,14 @@
 # Neuigkeiten
 
 
-<span class="badge float-right">07.02.2025</span>
+<span class="badge float-right">12.02.2025</span>
 <a class="anchor" href="#version-1.4.0" id="version-1.4.0"></a>
 
 ## Version 1.4.0
 
 #### <i class="ph ph-siren"></i> Wichtige Änderungen am Interface
-- Das Menü wurde etwas umstrukturiert: Aktivitäten, Projekte, und Personen wurden mitsamt zugehörigen Daten in eigene Kategorien gepackt
+- Das Menü wurde etwas umstrukturiert, um jetzt mehr Sinn zu ergeben
+- Die erweiterte Suche wurde als inline-Element in die jeweilige Navigation integriert
 - Der Menüpunkt "Meine Aktivitäten" ist zurück (nur Wissenschaftler-Ansicht)
 - Die User Experience wurde verbessert, wenn man versucht hat, eine Seite zu erreichen, obwohl man nicht eingeloggt ist
 - gaaaaaanz viele kleine Verbesserungen am Interface, z.B. in der Expertise-Suche
@@ -20,10 +21,10 @@
 - <i class="ph ph-warnung"></i> Bitte beachte, dass die Forschungsbereiche zurzeit noch nicht über die API ausgeliefert werden. Dies ist für den kommenden Release 1.4.1 geplant.
 
 #### <i class="ph ph-users-three"></i> Organisationseinheiten
-- Der Graph für die Zusammenarbeit innerhalb einer Einheit wurde deutlich verbessert und zeigt jetzt auch individuelle Arbeiten an
 - Einheiten können jetzt als inaktiv markiert werden und werden dann nicht mehr in Filtern etc. angezeigt
 - Es wurden neue Felder angelegt, beispielsweise kann nun eine interne ID vergeben werden
 - Das Interface für die Bearbeitung von Einheiten wurde verbessert; insbesondere die Zuordnung von Personen zu Einheiten
+- Der Graph für die Zusammenarbeit innerhalb einer Einheit wurde deutlich verbessert und zeigt jetzt auch individuelle Arbeiten an
 
 <i class="ph ph-clock"></i> **Zeitaufgelöste Organisationseinheiten**
 - Organisationseinheiten können jetzt zeitlich aufgelöst werden, d.h. es können Start- und Enddaten für die Zugehörigkeit von Personen zu Organisationseinheiten angegeben werden
@@ -115,14 +116,19 @@ Die Nutzereinstellungen sind in den letzten Monaten gewachsen und sehr unübersi
   - Ort des Events
   - Start und Enddatum
 - Es könne auch direkt in meine Aktivitäten neue Events angelegt werden, ohne die Seite zu verlassen. Die Aktivität wird dann automatisch damit verknüpft. An dieser Stelle kann man auch direkt als Teilnehmer des Events registriert werden.
+- Events im eigenen Profil können jetzt ausgeblendet werden wenn kein Interesse besteht. Das dient der besseren Übersicht
 
 #### <i class="ph ph-textbox"></i> Custom Fields
 - Custom Fields können jetzt auch auf Englisch übersetzt werden
 - Es ist nun möglich, Custom Fields im Nachhinein zu bearbeiten  
+- Es wurde eine Möglichkeit hinzugefügt, ein Select-Feld als Multi-Select zu definieren
 
 #### <i class="ph ph-lock"></i> Sicherheit
-- Für den Nutzen des User-Auth Addons (das ursprünglich nicht für Live gedacht war, aber doch von einigen genutzt wird), wird das Password jetzt getrennt von den Nutzerinfos gespeichert. Das führt zu höherer Sicherheit, da diese Collection für keine anderen Seiten sonst verwendet werden und auch nicht API-Reachable sind. Bitte unbedingt migrieren, damit das Feature in Kraft tritt.
+- Für den Nutzen des User-Auth Addons (das ursprünglich nicht für Live gedacht war, aber doch von einigen genutzt wird), wird das Password jetzt getrennt von den Nutzerinfos gespeichert. Das führt zu höherer Sicherheit, da diese Collection für keine anderen Seiten sonst verwendet werden und auch nicht API-Reachable sind. 
+- Das Password wird jetzt auch nicht mehr im Klartext in der Datenbank gespeichert, sondern gehasht. 
+- Passwort zurücksetzen wurde ebenfalls deutlich verbessert und ist jetzt sicherer, da es nur noch über einen Link in der Email möglich ist.
 
+**Wichtg:** Nutzer des Auth-Addons werden unbedingt aufgefordert auf 1.4.0 zu migrieren.
 
 #### <i class="ph ph-clipboard-text"></i> Report Templates
 - Die Berichte-Templates wurden weiter ausgebaut
@@ -156,6 +162,7 @@ Die Nutzereinstellungen sind in den letzten Monaten gewachsen und sehr unübersi
 - Es wurde ein Fehler behoben, durch den beim Ändern der ID einer Aktivitätskategorie alle Typen verloren gingen
 
 
+----
 
 
 <span class="badge float-right">15.08.2024</span>
