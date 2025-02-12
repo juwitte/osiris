@@ -48,7 +48,9 @@ Route::post('/auth/forgot-password', function () {
         }
 
         // generate hash for password reset
-        $hash = md5($user['username'] . time());
+        // improved hash thanks to Jonas, Felix and Anton from TU Darmstadt
+        $hash = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT);
+
         $osiris->accounts->updateOne(
             ['username' => $user['username']],
             ['$set' => ['reset' => time(), 'hash' => $hash]]
