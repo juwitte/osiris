@@ -76,10 +76,10 @@ $pageactive = function ($p) use ($page) {
     <title><?= $pagetitle ?? 'OSIRIS' ?></title>
 
     <!-- Icon font -->
-    <link href="<?= ROOTPATH ?>/css/phosphoricons/regular/style.css?v=<?=CSS_JS_VERSION?>" rel="stylesheet" />
-    <link href="<?= ROOTPATH ?>/css/phosphoricons/fill/style.css?v=<?=CSS_JS_VERSION?>" rel="stylesheet" />
+    <link href="<?= ROOTPATH ?>/css/phosphoricons/regular/style.css?v=<?= CSS_JS_VERSION ?>" rel="stylesheet" />
+    <link href="<?= ROOTPATH ?>/css/phosphoricons/fill/style.css?v=<?= CSS_JS_VERSION ?>" rel="stylesheet" />
     <!-- for open access icons -->
-    <link href="<?= ROOTPATH ?>/css/fontello/css/osiris.css?v=<?=CSS_JS_VERSION?>" rel="stylesheet" />
+    <link href="<?= ROOTPATH ?>/css/fontello/css/osiris.css?v=<?= CSS_JS_VERSION ?>" rel="stylesheet" />
 
     <link rel="stylesheet" href="<?= ROOTPATH ?>/css/main.css?<?= filemtime(BASEPATH . '/css/main.css') ?>">
     <?php
@@ -394,12 +394,35 @@ $pageactive = function ($p) use ($page) {
                     </div>
 
                     <nav>
+
+                        <style>
+                            .sidebar-menu>a.inline-btn,
+                            .sidebar-menu nav>a.inline-btn {
+                                position: absolute;
+                                right: 2rem;
+                                margin: .5rem;
+                                background: white;
+                                padding: .5rem;
+                                width: 3rem;
+                                height: 3rem;
+                                font-size: 1.4rem;
+                                border-radius: var(--border-radius);
+                            }
+                        </style>
+
+                        <a href="<?= ROOTPATH ?>/activities/search" class="inline-btn">
+                            <i class="ph ph-magnifying-glass-plus"></i>
+                        </a>
                         <a href="<?= ROOTPATH ?>/activities" class="with-icon <?= $pageactive('activities') ?>">
                             <i class="ph ph-folders" aria-hidden="true"></i>
                             <?= lang('All activities', 'Alle Aktivitäten') ?>
                         </a>
 
                         <?php if ($Settings->featureEnabled('projects')) { ?>
+
+                            <a href="<?= ROOTPATH ?>/projects/search" class="inline-btn mt-10">
+                                <i class="ph ph-magnifying-glass-plus"></i>
+                            </a>
                             <a href="<?= ROOTPATH ?>/projects" class="with-icon <?= $pageactive('projects') ?>">
                                 <i class="ph ph-tree-structure" aria-hidden="true"></i>
                                 <?= lang('Projects', 'Projekte') ?>
@@ -491,10 +514,10 @@ $pageactive = function ($p) use ($page) {
                         <?= lang('Visualization', 'Visualisierung') ?>
                     </div>
                     <nav>
-                        <a href="<?= ROOTPATH ?>/activities/search" class="with-icon <?= $pageactive('activities/search') ?>">
+                        <!-- <a href="<?= ROOTPATH ?>/activities/search" class="with-icon <?= $pageactive('activities/search') ?>">
                             <i class="ph ph-magnifying-glass-plus" aria-hidden="true"></i>
                             <?= lang('Advanced search', 'Erweiterte Suche') ?>
-                        </a>
+                        </a> -->
 
                         <a href="<?= ROOTPATH ?>/dashboard" class="with-icon <?= $pageactive('dashboard') ?>">
                             <i class="ph ph-chart-line" aria-hidden="true"></i>
