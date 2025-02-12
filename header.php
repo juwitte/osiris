@@ -408,9 +408,19 @@ $pageactive = function ($p) use ($page) {
                                 font-size: 1.4rem;
                                 border-radius: var(--border-radius);
                             }
+
+                            .sidebar-menu>a.inline-btn:not(.active),
+                            .sidebar-menu nav>a.inline-btn:not(.active) {
+                                display: none;
+                            }
+
+                            .sidebar-menu:hover>a.inline-btn:not(.active),
+                            .sidebar-menu:hover nav>a.inline-btn:not(.active) {
+                                display: block;
+                            }
                         </style>
 
-                        <a href="<?= ROOTPATH ?>/activities/search" class="inline-btn">
+                        <a href="<?= ROOTPATH ?>/activities/search" class="inline-btn <?= $pageactive('activities') ?>" title="<?=lang('Advanced Search', 'Erweiterte Suche')?>">
                             <i class="ph ph-magnifying-glass-plus"></i>
                         </a>
                         <a href="<?= ROOTPATH ?>/activities" class="with-icon <?= $pageactive('activities') ?>">
@@ -420,7 +430,7 @@ $pageactive = function ($p) use ($page) {
 
                         <?php if ($Settings->featureEnabled('projects')) { ?>
 
-                            <a href="<?= ROOTPATH ?>/projects/search" class="inline-btn mt-10">
+                            <a href="<?= ROOTPATH ?>/projects/search" class="inline-btn mt-10 <?= $pageactive('projects') ?>" title="<?=lang('Advanced Search', 'Erweiterte Suche')?>">
                                 <i class="ph ph-magnifying-glass-plus"></i>
                             </a>
                             <a href="<?= ROOTPATH ?>/projects" class="with-icon <?= $pageactive('projects') ?>">
