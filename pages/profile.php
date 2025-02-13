@@ -381,6 +381,10 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
                 <i class="ph ph-edit ph-fw"></i>
                 <!-- <?= lang('Edit user profile', 'Bearbeite Profil') ?> -->
             </a>
+            <a href="<?= ROOTPATH ?>/claim" class="btn text-primary border-primary" data-toggle="tooltip" data-title="<?= lang('Claim activities', 'Aktivitäten beanspruchen') ?>">
+                <i class="ph ph-hand ph-fw"></i>
+                <!-- <?= lang('Claim activities', 'Aktivitäten beanspruchen') ?> -->
+            </a>
         </div>
         <form action="<?= ROOTPATH ?>/download" method="post">
 
