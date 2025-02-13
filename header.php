@@ -466,7 +466,7 @@ $pageactive = function ($p) use ($page) {
                         <?php if ($Settings->featureEnabled('topics')) { ?>
                             <a href="<?= ROOTPATH ?>/topics" class="with-icon <?= $pageactive('topics') ?>">
                                 <i class="ph ph-puzzle-piece" aria-hidden="true"></i>
-                                <?= lang('Research Topics', 'Forschungsbereiche') ?>
+                                <?= $Settings->topicLabel() ?>
                             </a>
                         <?php } ?>
 

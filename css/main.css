@@ -12499,6 +12499,7 @@ a.concept:hover {
 }
 .topic-pill:hover {
   color: white;
+  opacity: 0.8;
 }
 .topic-pill::before {
   /* white circle */

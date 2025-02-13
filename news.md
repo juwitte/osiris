@@ -18,6 +18,7 @@
 - Forschungsbereiche können zentral eingeschaltet, definiert und danach zu anderen Entitäten hinzugefügt werden, z.B. zu Aktivitäten, Projekten und Personen
 - Es wurden Detailseiten für alle Forschungsbereiche hinzugefügt, auf denen alle Informationen und verlinkte Details dargestellt sind
 - Es wurden zu allen verlinkbaren Aktivitäten Filter hinzugefügt
+- Wie genau die Forschungsbereiche genannt werden, kann ebenfalls im Admin-Bereich definiert werden
 - <i class="ph ph-warnung"></i> Bitte beachte, dass die Forschungsbereiche zurzeit noch nicht über die API ausgeliefert werden. Dies ist für den kommenden Release 1.4.1 geplant.
 
 #### <i class="ph ph-users-three"></i> Organisationseinheiten
