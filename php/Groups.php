@@ -22,7 +22,7 @@ class Groups
 {
     public $groups = array();
     public $tree = array();
-    private $osiris;
+    private $DB;
     private $UNITS = [
         'institute' => [
             'name' => 'Institute',
@@ -42,6 +42,24 @@ class Groups
             'head' => 'Head of Group',
             'head_de' => 'Arbeitsgruppenleitung',
         ],
+        'research group' => [
+            'name' => 'Research Group',
+            'name_de' => 'Forschungsgruppe',
+            'head' => 'Head of Research Group',
+            'head_de' => 'Leitung der Forschungsgruppe',
+        ],
+        'junior research group' => [
+            'name' => 'Junior Research Group',
+            'name_de' => 'Nachwuchsgruppe',
+            'head' => 'Head of Junior Research Group',
+            'head_de' => 'Leitung der Nachwuchsgruppe',
+        ],
+        'infrastructure' => [
+            'name' => 'Infrastructure',
+            'name_de' => 'Infrastruktur',
+            'head' => 'Head of Infrastructure',
+            'head_de' => 'Leitung der Infrastruktur',
+        ],
         'unit' => [
             'name' => 'Unit',
             'name_de' => 'Einheit',
@@ -52,9 +70,12 @@ class Groups
 
     function __construct()
     {
-        $this->osiris = new DB;
+        $this->DB = new DB;
 
-        $groups = $this->osiris->db->groups->find([])->toArray();
+        $groups = $this->DB->db->groups->find(
+            [],
+            ['sort' => ['level' => 1, 'inactive' => 1]]
+        )->toArray();
         foreach ($groups as $g) {
             $this->groups[$g['id']] = $g;
         }
@@ -73,10 +94,11 @@ class Groups
             if ($data[$i]['parent'] == $parent) {
                 $tree[] = [
                     'id' => $data[$i]['id'],
-                    'name' => $data[$i]['name'],
+                    'name' => lang($data[$i]['name'], $data[$i]['name_de'] ?? null),
                     'unit' => $data[$i]['unit'],
                     'color' => $data[$i]['color'] ?? '#000000',
                     'level' => $depth,
+                    'inactive' => $data[$i]['inactive'] ?? false,
                     // 'head' => $v,
                     'children' => $this->tree($data, $data[$i]['id'], $depth + 1)
                 ];
@@ -113,12 +135,17 @@ class Groups
 
     public function getUnit($unit = null, $key = null)
     {
-        if ($unit !== null) 
+        if ($unit !== null)
             $unit = strtolower($unit);
         if (isset($this->UNITS[$unit])) {
             $info = $this->UNITS[$unit];
         } else {
-            $info = $this->UNITS['unit'];
+            $info = [
+                'name' => ucfirst($unit),
+                'name_de' => ucfirst($unit),
+                'head' => 'Head of Unit',
+                'head_de' => 'Leitung der Organisationseinheit',
+            ];
         }
         if ($key === null) return $info;
 
@@ -135,9 +162,10 @@ class Groups
         return "style=\"--highlight-color: $color;\"";
     }
 
-    public function personDept($depts, $level = false)
+    public function deptHierarchy($depts, $level = false)
     {
         $result = ['level' => 0, 'name' => '', 'id' => ''];
+        if (empty($depts)) return $result;
         foreach ($depts as $d) {
             foreach ($this->getParents($d) as $id) {
                 $dept = $this->getGroup($id);
@@ -149,7 +177,7 @@ class Groups
         }
         return $result;
     }
-    public function personDepts($depts)
+    public function deptHierarchies($depts)
     {
         $result = [];
         foreach ($depts as $d) {
@@ -161,6 +189,20 @@ class Groups
         return $result;
     }
 
+
+    public function allPersonUnits($units)
+    {
+        dump($units);
+        $result = $units;
+        foreach ($units as $d) {
+            dump($d);
+            $p = $this->getParents($d, true);
+            if ($p && $p[0] && !in_array($p[0], $result)) {
+                $result[] = $p[0];
+            }
+        }
+        return $result;
+    }
     public function editPermission($id, $user = null)
     {
         if ($user === null) $user = $_SESSION['username'];
@@ -190,9 +232,9 @@ class Groups
         if (empty($authors)) return [];
         $users = array_filter(array_column($authors, 'user'));
         foreach ($users as $user) {
-            $user = $this->osiris->getPerson($user);
+            $user = $this->DB->getPerson($user);
             if (empty($user) || empty($user['depts'])) continue;
-            $dept = $this->personDept($user['depts'], 1)['id'];
+            $dept = $this->deptHierarchy($user['depts'], 1)['id'];
             if (in_array($dept, $result)) continue;
             $result[] = $dept;
         }
@@ -208,7 +250,7 @@ class Groups
     static function hierarchyList($datas, $parent = 0, $depth = 0)
     {
         $ni = count($datas);
-        if ($ni === 0 || $depth > 1000) return ''; // Make sure not to have an endless recursion
+        if ($ni === 0 || $depth > 10) return ''; // Make sure not to have an endless recursion
         $tree = '<ul class="list">';
         for ($i = 0; $i < $ni; $i++) {
             if ($datas[$i]['parent'] == $parent) {
@@ -248,6 +290,17 @@ class Groups
         return $tree;
     }
 
+    // get the parent of a unit with a certain level
+    public function getUnitParent($unit, $level = 1)
+    {
+        $el = $this->getGroup($unit);
+        $i = 0;
+        while ($el['level'] > $level) {
+            $el = $this->getGroup($el['parent']);
+            if ($i++ > 9) break;
+        }
+        return $el;
+    }
 
     public function getParents($id, $to0 = false)
     {
@@ -312,13 +365,14 @@ class Groups
 
 
 
-     /**
+    /**
      * Get the hierarchy tree for a given list of person units
      *
      * @param array $personUnits Liste der Einheiten, denen eine Person angehört
      * @return array Hierarchiebaum der Einheiten
      */
-    public function getPersonHierarchyTree($personUnits) {
+    public function getPersonHierarchyTree($personUnits)
+    {
         $result = [];
 
         foreach ($personUnits as $unit) {
@@ -339,7 +393,8 @@ class Groups
      * @param array $currentPath Der bisherige Pfad
      * @return array|null Pfad zur Einheit oder null, wenn nicht gefunden
      */
-    private function findUnitPath($unit, $hierarchy, $currentPath = []) {
+    private function findUnitPath($unit, $hierarchy, $currentPath = [])
+    {
         $newPath = array_merge($currentPath, [$hierarchy['id']]);
 
         if ($hierarchy['id'] === $unit) {
@@ -364,7 +419,8 @@ class Groups
      * @param array $result Referenz auf den Ergebnisbaum
      * @param array $path Der zu mergende Pfad
      */
-    private function mergePaths(&$result, $path) {
+    private function mergePaths(&$result, $path)
+    {
         $current = &$result;
         foreach ($path as $node) {
             if (!isset($current[$node])) {
@@ -380,23 +436,25 @@ class Groups
      * @param array $tree Der Hierarchiebaum
      * @param int $indent Die aktuelle Einrückungsebene
      */
-    public function printPersonHierarchyTree($tree, $indent = 0) {
+    public function printPersonHierarchyTree($tree, $indent = 0)
+    {
         foreach ($tree as $key => $subTree) {
-            echo str_repeat("  ", $indent) . ($indent > 0 ? str_repeat(">", $indent) . " " : "") . "$key\n";
+            echo str_repeat("  ", $indent) . ($indent > 0 ? str_repeat(">", $indent) . " " : "") . "$key<br>";
             if (!empty($subTree)) {
                 $this->printPersonHierarchyTree($subTree, $indent + 1);
             }
         }
     }
-     public function readableHierarchy($tree, $indent = 0) {
+    public function readableHierarchy($tree, $indent = 0)
+    {
         $result = [];
         foreach ($tree as $key => $subTree) {
             $group = $this->getGroup($key);
             $unit = $this->getUnit($group['unit'] ?? null);
             $result[] = [
-                'id' => $key, 
-                'name_en' => $group['name'], 
-                'name_de'=>($group['name_de']??null), 
+                'id' => $key,
+                'name_en' => $group['name'],
+                'name_de' => ($group['name_de'] ?? null),
                 'unit_en' => $unit['name'],
                 'unit_de' => $unit['name_de'],
                 'indent' => $indent,
@@ -415,8 +473,107 @@ class Groups
      *
      * @param array $personUnits Liste der Einheiten, denen eine Person angehört
      */
-    public function displayPersonHierarchy($personUnits) {
+    public function displayPersonHierarchy($personUnits)
+    {
         $tree = $this->getPersonHierarchyTree($personUnits);
         $this->printPersonHierarchyTree($tree);
+    }
+
+    /**
+     * Get person unit from username and date
+     *
+     * @param string $user Username.
+     * @param string $date Date in ISO format.
+     * @param bool $include_parents Include parent units.
+     * @return array Unit array.
+     */
+    public function getPersonUnit($user, $date = null, $include_parents = false, $only_scientific = true)
+    {
+        if (is_string($user)) {
+            $person = $this->DB->getPerson($user);
+        } else {
+            $person = $user;
+        }
+        if (empty($person) || empty($person['units'])) return [];
+        if (empty($date)) $date = date('Y-m-d');
+
+        $units = DB::doc2Arr($person['units']);
+        $units = array_filter($units, function ($unit) use ($date, $only_scientific) {
+            if ($only_scientific && !$unit['scientific']) return false; // we are only interested in scientific units
+            if (empty($unit['start'])) return true; // we have basically no idea when this unit was active
+            return strtotime($unit['start']) <= $date && (empty($unit['end']) || strtotime($unit['end']) >= $date);
+        });
+
+        if ($include_parents) {
+            $result = [];
+            foreach ($units as $unit) {
+                $parents = $this->getParents($unit['unit']);
+                $result[] = $parents;
+            }
+            return $result;
+        }
+        return $units;
+    }
+
+
+    function getAllPersons($units, $date = null, $include_parents = false, $only_scientific = false)
+    {
+        if (is_string($units)) {
+            $units = [$units];
+        }
+        if (empty($date)) $date = date('Y-m-d');
+
+        $filter = [
+            'units' => [
+                '$elemMatch' => [
+                    'unit' => ['$in' => $units],
+                    '$and' => [
+                        ['$or' => [
+                            ['start' => null],
+                            ['start' => ['$lte' => $date]]
+                        ]],
+                        ['$or' => [
+                            ['end' => null],
+                            ['end' => ['$gte' => $date]]
+                        ]]
+                    ]
+                ]
+            ],
+            'is_active' => ['$ne' => false]
+        ];
+        if ($only_scientific) {
+            $filter['units']['$elemMatch']['scientific'] = true;
+        }
+
+        $persons = $this->DB->db->persons->find($filter)->toArray();
+        return $persons;
+    }
+
+
+    function countAllPersons($units, $date = null, $include_parents = false, $only_scientific = true)
+    {
+        if (is_string($units)) {
+            $units = [$units];
+        }
+        if (empty($date)) $date = date('Y-m-d');
+        $persons = $this->DB->db->persons->find(
+            [
+                'units' => ['$elemMatch' => [
+                    'unit' => ['$in' => $units],
+                    '$and' => [
+                        ['$or' => [
+                            ['start' => null],
+                            ['start' => ['$lte' => $date]]
+                        ]],
+                        ['$or' => [
+                            ['end' => null],
+                            ['end' => ['$gte' => $date]]
+                        ]]
+                    ]
+                ]],
+                'is_active' => ['$ne' => false]
+            ]
+        )->toArray();
+        return $persons;
     }
 }

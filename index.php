@@ -20,14 +20,15 @@ if (file_exists('CONFIG.php')) {
 } else {
     require_once 'CONFIG.default.php';
 }
-
+require_once 'php/_config.php';
+define('CSS_JS_VERSION', '1.0.0');
 
 // error_reporting(E_ERROR);
 
 session_start();
 
 define('BASEPATH', $_SERVER['DOCUMENT_ROOT'] . ROOTPATH);
-define('OSIRIS_VERSION', '1.3.6');
+define('OSIRIS_VERSION', '1.4.0');
 
 // set time constants
 $year = date("Y");
@@ -69,11 +70,13 @@ function lang($en, $de = null)
 include_once BASEPATH . "/php/Route.php";
 
 Route::get('/', function () {
+    if (isset($_GET['code']) && defined('USER_MANAGEMENT') && strtoupper(USER_MANAGEMENT) == 'OAUTH') {
+        header("Location: " . ROOTPATH . "/user/oauth-callback?code=" . $_GET['code']);
+        exit();
+    }
     include_once BASEPATH . "/php/init.php";
     if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] === false) {
-        include BASEPATH . "/header.php";
-        include BASEPATH . "/pages/userlogin.php";
-        include BASEPATH . "/footer.php";
+        header("Location: " . ROOTPATH . "/user/login");
     } else {
         $path = ROOTPATH . "/profile/" . $_SESSION['username'];
         if (!empty($_SERVER['QUERY_STRING'])) $path .= "?" . $_SERVER['QUERY_STRING'];
@@ -129,12 +132,14 @@ Route::get('/set-preferences', function () {
     header("Location: " . $redirect);
 });
 
+
 if (
     isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true
     &&
     isset($_SESSION['username']) && !empty($_SESSION['username'])
 ) {
     include_once BASEPATH . "/routes/components.php";
+    include_once BASEPATH . "/routes/export.php";
     include_once BASEPATH . "/routes/controlling.php";
     include_once BASEPATH . "/routes/database.php";
     include_once BASEPATH . "/routes/docs.php";
@@ -142,6 +147,7 @@ if (
     include_once BASEPATH . "/routes/import.php";
     include_once BASEPATH . "/routes/journals.php";
     include_once BASEPATH . "/routes/projects.php";
+    include_once BASEPATH . "/routes/topics.php";
     include_once BASEPATH . "/routes/queue.php";
     include_once BASEPATH . "/routes/tags.php";
     include_once BASEPATH . "/routes/static.php";
@@ -149,12 +155,12 @@ if (
     include_once BASEPATH . "/routes/users.php";
     include_once BASEPATH . "/routes/visualize.php";
     include_once BASEPATH . "/routes/activities.php";
-    include_once BASEPATH . "/routes/export.php";
     include_once BASEPATH . "/routes/reports.php";
     include_once BASEPATH . "/routes/concepts.php";
     include_once BASEPATH . "/routes/admin.php";
     include_once BASEPATH . "/routes/conferences.php";
     require_once BASEPATH . '/routes/guests.php';
+    include_once BASEPATH . "/routes/calendar.php";
     // include_once BASEPATH . "/routes/adminGeneral.php";
     // include_once BASEPATH . "/routes/adminRoles.php";
 
@@ -184,19 +190,29 @@ Route::get('/error/([0-9]*)', function ($error) {
 
 // Add a 404 not found route
 Route::pathNotFound(function ($path) {
-    // Do not forget to send a status header back to the client
-    // The router will not send any headers by default
-    // So you will have the full flexibility to handle this case
-    // header('HTTP/1.0 404 Not Found');
     http_response_code(404);
-    $error = 404;
-    // header('HTTP/1.0 404 Not Found');
-    include BASEPATH . "/header.php";
-    // $browser = $_SERVER['HTTP_USER_AGENT'];
-    // var_dump($browser);
-    include BASEPATH . "/pages/error.php";
-    // echo "Error 404";
-    include BASEPATH . "/footer.php";
+    // Check the Accept header to determine the content type
+    $acceptHeader = isset($_SERVER['HTTP_ACCEPT']) ? $_SERVER['HTTP_ACCEPT'] : 'text/html';
+
+    header("HTTP/1.0 404 Not Found");
+    if (strpos($acceptHeader, 'application/json') !== false) {
+        // Send JSON response for scripts expecting JSON
+        header('Content-Type: application/json');
+        echo json_encode(['error' => '404 Not Found']);
+    } elseif (strpos($acceptHeader, 'text/plain') !== false) {
+        // Send plain text response for scripts expecting text
+        header('Content-Type: text/plain');
+        echo "404 Not Found";
+    } elseif (!$_SESSION['loggedin']) {
+        header("Location: " . ROOTPATH . "/user/login?redirect=" . urlencode($_SERVER['REQUEST_URI']));
+    } else {
+        // Send HTML response for users
+        $error = 404;
+        include BASEPATH . "/header.php";
+
+        include BASEPATH . "/pages/error.php";
+        include BASEPATH . "/footer.php";
+    }
 });
 
 // Add a 405 method not allowed route

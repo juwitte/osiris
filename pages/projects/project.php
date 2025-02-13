@@ -75,7 +75,7 @@ $institute = $Settings->get('affiliation_details');
 </script>
 
 <script src="<?= ROOTPATH ?>/js/plotly-2.27.1.min.js" charset="utf-8"></script>
-<script src="<?= ROOTPATH ?>/js/projects.js?v=1"></script>
+<script src="<?= ROOTPATH ?>/js/projects.js?v=<?=CSS_JS_VERSION?>"></script>
 
 <style>
     td .key {
@@ -86,7 +86,7 @@ $institute = $Settings->get('affiliation_details');
 </style>
 
 
-<?php if ($Settings->featureEnabled('portal')) { ?>
+<?php if ($Settings->featureEnabled('portal') && $project['public']) { ?>
     <a class="btn float-right" href="<?= ROOTPATH ?>/preview/project/<?= $id ?>">
         <i class="ph ph-eye ph-fw"></i>
         <?= lang('Preview', 'Vorschau') ?>
@@ -104,6 +104,8 @@ $institute = $Settings->get('affiliation_details');
     </h2>
 
 
+    <!-- show research topics -->
+    <?= $Settings->printTopics($project['topics'] ?? [], 'mb-20', true) ?>
 
     <div class="d-flex">
 
@@ -123,6 +125,29 @@ $institute = $Settings->get('affiliation_details');
             <br />
             <b><?= $Project->getDateRange() ?></b>
         </div>
+
+        <div class="mr-10 badge bg-white">
+            <small><?= lang('Duration', 'Dauer') ?>: </small>
+            <br />
+            <b><?= $Project->getDuration() ?> <?= lang('Month', 'Monate') ?></b>
+        </div>
+
+        <?php if ($Settings->featureEnabled('portal')) { ?>
+            <?php if ($project['public']) { ?>
+                <div class="mr-10 badge success" data-toggle="tooltip" data-title="<?= lang('The approved project is shown in OSIRIS Portfolio.', 'Das bewilligte Projekt wird in OSIRIS Portfolio gezeigt.') ?>">
+                    <small><?= lang('Visibility', 'Sichtbarkeit') ?>: </small>
+                    <br />
+                    <i class="ph ph-globe m-0"></i> <?= lang('Shown', 'Gezeigt') ?>
+                </div>
+            <?php } else { ?>
+                <div class="mr-10 badge danger" data-toggle="tooltip" data-title="<?= lang('This project is not shown in OSIRIS Portfolio.', 'Dieses Projekt wird nicht in OSIRIS Portfolio gezeigt.') ?>">
+                    <small><?= lang('Visibility', 'Sichtbarkeit') ?>: </small>
+                    <br />
+                    <i class="ph ph-globe-x m-0"></i>
+                    <?= lang('Not shown', 'Nicht gezeigt') ?>
+                </div>
+            <?php } ?>
+        <?php } ?>
     </div>
 
 
@@ -208,7 +233,33 @@ $institute = $Settings->get('affiliation_details');
                             <i class="ph ph-edit"></i>
                             <?= lang('Edit', 'Bearbeiten') ?>
                         </a>
+                        <a href="<?= ROOTPATH ?>/projects/public/<?= $id ?>" class="btn primary">
+                            <i class="ph ph-edit"></i>
+                            <?= lang('Public', 'Öffentlich') ?>
+                        </a>
+                        <!-- dropdown -->
+                        <div class="dropdown">
+                            <button class="btn primary" data-toggle="dropdown" type="button" id="dropdown-download" aria-haspopup="true" aria-expanded="false">
+                                <i class="ph ph-download"></i>
+                                <?= lang('Download', 'Herunterladen') ?>
+                                <i class="ph ph-caret-down ml-5" aria-hidden="true"></i>
+                            </button>
+                            <div class="dropdown-menu p-10" aria-labelledby="dropdown-download">
+                                <form action="<?= ROOTPATH ?>/projects/download/<?= $id ?>" method="post">
+                                    <select name="format" id="download-format" class="form-control mb-10">
+                                        <option value="docx">Word</option>
+                                        <option value="json">JSON</option>
+                                        <!-- <option value="csv">CSV</option> -->
+                                    </select>
+                                    <button class="btn primary" type="submit">
+                                        <i class="ph ph-download"></i>
+                                        <?= lang('Download', 'Herunterladen') ?>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     <?php } ?>
+
                     <?php if ($Settings->hasPermission('projects.delete') || ($Settings->hasPermission('projects.delete-own') && $edit_perm)) { ?>
 
                         <div class="dropdown">
@@ -240,6 +291,7 @@ $institute = $Settings->get('affiliation_details');
 
                     <?php
                     $fields = $Project->getFields($project['type'] ?? 'Drittmittel');
+                    // dump($fields);
                     $inherited = [];
 
                     if ($type == 'Teilprojekt') { #
@@ -290,7 +342,7 @@ $institute = $Settings->get('affiliation_details');
                         <?php } ?>
 
                         <?php foreach ($fields as $key) {
-                            if (!in_array($key, ['name', 'title', 'type', 'internal_number', 'contact', 'status', 'funder', 'funding_organization', 'funding_number', 'scholarship', 'university', 'purpose', 'role', 'coordinator', 'start', 'end', 'website', 'abstract', 'nagoya'])) {
+                            if (!in_array($key, ['name', 'title', 'type', 'internal_number', 'contact', 'status', 'funder', 'funding_organization', 'funding_number', 'scholarship', 'university', 'purpose', 'role', 'coordinator', 'start', 'end', 'website', 'abstract', 'nagoya', 'countries'])) {
                                 continue;
                             }
                             if ($key == 'nagoya' && !$Settings->featureEnabled('nagoya')) {
@@ -379,15 +431,23 @@ $institute = $Settings->get('affiliation_details');
                                                 <!-- <span class="badge danger"><?= lang('Relevant') ?></span>
                                                 <br> -->
                                                 <div class="alert signal">
-                                                <h6 class="title"><?= lang('Countries', 'Länder:') ?></h6>
-                                                <ul class="list signal mb-0">
-                                                    <?php foreach ($project['nagoya_countries'] ?? [] as $c) { ?>
-                                                        <li><?= Country::get($c) ?></li>
-                                                    <?php } ?>
-                                                </ul>
+                                                    <h6 class="title"><?= lang('Countries', 'Länder:') ?></h6>
+                                                    <ul class="list signal mb-0">
+                                                        <?php foreach ($project['nagoya_countries'] ?? [] as $c) { ?>
+                                                            <li><?= Country::get($c) ?></li>
+                                                        <?php } ?>
+                                                    </ul>
                                                 </div>
                                             <?php } ?>
 
+                                        <?php break;
+                                        case 'countries': ?>
+                                            <span class="key"><?= lang('Countries', 'Länder') ?></span>
+                                            <ul class="list signal mb-0">
+                                                <?php foreach ($project['countries'] ?? [] as $c) { ?>
+                                                    <li><?= Country::get($c) ?></li>
+                                                <?php } ?>
+                                            </ul>
                                         <?php break;
                                         case 'website': ?>
                                             <span class="key"><?= lang('Project website', 'Webseite des Projekts') ?></span>
@@ -413,11 +473,15 @@ $institute = $Settings->get('affiliation_details');
                         <tr>
                             <td>
                                 <span class="key"><?= lang('Created by', 'Erstellt von') ?></span>
-                                <?= $DB->getNameFromId($project['created_by']) ?? '-' ?> (<?= $project['created'] ?>)
+                                <?php if (!isset($project['created_by']) || $project['created_by'] == 'system') {
+                                    echo 'System';
+                                } else {
+                                    echo $DB->getNameFromId($project['created_by']);
+                                }
+                                echo " (" . $project['created'] . ")";
+                                ?>
                             </td>
                         </tr>
-
-
                     </tbody>
                 </table>
 
@@ -441,7 +505,6 @@ $institute = $Settings->get('affiliation_details');
                                     <?= lang('Connect persons', 'Personen verknüpfen') ?>
                                 </h5>
                                 <div>
-
                                     <form action="<?= ROOTPATH ?>/crud/projects/update-persons/<?= $id ?>" method="post">
 
                                         <table class="table simple">
@@ -481,6 +544,7 @@ $institute = $Settings->get('affiliation_details');
                                                                     <option value="applicant" <?= $con['role'] == 'applicant' ? 'selected' : '' ?>><?= Project::personRole('applicant') ?></option>
                                                                     <option value="PI" <?= $con['role'] == 'PI' ? 'selected' : '' ?>><?= Project::personRole('PI') ?></option>
                                                                     <option value="worker" <?= $con['role'] == 'worker' ? 'selected' : '' ?>><?= Project::personRole('worker') ?></option>
+                                                                    <option value="coordinator" <?= $con['role'] == 'coordinator' ? 'selected' : '' ?>><?= Project::personRole('coordinator') ?></option>
                                                                 <?php } ?>
                                                                 <option value="associate" <?= $con['role'] == 'associate' ? 'selected' : '' ?>><?= Project::personRole('associate') ?></option>
                                                             </select>
@@ -571,6 +635,33 @@ $institute = $Settings->get('affiliation_details');
 
                     </tbody>
                 </table>
+
+                <h3>
+                    <?= lang('Associated units', 'Zugehörige Organisationseinheiten') ?>
+                </h3>
+                <table class="table">
+                    <tbody>
+                        <?php
+                        $units = $Project->getUnits();
+                        // $tree =  $Groups->getPersonHierarchyTree($units);
+                        if (!empty($units)) {
+                            $hierarchy = $Groups->getPersonHierarchyTree($units);
+                            $tree = $Groups->readableHierarchy($hierarchy);
+
+                            foreach ($tree as $row) { ?>
+                                <tr>
+                                    <td style="padding-left: <?= ($row['indent'] * 2 + 2) . 'rem' ?>;">
+                                        <a href="<?= ROOTPATH ?>/groups/view/<?= $row['id'] ?>">
+                                            <?= lang($row['name_en'], $row['name_de'] ?? null) ?>
+                                        </a>
+                                    </td>
+                                </tr>
+                        <?php }
+                        }
+                        ?>
+                    </tbody>
+                </table>
+
 
             </div>
         </div>
@@ -799,20 +890,27 @@ $institute = $Settings->get('affiliation_details');
                 <tr>
                     <td>
                         <span class="key"><?= lang('Public title', 'Öffentlicher Titel') ?></span>
-                        <?= $project['public_title'] ?? $project['title'] ?? '-' ?>
+                        <?= lang($project['public_title'] ?? $project['name'] ?? '-', $project['public_title_de'] ?? null) ?>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span class="key"><?= lang('Public subtitle', 'Öffentlicher Untertitel') ?></span>
+                        <?= lang($project['public_subtitle'] ?? $project['title'] ?? '-', $project['public_subtitle_de'] ?? null) ?>
                     </td>
                 </tr>
                 <tr>
                     <td>
                         <span class="key"><?= lang('Public abstract', 'Öffentliche Kurzbeschreibung') ?></span>
-                        <!-- markdown -->
-                        <?php
-                        // markdown support
-                        require_once BASEPATH . '/php/MyParsedown.php';
-                        $Parsedown = new Parsedown();
-                        echo $Parsedown->text($project['public_abstract'] ?? $project['abstract'] ?? '-');
-                        ?>
-
+                        <div class="abstract">
+                            <?php if (lang('en', 'de') == 'de' && isset($project['public_abstract_de'])) { ?>
+                                <?= $project['public_abstract_de'] ?>
+                            <?php } else if (isset($project['public_abstract'])) { ?>
+                                <?= $project['public_abstract'] ?>
+                            <?php } else { ?>
+                                <?= $project['abstract'] ?? '-' ?>
+                            <?php } ?>
+                        </div>
                     </td>
                 </tr>
                 <tr>
@@ -824,7 +922,6 @@ $institute = $Settings->get('affiliation_details');
                 <tr>
                     <td>
                         <span class="key"><?= lang('Public image', 'Öffentliches Bild') ?></span>
-
 
                         <?php if (!empty($project['public_image']) ?? '') { ?>
                             <img src="<?= ROOTPATH . '/uploads/' . $project['public_image'] ?>" alt="<?= $project['public_title'] ?>" class="img-fluid">
@@ -905,12 +1002,14 @@ $institute = $Settings->get('affiliation_details');
                 <tbody>
                     <?php
                     $res = $project['ressources'];
-                    foreach ([
-                        'material' => lang('Material', 'Material'),
-                        'personnel' => lang('Personnel', 'Personal'),
-                        'room' => lang('Room', 'Raum'),
-                        'other' => lang('Other', 'Sonstiges')
-                    ] as $r => $h) { ?>
+                    foreach (
+                        [
+                            'material' => lang('Material', 'Material'),
+                            'personnel' => lang('Personnel', 'Personal'),
+                            'room' => lang('Room', 'Raum'),
+                            'other' => lang('Other', 'Sonstiges')
+                        ] as $r => $h
+                    ) { ?>
                         <tr>
                             <td>
                                 <span class="key"><?= $h ?></span>

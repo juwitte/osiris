@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Page to see a journal
  * 
@@ -26,6 +27,7 @@
 
 
 <h2 class="mt-0">
+    <i class="ph ph-stack text-primary"></i>
     <?= $data['journal'] ?>
 </h2>
 
@@ -57,7 +59,7 @@
             <?php
             if (!($data['oa'] ?? false)) {
                 echo lang('No', 'Nein');
-            } elseif ($data['oa'] > 0) {
+            } elseif ($data['oa'] > 1900) {
                 echo lang('since ', 'seit ') . $data['oa'];
             } else {
                 echo lang('Yes', 'Ja');
@@ -75,20 +77,18 @@
             </td>
         </tr>
     <?php } ?>
-    <!--     
-    <tr>
-        <td>WoS Categories</td>
-        <td><?= isset($data['categories']) ? implode('<br>', DB::doc2Arr($data['categories'])) : '' ?></td>
-    </tr> -->
 </table>
 
 <h3>
     <?= lang('Publications in this journal', 'Publikationen in diesem Journal') ?>
 </h3>
 
+<!-- <canvas id="spark"></canvas> -->
+
 <table class="table" id="publication-table">
     <thead>
-        <th>Activity</th>
+        <th><?=lang('Year', 'Jahr')?></th>
+        <th><?=lang('Publication', 'Publikation')?></th>
         <th>Link</th>
     </thead>
     <tbody>
@@ -114,17 +114,25 @@
                 "emptyTable": lang('No publications available for this journal.', 'Für dieses Journal sind noch keine Publikationen verfügbar.'),
             },
             "pageLength": 5,
-            columnDefs: [{
+            columnDefs: [
+                {
                     targets: 0,
+                    data: 'year'
+                },
+                {
+                    targets: 1,
                     data: 'activity'
                 },
                 {
-                    "targets": 1,
+                    "targets": 2,
                     "data": "name",
                     "render": function(data, type, full, meta) {
                         return `<a href="${ROOTPATH}/activities/view/${full.id}"><i class="ph ph-arrow-fat-line-right"></a>`;
                     }
                 },
+            ],
+            "order": [
+                [0, 'desc'],
             ],
             <?php if (isset($_GET['q'])) { ?> "oSearch": {
                     "sSearch": "<?= $_GET['q'] ?>"
@@ -132,6 +140,10 @@
             <?php } ?>
         });
 
+        // spark('spark', {
+        //     journal_id: '<?= $id ?>',
+        //     type: 'publication'
+        // });
     });
 </script>
 
@@ -188,13 +200,77 @@
                     }
                 },
             ],
-            <?php if (isset($_GET['q'])) { ?> "oSearch": {
-                    "sSearch": "<?= $_GET['q'] ?>"
-                }
-            <?php } ?>
+            "order": [
+                [1, 'desc'],
+            ],
         });
     });
 </script>
+
+<h3><?= lang('Catergories', 'Kategorien') ?></h3>
+<?php
+$categories = $data['categories'] ?? [];
+if (empty($categories)) {
+    echo '<p>' . lang('No categories available.', 'Keine Kategorien verfügbar.') . '</p>';
+} else {
+    echo '<ul>';
+    foreach ($categories as $cat) { ?>
+        <li>
+            <?= $cat['name'] ?>
+            <!-- 
+            Nicht aussagekräftig, da die Quartile nicht immer aktuell sind
+            <?php if ($cat['quartile']) { ?>
+                <span class="quartile Q<?= $cat['quartile'] ?>">Q<?= $cat['quartile'] ?></span>
+            <?php } ?> -->
+        </li>
+<?php
+    }
+    echo '</ul>';
+}
+?>
+
+<?php if ($Settings->hasPermission('journals.edit')) { ?>
+    <form action="<?= ROOTPATH ?>/crud/journal/update-metrics/<?= $id ?>" method="post">
+        <button class="btn primary float-md-right"><i class="ph ph-arrows-clockwise"></i> <?= lang('Update Metrics', 'Metriken aktualisieren') ?></button>
+    </form>
+<?php } ?>
+<h3><?= lang('Metrics', 'Metriken') ?></h3>
+
+<!-- crud/journal/update-metrics/ -->
+
+<?php
+$metrics = DB::doc2Arr($data['metrics'] ?? array());
+
+if (empty($metrics)) {
+    echo '<p>' . lang('No metrics available.', 'Keine Metriken verfügbar.') . '</p>';
+} else { ?>
+    <table class="table small">
+        <thead>
+            <th><?= lang('Year', 'Jahr') ?></th>
+            <th>SJR</th>
+            <th>IF (2Y)</th>
+            <th>IF (3Y)</th>
+            <th><?= lang('Best Quartile', 'Bestes Quartil') ?></th>
+        </thead>
+        <tbody>
+            <?php
+            foreach ($metrics as $metric) {
+                echo '<tr>';
+                echo '<th>' . $metric['year'] . '</th>';
+                echo '<td>' . $metric['sjr'] . '</td>';
+                echo '<td>' . $metric['if_2y'] . '</td>';
+                echo '<td>' . $metric['if_3y'] . '</td>';
+                echo '<td>';
+                if ($metric['quartile']) {
+                    echo '<span class="quartile ' . $metric['quartile'] . '">' . $metric['quartile'] . '</span>';
+                }
+                echo'</td>';
+                echo '</tr>';
+            }
+            ?>
+        </tbody>
+    </table>
+<?php } ?>
 
 
 <h3><?= lang('Impact factors', 'Impact-Faktoren') ?></h3>

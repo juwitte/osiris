@@ -16,6 +16,25 @@
 
 include_once BASEPATH . "/routes/admin.fields.php";
 
+
+Route::get('/admin/users', function () {
+    include_once BASEPATH . "/php/init.php";
+    if (!$Settings->hasPermission('user.synchronize')) die('You have no permission to be here.');
+
+    $breadcrumb = [
+        ['name' => lang("Admin Panel Users")]
+    ];
+    include BASEPATH . "/header.php";
+    if (USER_MANAGEMENT == 'LDAP') {
+        include BASEPATH . "/pages/synchronize-users.php";
+    } else {
+        include BASEPATH . "/pages/admin/users.php";
+    }
+
+    include BASEPATH . "/footer.php";
+}, 'login');
+
+
 Route::get('/admin/(general|roles|features)', function ($page) {
     include_once BASEPATH . "/php/init.php";
     if (!$Settings->hasPermission('admin.see')) die('You have no permission to be here.');
@@ -30,13 +49,52 @@ Route::get('/admin/(general|roles|features)', function ($page) {
 }, 'login');
 
 
+Route::get('/admin/templates', function () {
+    include_once BASEPATH . "/php/init.php";
+    $breadcrumb = [
+        ['name' => lang("Activity Types", "Aktivitäts-Typen"), 'path' => "/admin/categories"],
+    ];
+
+    $type = null;
+    $template = '';
+    if (isset($_GET['type']) && !empty($_GET['type'])) {
+        $type = $_GET['type'];
+        $typeArr = $osiris->adminTypes->findOne(['id' => $type]);
+        if (!empty($typeArr)) {
+            $breadcrumb[] = ['name' => lang($typeArr['name'], $typeArr['name_de']), 'path' => "/admin/types/$type"];
+
+            $templates = $typeArr['template'];
+            $template = $templates['print'];
+        }
+    }
+    $breadcrumb[] = ['name' => lang("Templates", "Vorlagen")];
+
+    include BASEPATH . "/header.php";
+    include BASEPATH . "/pages/admin/template-builder.php";
+    include BASEPATH . "/footer.php";
+}, 'login');
+
+Route::get('/admin/module-helper', function () {
+    include_once BASEPATH . "/php/init.php";
+    include_once BASEPATH . "/php/Modules.php";
+    $breadcrumb = [
+        ['name' => lang("Activity Types", "Aktivitäts-Kategorien"), 'path' => "/admin/categories"],
+        ['name' => lang("New", "Neu")],
+        ['name' => lang("Data fields", "Datenfelder")]
+    ];
+    include BASEPATH . "/header.php";
+    include BASEPATH . "/pages/admin/module-helper.php";
+    include BASEPATH . "/footer.php";
+}, 'login');
+
+
 Route::get('/admin/categories', function () {
     include_once BASEPATH . "/php/init.php";
     if (!$Settings->hasPermission('admin.see')) die('You have no permission to be here.');
 
     $user = $_SESSION['username'];
     $breadcrumb = [
-        ['name' => lang("Categories", "Kategorien")]
+        ['name' => lang("Activity Types", "Aktivitäts-Kategorien")]
     ];
     include BASEPATH . "/header.php";
     include BASEPATH . "/pages/admin/categories.php";
@@ -49,7 +107,7 @@ Route::get('/admin/categories/new', function () {
 
     $user = $_SESSION['username'];
     $breadcrumb = [
-        ['name' => lang("Categories", "Kategorien"), 'path' => "/admin/categories"],
+        ['name' => lang("Activity Types", "Aktivitäts-Kategorien"), 'path' => "/admin/categories"],
         ['name' => lang("New", "Neu")]
     ];
     include BASEPATH . "/header.php";
@@ -71,7 +129,7 @@ Route::get('/admin/categories/(.*)', function ($id) {
     }
     $name = lang($category['name'], $category['name_de']);
     $breadcrumb = [
-        ['name' => lang("Categories", "Kategorien"), 'path' => "/admin/categories"],
+        ['name' => lang("Activity Types", "Aktivitäts-Kategorien"), 'path' => "/admin/categories"],
         ['name' => $name]
     ];
 
@@ -92,7 +150,7 @@ Route::get('/admin/types/new', function () {
     $user = $_SESSION['username'];
 
     $breadcrumb = [
-        ['name' => lang("Categories", "Kategorien"), 'path' => "/admin/categories"],
+        ['name' => lang("Activity Types", "Aktivitäts-Kategorien"), 'path' => "/admin/categories"],
         ['name' => lang("New Type", "Neuer Typ")]
     ];
     $t = $_GET['parent'] ?? '';
@@ -145,7 +203,7 @@ Route::get('/admin/types/(.*)', function ($id) {
     $submember = $osiris->activities->count(['type' => $t, 'subtype' => $st]);
 
     $breadcrumb = [
-        ['name' => lang("Categories", "Kategorien"), 'path' => "/admin/categories"],
+        ['name' => lang("Activity Types", "Aktivitäts-Kategorien"), 'path' => "/admin/categories"],
         ['name' => lang($parent['name'], $parent['name_de']), 'path' => "/admin/categories/" . $t],
         ['name' => $name]
     ];
@@ -216,6 +274,31 @@ Route::post('/crud/admin/general', function () {
             ]);
         }
     }
+
+    if (isset($_POST['staff'])) {
+        $staff = [];
+        if (isset($_POST['staff']['free'])) {
+            $staff['free'] = boolval($_POST['staff']['free']);
+        }
+        if (isset($_POST['staff']['positions']) && !empty($_POST['staff']['positions'])) {
+            $en = $_POST['staff']['positions'];
+            $de = $_POST['staff']['positions_de'] ?? $en;
+
+            $staff['positions'] = [];
+            foreach ($en as $i => $e) {
+                $staff['positions'][] = [
+                    $e,
+                    $de[$i] ?? $e
+                ];
+            }
+        }
+        $osiris->adminGeneral->deleteOne(['key' => 'staff']);
+        $osiris->adminGeneral->insertOne([
+            'key' => 'staff',
+            'value' => $staff
+        ]);
+    }
+
 
     if (isset($_FILES["logo"])) {
         $filename = htmlspecialchars(basename($_FILES["logo"]["name"]));
@@ -365,6 +448,7 @@ Route::post('/crud/(categories|types)/update/([A-Za-z0-9]*)', function ($col, $i
     if (!$Settings->hasPermission('admin.see')) die('You have no permission to be here.');
 
     if (!isset($_POST['values'])) die("no values given");
+    $values = validateValues($_POST['values'], $DB);
 
     if ($col == 'categories') {
         $collection = $osiris->adminCategories;
@@ -372,9 +456,12 @@ Route::post('/crud/(categories|types)/update/([A-Za-z0-9]*)', function ($col, $i
     } else {
         $collection = $osiris->adminTypes;
         $key = 'subtype';
+        // types need a categorie a.k.a. parent
+        if (!isset($values['parent'])) {
+            die("Type must have a parent category.");
+        }
     }
 
-    $values = validateValues($_POST['values'], $DB);
 
     // check if ID has changed
     if (isset($_POST['original_id']) && $_POST['original_id'] != $values['id']) {
@@ -383,13 +470,19 @@ Route::post('/crud/(categories|types)/update/([A-Za-z0-9]*)', function ($col, $i
             [$key => $_POST['original_id']],
             ['$set' => [$key => $values['id']]]
         );
+        $_POST['redirect'] = ROOTPATH."/admin/types/" . $values['id'];
+
+        if ($col == 'categories') {
+            // update all connected types
+            $osiris->adminTypes->updateMany(
+                ['parent' => $_POST['original_id']],
+                ['$set' => ['parent' => $values['id']]]
+            );
+            $_POST['redirect'] = ROOTPATH."/admin/categories/" . $values['id'];
+        }
     }
 
     if ($col == 'types') {
-        // types need a categorie a.k.a. parent
-        if (!isset($values['parent'])) {
-            die("Type must have a parent category.");
-        }
         // check if parent has changed
         if (isset($_POST['original_parent']) && $_POST['original_parent'] != $values['parent']) {
             // update all connected activities 
@@ -478,3 +571,66 @@ Route::post('/crud/categories/update-order', function () {
         die();
     }
 });
+
+
+
+// <!-- Test Email Settings by sending a test mail -->
+// // /crud/admin/mail-test
+
+Route::post('/crud/admin/mail-test', function () {
+    include_once BASEPATH . "/php/init.php";
+    include_once BASEPATH . "/php/MailSender.php";
+
+    // include_once BASEPATH . "/php/mail.php";
+    if (!$Settings->hasPermission('admin.see')) die('You have no permission to be here.');
+
+    $to = $_POST['email'];
+
+    sendMail($to, 'OSIRIS Test Mail', 'This is a test mail from the OSIRIS system. If you received this mail, everything is set up correctly.');
+
+    header("Location: " . ROOTPATH . "/admin/general?msg=" . $msg);
+}, 'login');
+
+
+// crud/admin/add-user
+
+Route::post('/crud/admin/add-user', function () {
+    include_once BASEPATH . "/php/init.php";
+    if (!$Settings->hasPermission('user.synchronize')) die('You have no permission to be here.');
+
+
+    if ($osiris->persons->count(['username' => $_POST['username']]) > 0) {
+        $msg = lang("The username is already taken. Please try again.", "Der Nutzername ist bereits vergeben. Versuche es erneut.");
+        include BASEPATH . "/header.php";
+        printMsg($msg, 'error');
+        $form = $_POST;
+        include BASEPATH . "/pages/admin/users.php";
+        include BASEPATH . "/footer.php";
+        die;
+    }
+
+    $person = $_POST['values'];
+    $person['username'] = $_POST['username'];
+
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $osiris->accounts->insertOne([
+        'username' => $person['username'],
+        'password' => $password
+    ]);
+
+    $person['displayname'] = "$person[first] $person[last]";
+    $person['formalname'] = "$person[last], $person[first]";
+    $person['first_abbr'] = "";
+    foreach (explode(" ", $person['first']) as $name) {
+        $person['first_abbr'] .= " " . $name[0] . ".";
+    }
+    $person['created'] = date('d.m.Y');
+    $person['roles'] = array_keys($person['roles'] ?? []);
+
+    $person['new'] = true;
+    $person['is_active'] = true;
+
+    $osiris->persons->insertOne($person);
+
+    header("Location: " . ROOTPATH . "/admin/users?success=" . $person['username']);
+}, 'login');

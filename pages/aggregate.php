@@ -6,7 +6,7 @@
  * This file is part of the OSIRIS package.
  * Copyright (c) 2024 Julia Koblitz, OSIRIS Solutions GmbH
  * 
- * @link /search/activities
+ * @link /activities/search
  *
  * @package OSIRIS
  * @since 1.0 
@@ -26,7 +26,7 @@ $Format = new Document(true);
     <a href="#close-modal" class="btn osiris active">
         <i class="ph ph-magnifying-glass-plus"></i> <?= lang('Activities', 'Aktivitäten') ?>
     </a>
-    <a href="<?= ROOTPATH ?>/search/user" class="btn osiris">
+    <a href="<?= ROOTPATH ?>/user/search" class="btn osiris">
         <i class="ph ph-student"></i> <?= lang('Users', 'Personen') ?>
     </a>
 </div>
@@ -321,7 +321,7 @@ $Format = new Document(true);
             },
             {
                 id: 'conference',
-                label: lang('Conference', 'Konferenz'),
+                label: lang('Event'),
                 type: 'string'
             },
             {

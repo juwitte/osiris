@@ -17,32 +17,20 @@
  */
 ?>
 
-<?php
-
-if (defined('OSIRIS_DB_VERSION') && OSIRIS_DB_VERSION != OSIRIS_VERSION) { ?>
-    <div class="alert danger mb-20">
-        <h3 class="title"><?= lang('Warning', 'Warnung') ?></h3>
-        <?= lang('
-        A new OSIRIS-Version has been found. Please click <a href="' . ROOTPATH . '/migrate">here</a> to migrate', '
-        Eine neue OSIRIS-Version wurde gefunden. Bitte klicke <a href="' . ROOTPATH . '/migrate">hier</a>, um zu migrieren.') ?>
-        <small>Installed: <?= OSIRIS_DB_VERSION ?></small>
-    </div>
-<?php } ?>
-
 
 <!-- all necessary javascript -->
 <script src="<?= ROOTPATH ?>/js/chart.min.js"></script>
 <script src="<?= ROOTPATH ?>/js/chartjs-plugin-datalabels.min.js"></script>
 <script src="<?= ROOTPATH ?>/js/d3.v4.min.js"></script>
 <script src="<?= ROOTPATH ?>/js/popover.js"></script>
-<script src="<?= ROOTPATH ?>/js/d3-chords.js?v=2"></script>
+<script src="<?= ROOTPATH ?>/js/d3-chords.js?v=<?= CSS_JS_VERSION ?>"></script>
 <script src="<?= ROOTPATH ?>/js/d3.layout.cloud.js"></script>
 
 <!-- all variables for this page -->
 <script>
     const CURRENT_USER = '<?= $user ?>';
 </script>
-<script src="<?= ROOTPATH ?>/js/profile.js?v=2"></script>
+<script src="<?= ROOTPATH ?>/js/profile.js?v=<?= CSS_JS_VERSION ?>"></script>
 
 
 <link rel="stylesheet" href="<?= ROOTPATH ?>/css/achievements.css?<?= filemtime(BASEPATH . '/css/achievements.css') ?>">
@@ -208,7 +196,7 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
     <div class="col flex-grow-0">
         <div class="position-relative">
             <?= $Settings->printProfilePicture($user, 'profile-img') ?>
-            <?php if ($currentuser || $Settings->hasPermission('user.image')) { ?>
+            <?php if ($currentuser && $Settings->hasPermission('user.image-own') || $Settings->hasPermission('user.image')) { ?>
                 <a href="#change-picture" class="position-absolute p-10 bottom-0 right-0 text-white"><i class="ph ph-edit"></i></a>
             <?php } ?>
         </div>
@@ -222,51 +210,18 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
                     <i class="ph ph-globe-x m-0"></i>
                 </small>
             <?php } ?>
-
         </h5>
-
-        <style>
-            .dept-list {
-                list-style: none;
-                padding: 0;
-                margin: .5rem 0;
-            }
-
-            .dept-list li {
-                margin: 0;
-            }
-        </style>
-        <ul class="dept-list">
-            <?php
-            $depts = DB::doc2Arr($scientist['depts'] ?? []);
-            if (in_array(null, $depts)) {
-                // filter and change in database
-                $depts = array_filter($depts);
-                $osiris->scientists->updateOne(
-                    ['username' => $user],
-                    ['$set' => ['depts' => $depts]]
-                );
-            }
-
-            if (!empty($scientist['depts'])) foreach ($depts as $i => $d) {
-                $dept = $Groups->getGroup($d);
-            ?>
-                <li>
-                    <a href="<?= ROOTPATH ?>/groups/view/<?= $dept['id'] ?>" style="color:<?= $dept['color'] ?? 'inherit' ?>">
-                        <?php if (in_array($user, $dept['head'] ?? [])) { ?>
-                            <i class="ph ph-crown"></i>
-                        <?php } ?>
-                        <?= $dept['name'] ?>
-                        (<?= $dept['unit'] ?>)
-                    </a>
-                </li>
-            <?php } ?>
-
-        </ul>
 
         <?php if (!($scientist['is_active'] ?? true)) { ?>
             <span class="text-danger badge">
                 <?= lang('Former Employee', 'Ehemalige Beschäftigte') ?>
+                <?php if (isset($scientist['inactivated'])) { ?>
+                    <small>
+                        <?= lang('since', 'seit') ?>
+                        <?= date('d.m.Y', strtotime($scientist['inactivated'])) ?>
+                    </small>
+                <?php } ?>
+
             </span>
         <?php } ?>
 
@@ -284,107 +239,183 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
         }
         ?>
 
-
-        <?php if ($showcoins) { ?>
-            <p class="lead m-0">
-                <i class="ph ph-lg ph-coin text-signal"></i>
-                <b id="lom-points"><?= $coins ?></b>
-                Coins
-                <a href='#coins' class="text-muted">
-                    <i class="ph ph-question text-muted"></i>
-                </a>
-            </p>
-        <?php } ?>
-
-    </div>
-
-    <div class="achievements text-right" style="max-width: 35rem;">
-        <?php
-        if ($show_achievements) {
-        ?>
-            <h5 class="m-0"><?= lang('Achievements', 'Errungenschaften') ?>:</h5>
-
-            <?php
-            $Achievement->widget();
-            ?>
-        <?php
-        } ?>
-
-        <?php foreach ($scientist['roles'] as $role) { ?>
+        <?php foreach (($scientist['roles'] ?? []) as $role) { ?>
             <span class="badge">
                 <?= strtoupper($role) ?>
             </span>
         <?php } ?>
+
+
     </div>
+
+    <div id="units">
+        <h5 class="mt-0">
+            <?= lang('Organisational Unit(s)', 'Organisationseinheit(en)') ?>
+
+            <?php if ($currentuser || $Settings->hasPermission('user.edit')) { ?>
+                <a href="<?= ROOTPATH ?>/user/units/<?= $user ?>" class="font-size-14 ml-5">
+                    <i class="ph ph-edit"></i>
+                </a>
+            <?php } ?>
+        </h5>
+        <?php
+        $units = DB::doc2Arr($scientist['units'] ?? []);
+        // filter units from the past
+        $units = array_filter($units, function ($unit) {
+            return !isset($unit['end']) || strtotime($unit['end']) > time();
+        });
+        $unit_ids = array_column($units, 'unit');
+        ?>
+        <table class="table unit-table">
+            <tbody>
+                <?php
+                if (!empty($unit_ids)) {
+                    $hierarchy = $Groups->getPersonHierarchyTree($unit_ids);
+                    $tree = $Groups->readableHierarchy($hierarchy);
+
+                    foreach ($tree as $row) {
+                        $selected = in_array($row['id'], $unit_ids);
+                        $dept = $Groups->getGroup($row['id']);
+                        $head = (in_array($user, $dept['head'] ?? []));
+                        if ($selected) { ?>
+                            <tr>
+                                <td class="indent-<?= $row['indent'] ?>">
+                                    <a href="<?= ROOTPATH ?>/groups/view/<?= $row['id'] ?>">
+                                        <?= lang($row['name_en'], $row['name_de'] ?? null) ?>
+                                    </a>
+                                    <?php if ($head) { ?>
+                                        <span data-toggle="tooltip" data-title="<?= lang('The person is leading this unit.', 'Die Person leitet diese Einheit.') ?>">
+                                            <i class="ph ph-crown-simple text-signal"></i>
+                                        </span>
+                                    <?php } ?>
+                                </td>
+                            </tr>
+                        <?php } else { ?>
+                            <tr>
+                                <td class="text-muted indent-<?= $row['indent'] ?>">
+                                    <?= lang($row['name_en'], $row['name_de'] ?? null) ?>
+                                </td>
+                            </tr>
+                    <?php }
+                    }
+                } else { ?>
+                    <tr>
+                        <td>
+                            <?= lang('No organisational unit selected', 'Keine Organisationseinheit ausgewählt') ?>
+                        </td>
+                    </tr>
+                <?php }
+                ?>
+            </tbody>
+        </table>
+    </div>
+
 </div>
 
 
+<div class="achievements d-flex align-baseline">
+    <style>
+        .achievement-widget-small img {
+            height: 2.8rem;
+        }
+    </style>
+
+    <?php if ($showcoins) { ?>
+        <p class="lead m-0">
+            <i class="ph ph-lg ph-coin text-signal"></i>
+            <b id="lom-points"><?= $coins ?></b>
+            Coins
+            <a href='#coins' class="text-muted">
+                <i class="ph ph-question text-muted"></i>
+            </a>
+
+            <?php
+            if ($show_achievements) {
+                $Achievement->widget('small ml-20');
+            } ?>
+        </p>
+    <?php } ?>
+</div>
+
+
+<!-- show research topics -->
+<div class="my-20">
+    <?= $Settings->printTopics($scientist['topics'] ?? []) ?>
+</div>
 
 <?php if ($currentuser) { ?>
 
-    <div class="card my-10 pb-20">
-        <h5 class="title font-size-16">
-            <?= lang('This is your personal profile page.', 'Dies ist deine persönliche Profilseite.') ?>
-        </h5>
-        <div class="btn-toolbar">
+    <div class="btn-toolbar">
 
-            <div class="btn-group btn-group-lg">
-                <a class="btn text-primary border-primary" href="<?= ROOTPATH ?>/add-activity" data-toggle="tooltip" data-title="<?= lang('Add activity', 'Aktivität hinzufügen') ?>">
-                    <i class="ph ph-plus-circle ph-fw"></i>
-                    <!-- <?= lang('Add activity', 'Aktivität hinzufügen') ?> -->
-                </a>
-                <a href="<?= ROOTPATH ?>/my-activities" class="btn text-primary border-primary" data-toggle="tooltip" data-title="<?= lang('My activities', 'Meine Aktivitäten ') ?>">
-                    <i class="ph ph-folder-user ph-fw"></i>
-                    <!-- <?= lang('My activities', 'Meine Aktivitäten ') ?> -->
-                </a>
-                <a class="btn text-primary border-primary" href="<?= ROOTPATH ?>/my-year/<?= $user ?>" data-toggle="tooltip" data-title="<?= lang('My Year', 'Mein Jahr') ?>">
-                    <i class="ph ph-calendar ph-fw"></i>
-                    <!-- <?= lang('My Year', 'Mein Jahr') ?> -->
-                </a>
-                <a href="<?= ROOTPATH ?>/claim" class="btn text-primary border-primary" data-toggle="tooltip" data-title="<?= lang('Claim activities', 'Aktivitäten beanspruchen') ?>">
-                    <i class="ph ph-hand ph-fw"></i>
-                    <!-- <?= lang('Claim activities', 'Aktivitäten beanspruchen') ?> -->
-                </a>
+        <div class="btn-group btn-group-lg">
+            <a class="btn text-primary border-primary" href="<?= ROOTPATH ?>/add-activity" data-toggle="tooltip" data-title="<?= lang('Add activity', 'Aktivität hinzufügen') ?>">
+                <i class="ph ph-plus-circle ph-fw"></i>
+                <!-- <?= lang('Add activity', 'Aktivität hinzufügen') ?> -->
+            </a>
+            <a href="<?= ROOTPATH ?>/my-activities" class="btn text-primary border-primary" data-toggle="tooltip" data-title="<?= lang('My activities', 'Meine Aktivitäten ') ?>">
+                <i class="ph ph-folder-user ph-fw"></i>
+                <!-- <?= lang('My activities', 'Meine Aktivitäten ') ?> -->
+            </a>
+            <a class="btn text-primary border-primary" href="<?= ROOTPATH ?>/my-year/<?= $user ?>" data-toggle="tooltip" data-title="<?= lang('My Year', 'Mein Jahr') ?>">
+                <i class="ph ph-calendar ph-fw"></i>
+                <!-- <?= lang('My Year', 'Mein Jahr') ?> -->
+            </a>
 
-                <?php if ($Settings->featureEnabled('portal')) { ?>
-                    <a class="btn text-primary border-primary" href="<?= ROOTPATH ?>/preview/person/<?= $user ?>" data-toggle="tooltip" data-title="<?= lang('Preview', 'Vorschau') ?>">
-                        <i class="ph ph-eye ph-fw"></i>
-                    </a>
-                <?php } ?>
-
-            </div>
-            <div class="btn-group btn-group-lg">
-                <?php if ($show_achievements) { ?>
-                    <a class="btn text-primary border-primary" href="<?= ROOTPATH ?>/achievements" data-toggle="tooltip" data-title="<?= lang('My Achievements', 'Meine Errungenschaften') ?>">
-                        <i class="ph ph-trophy ph-fw"></i>
-                    </a>
-                <?php } ?>
-
-            </div>
-
-            <div class="btn-group btn-group-lg">
-                <a class="btn text-primary border-primary" href="<?= ROOTPATH ?>/user/edit/<?= $user ?>" data-toggle="tooltip" data-title="<?= lang('Edit user profile', 'Bearbeite Profil') ?>">
-                    <i class="ph ph-edit ph-fw"></i>
-                    <!-- <?= lang('Edit user profile', 'Bearbeite Profil') ?> -->
-                </a>
-                <!-- <a class="btn text-primary border-primary" href="<?= ROOTPATH ?>/user/visibility/<?= $user ?>" data-toggle="tooltip" data-title="<?= lang('Configure web profile', 'Webprofil bearbeiten') ?>">
+            <?php if ($Settings->featureEnabled('portal')) { ?>
+                <a class="btn text-primary border-primary" href="<?= ROOTPATH ?>/preview/person/<?= $user ?>" data-toggle="tooltip" data-title="<?= lang('Preview', 'Vorschau') ?>">
                     <i class="ph ph-eye ph-fw"></i>
-                </a> -->
+                </a>
+            <?php } ?>
 
-            </div>
-            <form action="<?= ROOTPATH ?>/download" method="post">
-
-                <input type="hidden" name="filter[user]" value="<?= $user ?>">
-                <input type="hidden" name="highlight" value="user">
-                <input type="hidden" name="format" value="word">
-                <input type="hidden" name="type" value="cv">
-
-                <button class="btn text-primary border-primary large" data-toggle="tooltip" data-title="<?= lang('Export CV', 'CV exportieren') ?>">
-                    <i class="ph ph-identification-card text-primary ph-fw"></i>
-                </button>
-            </form>
         </div>
+        <div class="btn-group btn-group-lg">
+            <?php if ($show_achievements) { ?>
+                <a class="btn text-primary border-primary" href="<?= ROOTPATH ?>/achievements" data-toggle="tooltip" data-title="<?= lang('My Achievements', 'Meine Errungenschaften') ?>">
+                    <i class="ph ph-trophy ph-fw"></i>
+                </a>
+            <?php } ?>
+        </div>
+
+        <div class="btn-group btn-group-lg">
+            <a class="btn text-primary border-primary" href="<?= ROOTPATH ?>/user/edit/<?= $user ?>" data-toggle="tooltip" data-title="<?= lang('Edit user profile', 'Bearbeite Profil') ?>">
+                <i class="ph ph-edit ph-fw"></i>
+                <!-- <?= lang('Edit user profile', 'Bearbeite Profil') ?> -->
+            </a>
+            <a href="<?= ROOTPATH ?>/claim" class="btn text-primary border-primary" data-toggle="tooltip" data-title="<?= lang('Claim activities', 'Aktivitäten beanspruchen') ?>">
+                <i class="ph ph-hand ph-fw"></i>
+                <!-- <?= lang('Claim activities', 'Aktivitäten beanspruchen') ?> -->
+            </a>
+        </div>
+        <form action="<?= ROOTPATH ?>/download" method="post">
+
+            <input type="hidden" name="filter[user]" value="<?= $user ?>">
+            <input type="hidden" name="highlight" value="user">
+            <input type="hidden" name="format" value="word">
+            <input type="hidden" name="type" value="cv">
+
+            <button class="btn text-primary border-primary large" data-toggle="tooltip" data-title="<?= lang('Export CV', 'CV exportieren') ?>">
+                <i class="ph ph-identification-card text-primary ph-fw"></i>
+            </button>
+        </form>
     </div>
+
+
+    <?php
+    if ($show_achievements) {
+        $new = $Achievement->new;
+
+        if (!empty($new)) {
+            $notification = true;
+            echo '<div class="mt-20">';
+            echo '<h5 class="title font-size-16">' . lang('Congratulation, you achieved something new: ', 'Glückwunsch, du hast neue Errungenschaften erlangt:') . '</h5>';
+            foreach ($new as $i => $n) {
+                $Achievement->snack($n);
+            }
+            $Achievement->save();
+            echo '</div>';
+        }
+    }
+    ?>
 
 <?php } else { ?>
     <div class="btn-toolbar">
@@ -534,8 +565,11 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
                 ['contact' => $user],
                 ['persons.user' => $user]
             ),
-            "status" => ['$ne' => "rejected"]
+            "status" => ['$in' => ["approved", 'finished']]
         ];
+        if ($currentuser) {
+            $project_filter['status']['$in'][] = 'applied';
+        }
 
         $count_projects = $osiris->projects->count($project_filter);
         if ($count_projects > 0) { ?>
@@ -705,6 +739,20 @@ if ($currentuser) { ?>
                             <?= lang('Here you can find the latest news about OSIRIS and your activities.', 'Hier findest du die neuesten Nachrichten über OSIRIS und deine Aktivitäten.') ?>
                         </p>
 
+                        <?php
+                        if (isset($scientist['new']) && defined('USER_MANAGEMENT') && USER_MANAGEMENT == 'AUTH') { ?>
+                            <!-- print message to change password -->
+                            <div class="alert danger mt-10">
+                                <a class="link text-danger" href='<?= ROOTPATH ?>/user/edit/<?= $user ?>#section-account'>
+                                    <?= lang(
+                                        "You have not yet set a password. Please change your password now.",
+                                        "Du hast noch kein Passwort gesetzt. Bitte ändere jetzt dein Passwort."
+                                    ) ?>
+                                </a>
+                            </div>
+                        <?php  }
+                        ?>
+
 
                         <?php
                         $issues = $DB->getUserIssues($user);
@@ -807,23 +855,6 @@ if ($currentuser) { ?>
                             </div>
                         <?php } ?>
 
-
-                        <?php
-                        if ($show_achievements) {
-                            $new = $Achievement->new;
-
-                            if (!empty($new)) {
-                                $notification = true;
-                                echo '<div class="mt-20">';
-                                echo '<h5 class="title font-size-16">' . lang('Congratulation, you achieved something new: ', 'Glückwunsch, du hast neue Errungenschaften erlangt:') . '</h5>';
-                                foreach ($new as $i => $n) {
-                                    $Achievement->snack($n);
-                                }
-                                $Achievement->save();
-                                echo '</div>';
-                            }
-                        }
-                        ?>
                         <?php if (!$notification) { ?>
                             <p>
                                 <?= lang('There are no new notifications.', 'Es gibt keine neuen Benachrichtigungen.') ?>
@@ -845,9 +876,9 @@ if ($currentuser) { ?>
                         $pubs = $osiris->activities->find(
                             ['authors.aoi' => true, 'type' => 'publication'],
                             [
-                                'sort' => ['year' => -1, 'month' => -1],
+                                'sort' => ['start_date' => -1],
                                 'limit' => 5,
-                                'projection' => ['html' => '$rendered.web', 'date' => '$rendered.start']
+                                'projection' => ['html' => '$rendered.web', 'date' => '$start_date']
                             ]
                         )->toArray();
                         ?>
@@ -874,40 +905,61 @@ if ($currentuser) { ?>
                 <div class="box h-full">
                     <div class="content">
                         <?php if ($Settings->hasPermission('conferences.edit')) { ?>
-                            <a href="<?=ROOTPATH?>/conferences#add-conference" class="float-md-right btn primary">
+                            <a href="<?= ROOTPATH ?>/conferences#add-conference" class="float-md-right btn primary">
                                 <i class="ph ph-plus"></i>
                                 <?= lang('Add', 'Hinzufügen') ?>
                             </a>
                         <?php } ?>
 
                         <h4 class="title">
-                            <a href="<?=ROOTPATH?>/conferences" class="link">
-                            <?= lang('Conferences', 'Konferenzen') ?>
+                            <a href="<?= ROOTPATH ?>/conferences" class="link">
+                                <?= lang('Events') ?>
                             </a>
                         </h4>
                         <p class="text-muted">
-                            <?= lang('Shown are approaching conferences and conferences within the past three month.', 'Gezeigt sind zukünftige Konferenzen und vergangene aus den letzten drei Monaten.') ?>
-                            <br>
-                            <small> <?= lang('Conferences were added by users of the OSIRIS system.', 'Konferenzen wurden von Nutzenden des OSIRIS-Systems angelegt.') ?></small>
+                            <?= lang('Shown are approaching events in the next 6 month and events you attended within the past six month.', 'Gezeigt sind zukünftige Events in den nächsten 6 Monaten und vergangene, an denen du in den letzten sechs Monaten teilgenommen hast.') ?>
                         </p>
 
                         <?php
                         // conferences max past 3 month
                         $conferences = $osiris->conferences->find(
-                            ['start' => ['$gte' => date('Y-m-d', strtotime('-3 month'))]],
+                            [
+                                '$or' => [
+                                    ['end' => ['$gte' => date('Y-m-d', strtotime('-3 days'))], 'start' => ['$lte' => date('Y-m-d', strtotime('+6 month'))]],
+                                    [
+                                        'start' => ['$gte' => date('Y-m-d', strtotime('-6 month'))],
+                                        '$or' => [
+                                            ['participants' => $user],
+                                            ['interests' => $user]
+                                        ]
+                                    ]
+                                ],
+                                'dismissed' => ['$ne' => $user]
+                            ],
                             ['sort' => ['start' => 1]]
                         )->toArray();
                         ?>
                         <table class="table simple">
                             <?php foreach ($conferences as $n => $c) {
-                                // 
+                                $past = strtotime($c['end']) > time();
+                                if ($past) {
+                                    $days = ceil((strtotime($c['start']) - time()) / 86400);
+                                    $days = $days > 0 ? $days : 0;
+                                    $days = $days == 0 ? lang('today', 'heute') : 'in ' . $days . ' ' . lang('days', 'Tagen');
+                                }
+                                // user is interested in conference
+                                $interest = in_array($user, DB::doc2Arr($c['interests'] ?? []));
+                                $participate = in_array($user, DB::doc2Arr($c['participants'] ?? []));
+                                $interestTooltip = $interest ? lang('Click to remove interest', 'Klicken um Interesse zu entfernen') : lang('Click to show interest', 'Klicken um Interesse zu zeigen');
+                                $participateTooltip = $participate ? lang('Click to remove participation', 'Klicken um Teilnahme zu entfernen') : lang('Click to show participation', 'Klicken um Teilnahme zu zeigen');
+
                             ?>
                                 <tr>
                                     <td>
                                         <div class="d-flex justify-content-between">
                                             <h6 class="m-0">
-                                                <a href="<?=ROOTPATH?>/conferences/<?=$c['_id']?>">
-                                                <?= $c['title'] ?>
+                                                <a href="<?= ROOTPATH ?>/conferences/<?= $c['_id'] ?>">
+                                                    <?= $c['title'] ?>
                                                 </a>
                                                 <?php if (!empty($c['url'] ?? null)) { ?>
                                                     <a href="<?= $c['url'] ?>" target="_blank" rel="noopener noreferrer">
@@ -915,10 +967,10 @@ if ($currentuser) { ?>
                                                     </a>
                                                 <?php } ?>
                                             </h6>
-
-                                            <!-- <a class="" onclick="toggleDetails(this)">
-                                                <i class="ph ph-caret-down"></i>
-                                            </a> -->
+                                            <!-- dismiss btn -->
+                                            <a class="text-danger" onclick="conferenceToggle(this, '<?= $c['_id'] ?>', 'dismissed')" data-toggle="tooltip" data-title="<?= lang('Dismiss', 'Verwerfen') ?>">
+                                                <i class="ph ph-x"></i>
+                                            </a>
                                         </div>
                                         <p class="my-5 text-muted">
                                             <?= $c['title_full'] ?? '' ?>
@@ -935,16 +987,7 @@ if ($currentuser) { ?>
                                         <div class="btn-toolbar font-size-12">
                                             <?php
                                             // check if conference is in the future
-                                            if (strtotime($c['end']) > time()) {
-                                                $days = ceil((strtotime($c['start']) - time()) / 86400);
-                                                $days = $days > 0 ? $days : 0;
-                                                $days = $days == 0 ? lang('today', 'heute') : 'in ' . $days . ' ' . lang('days', 'Tagen');
-
-                                                // user is interested in conference
-                                                $interest = in_array($user, DB::doc2Arr($c['interests'] ?? []));
-                                                $participate = in_array($user, DB::doc2Arr($c['participants'] ?? []));
-                                                $interestTooltip = $interest ? lang('Click to remove interest', 'Klicken um Interesse zu entfernen') : lang('Click to show interest', 'Klicken um Interesse zu zeigen');
-                                                $participateTooltip = $participate ? lang('Click to remove participation', 'Klicken um Teilnahme zu entfernen') : lang('Click to show participation', 'Klicken um Teilnahme zu zeigen');
+                                            if ($past) {
                                             ?>
                                                 <div class="btn-group">
                                                     <small class="btn small cursor-default">
@@ -976,6 +1019,7 @@ if ($currentuser) { ?>
                             <?php } ?>
 
                         </table>
+                        <small class="text-muted"> <?= lang('Events were added by users of the OSIRIS system.', 'Events wurden von Nutzenden des OSIRIS-Systems angelegt.') ?></small>
 
                     </div>
                 </div>
@@ -1003,12 +1047,20 @@ if ($currentuser) { ?>
                 </div>
                 <table class="table simple small">
                     <tbody>
-                        <!-- <tr>
+                        <tr>
                             <td>
                                 <span class="key"><?= lang('Username', 'Benutzername') ?></span>
                                 <?= $user ?>
                             </td>
-                        </tr> -->
+                        </tr>
+                        <?php if (isset($scientist['internal_id'])) { ?>
+                            <tr>
+                                <td>
+                                    <span class="key"><?= lang('Internal ID', 'Interne ID') ?></span>
+                                    <?= $scientist['internal_id'] ?>
+                                </td>
+                            </tr>
+                        <?php } ?>
                         <tr>
                             <td>
                                 <span class="key"><?= lang('Last name', 'Nachname') ?></span>
@@ -1021,34 +1073,50 @@ if ($currentuser) { ?>
                                 <?= $scientist['first'] ?? '' ?>
                             </td>
                         </tr>
-                        <tr>
-                            <td>
-                                <span class="key"><?= lang('Academic title', 'Akademischer Titel') ?></span>
-                                <?= $scientist['academic_title'] ?? '' ?>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <span class="key">Email</span>
-                                <?= $scientist['mail'] ?? '' ?>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <span class="key"><?= lang('Telephone', 'Telefon') ?></span>
-                                <?= $scientist['telephone'] ?? '' ?>
-                            </td>
-                        </tr>
-                        <?php if (!empty($scientist['twitter'] ?? null)) { ?>
+                        <?php if (isset($scientist['academic_title'])) { ?>
                             <tr>
                                 <td>
-                                    <span class="key">Twitter</span>
-
-                                    <a href="https://twitter.com/<?= $scientist['twitter'] ?>" target="_blank" rel="noopener noreferrer"><?= $scientist['twitter'] ?></a>
-
+                                    <span class="key"><?= lang('Academic title', 'Akademischer Titel') ?></span>
+                                    <?= $scientist['academic_title'] ?? '' ?>
                                 </td>
                             </tr>
                         <?php } ?>
+
+                        <?php if (isset($scientist['mail'])) { ?>
+                            <tr>
+                                <td>
+                                    <span class="key">Email</span>
+                                    <a href="mailto:<?= $scientist['mail'] ?>"><?= $scientist['mail'] ?></a>
+                                </td>
+                            </tr>
+                        <?php } ?>
+                        <?php if (isset($scientist['telephone'])) { ?>
+                            <tr>
+                                <td>
+                                    <span class="key"><?= lang('Telephone', 'Telefon') ?></span>
+                                    <a href="tel:<?= $scientist['telephone'] ?>"><?= $scientist['telephone'] ?></a>
+                                </td>
+                            </tr>
+                        <?php } ?>
+                        <?php if (isset($scientist['room'])) { ?>
+                            <tr>
+                                <td>
+                                    <span class="key"><?= lang('Room', 'Raum') ?></span>
+                                    <a href="tel:<?= $scientist['room'] ?>"><?= $scientist['room'] ?></a>
+                                </td>
+                            </tr>
+                        <?php } ?>
+
+                        <?php if (isset($scientist['mobile'])) { ?>
+                            <tr>
+                                <td>
+                                    <span class="key"><?= lang('Mobile', 'Mobil') ?></span>
+                                    <a href="tel:<?= $scientist['mobile'] ?>"><?= $scientist['mobile'] ?></a>
+                                </td>
+                            </tr>
+                        <?php } ?>
+
+
                         <?php if (!empty($scientist['orcid'] ?? null)) { ?>
                             <tr>
                                 <td>
@@ -1059,16 +1127,7 @@ if ($currentuser) { ?>
                                 </td>
                             </tr>
                         <?php } ?>
-                        <?php if (!empty($scientist['researchgate'] ?? null)) { ?>
-                            <tr>
-                                <td>
-                                    <span class="key">ResearchGate</span>
 
-                                    <a href="https://www.researchgate.net/profile/<?= $scientist['researchgate'] ?>" target="_blank" rel="noopener noreferrer"><?= $scientist['researchgate'] ?></a>
-
-                                </td>
-                            </tr>
-                        <?php } ?>
                         <?php if (!empty($scientist['google_scholar'] ?? null)) { ?>
                             <tr>
                                 <td>
@@ -1079,14 +1138,14 @@ if ($currentuser) { ?>
                                 </td>
                             </tr>
                         <?php } ?>
-                        <?php if (!empty($scientist['webpage'] ?? null)) {
-                            $web = preg_replace('/^https?:\/\//', '', $scientist['webpage']);
-                        ?>
+                        <?php if (isset($scientist['socials'])) { ?>
                             <tr>
                                 <td>
-                                    <span class="key">Personal web page</span>
-
-                                    <a href="https://<?= $web ?>" target="_blank" rel="noopener noreferrer"><?= $web ?></a>
+                                    <span class="key"><?= lang('Social media') ?></span>
+                                    <?php
+                                    foreach ($scientist['socials'] as $key => $val) { ?>
+                                        <a class="btn primary" href="<?= $val ?>" target="_blank" rel="noopener noreferrer"> <i class="ph <?= socialLogo($key) ?>"></i></a>
+                                    <?php } ?>
                                 </td>
                             </tr>
                         <?php } ?>
@@ -1113,21 +1172,36 @@ if ($currentuser) { ?>
                     <h4 class="title">
                         <?= lang('Research interest', 'Forschungsinteressen') ?>
                         <?php if ($currentuser || $Settings->hasPermission('user.edit')) { ?>
-                            <a class="font-size-14 ml-10" href="<?= ROOTPATH ?>/user/edit-bio/<?= $user ?>#research">
+                            <a class="font-size-14 ml-10" href="<?= ROOTPATH ?>/user/edit/<?= $user ?>#section-research">
                                 <i class="ph ph-note-pencil ph-lg"></i>
                             </a>
                         <?php } ?>
                     </h4>
 
-                    <?php if (isset($scientist['research']) && !empty($scientist['research'])) { ?>
+                    <?php if (isset($scientist['research']) && !empty($scientist['research'])) {
+                        $scientist['research_de'] = array_map(
+                            fn($val1, $val2) => empty($val1) ? $val2 : $val1,
+                            DB::doc2Arr($scientist['research_de'] ?? $scientist['research']),
+                            DB::doc2Arr($scientist['research'])
+                        );
+                        $research = lang($scientist['research'], $scientist['research_de'] ?? null);
+                    ?>
                         <ul class="list">
-                            <?php foreach ($scientist['research'] as $key) { ?>
+                            <?php foreach ($research as $key) { ?>
                                 <li><?= $key ?></li>
                             <?php } ?>
                         </ul>
                     <?php } else { ?>
                         <p><?= lang('No research interests stated.', 'Keine Forschungsinteressen angegeben.') ?></p>
                     <?php } ?>
+
+                    <?php if (isset($scientist['research_profile'])) { ?>
+                        <h6 class="title">
+                            <?= lang('Research profile', 'Forschungsprofil') ?>
+                        </h6>
+                        <?= lang($scientist['research_profile'], $scientist['research_profile_de'] ?? null); ?>
+                    <?php } ?>
+
                 </div>
                 <hr>
                 <div class="content">
@@ -1135,7 +1209,7 @@ if ($currentuser) { ?>
                     <h4 class="title">
                         <?= lang('Curriculum Vitae') ?>
                         <?php if ($currentuser || $Settings->hasPermission('user.edit')) { ?>
-                            <a class="font-size-14 ml-10" href="<?= ROOTPATH ?>/user/edit-bio/<?= $user ?>#cv">
+                            <a class="font-size-14 ml-10" href="<?= ROOTPATH ?>/user/edit/<?= $user ?>#section-biography">
                                 <i class="ph ph-note-pencil ph-lg"></i>
                             </a>
                         <?php } ?>
@@ -1156,6 +1230,22 @@ if ($currentuser) { ?>
                     <?php } else { ?>
                         <p><?= lang('No CV given.', 'Kein CV angegeben.') ?></p>
                     <?php } ?>
+
+
+                    <?php if (isset($scientist['biography']) && !empty($scientist['biography'])) { ?>
+                        <h6 class="title">
+                            <?= lang('Biography', 'Biografie') ?>
+                        </h6>
+                        <p><?= lang($scientist['biography'], $scientist['biography_de'] ?? null); ?></p>
+                    <?php } ?>
+
+                    <?php if (isset($scientist['education']) && !empty($scientist['education'])) { ?>
+                        <h6 class="title">
+                            <?= lang('Education', 'Ausbildung') ?>
+                        </h6>
+                        <p><?= lang($scientist['education'], $scientist['education_de'] ?? null); ?></p>
+                    <?php } ?>
+
                 </div>
             </div>
         </div>
@@ -1470,6 +1560,7 @@ if ($currentuser) { ?>
         if ($count_projects > 0) {
             $projects = $osiris->projects->find($project_filter, ['sort' => ["start" => -1, "end" => -1]]);
 
+            $applied = [];
             $ongoing = [];
             $past = [];
 
@@ -1477,7 +1568,9 @@ if ($currentuser) { ?>
             $Project = new Project();
             foreach ($projects as $project) {
                 $Project->setProject($project);
-                if ($Project->inPast()) {
+                if ($project['status'] == 'applied') {
+                    $applied[] = $Project->widgetLarge($user);
+                } elseif ($Project->inPast()) {
                     $past[] = $Project->widgetLarge($user);
                 } else {
                     $ongoing[] = $Project->widgetLarge($user);
@@ -1497,6 +1590,22 @@ if ($currentuser) { ?>
                 </div>
             <?php } ?>
 
+            <?php if ($currentuser && !empty($applied)) { ?>
+                <h2><?= lang('Proposed projects', 'Beantragte Projekte') ?></h2>
+
+                <div class="row row-eq-spacing my-0">
+                    <?php foreach ($applied as $html) { ?>
+                        <div class="col-md-6">
+                            <?= $html ?>
+                        </div>
+                    <?php } ?>
+                </div>
+
+                <p class="text-muted font-size-12">
+                    <?= lang('Others can not see projects you applied for on your profile page.', 'Andere Nutzende können beantragte Projekte nicht auf deiner Profilseite sehen.') ?>
+                </p>
+            <?php } ?>
+
             <?php if (!empty($past)) { ?>
                 <h2><?= lang('Past projects', 'Vergangene Projekte') ?></h2>
 
@@ -1511,6 +1620,8 @@ if ($currentuser) { ?>
 
 
         <?php } ?>
+
+
 
     </section>
 <?php } ?>

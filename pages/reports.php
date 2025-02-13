@@ -33,7 +33,6 @@
 </h1>
 
 <?php
-
 $reports = $osiris->adminReports->find();
 
 if (empty($reports)) {
@@ -60,7 +59,7 @@ if (empty($reports)) {
                     </div>
                     <div class="col-sm">
                     <label for="format"><?= lang('Duration in month', 'Dauer in Monaten') ?></label>
-                        <input type="number" class="form-control" name="start" id="start" value="<?= $report['duration'] ?>" required>
+                        <input type="number" class="form-control" name="duration" id="duration" value="<?= $report['duration'] ?>" required>
                       </div>
                 </div>
                 <div class="form-group">

@@ -1,3 +1,80 @@
+$(document).ready(function () {
+    document.getElementById('ror-file').addEventListener('change', function (e) {
+        var file = e.target.files[0];
+        if (!file) return;
+        Papa.parse(file, {
+            header: true,
+            complete: function (results) {
+                console.log(results);
+                // transform keys to lowercase
+                var data = results.data.map(function (row) {
+                    var newRow = {};
+                    for (var key in row) {
+                        newRow[key.toLowerCase()] = row[key];
+                    }
+                    return newRow;
+                });
+                console.log(data);
+
+                var ror_rex = new RegExp('(.*ror.org/)?(0[a-z|0-9]{6}[0-9]{2})');
+
+                for (var i = 0; i < data.length; i++) {
+                    var row = data[i];
+                    // check if ror is valid with regex
+                    if (row.ror && ror_rex.test(row.ror)) {
+                        addCollaboratorROR(row.ror, msg = false)
+                        continue;
+                    }
+                    var values = {};
+                    values.name = row.name;
+                    values.role = row.role;
+                    values.type = row.type;
+                    values.location = row.location;
+                    values.country = row.country;
+                    values.lat = row.lat ?? row.latitude;
+                    values.lng = row.lng ?? row.longitude;
+
+                    addCollabRow(values);
+                }
+
+            }
+        });
+    });
+});
+
+function addCollaboratorROR(ror, msg = true) {
+    if (!ror) {
+        toastError('Please provide a ROR ID')
+        return
+    }
+    var url = 'https://api.ror.org/organizations/' + ror.trim()
+    $.ajax({
+        type: "GET",
+        url: url,
+
+        success: function (response) {
+            console.log(response);
+            if (response.errors) {
+                toastError(', '.join(response.errors))
+                return
+            }
+            addCollaborator(response)
+            $('#collaborators-ror-id').val('')
+            if (msg)
+                toastSuccess(lang('Collaborator added', 'Kooperationspartner hinzugefügt'))
+        },
+        error: function (response) {
+            var errors = response.responseJSON.errors
+            if (errors) {
+                toastError(errors.join(', '))
+            } else {
+                toastError(response.responseText)
+            }
+            $('.loader').removeClass('show')
+        }
+    })
+}
+
 function getCollaborators(name) {
     console.log(name);
     const SUGGEST = $('#collaborators-suggest')
@@ -64,6 +141,7 @@ function addCollabRow(data = {}) {
             <select name="values[role][]" type="text" class="form-control " required>
                 <option value="partner">Partner</option>
                 <option value="coordinator">Coordinator</option>
+                <option value="associated">Associated</option>
             </select>
         </td>
         <td>
@@ -100,8 +178,8 @@ function addCollabRow(data = {}) {
 
     table.append(tr)
     // console.log($('#'+id).find('select'));
-    console.log($('#'+id).find('select option[value="'+data.type+'"]'));
-    $('#'+id).find('select option[value="'+data.type+'"]').attr('selected', true)
+    console.log($('#' + id).find('select option[value="' + data.type + '"]'));
+    $('#' + id).find('select option[value="' + data.type + '"]').attr('selected', true)
 }
 
 function addCollaborator(data = {}) {
@@ -124,7 +202,7 @@ function addCollaborator(data = {}) {
         country: country,
         lat: lat,
         lng: lng,
-        type:type
+        type: type
     });
 
     $('#collaborators-suggest').empty()

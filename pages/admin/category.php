@@ -22,10 +22,10 @@ $form = $form ?? array();
 $color = $form['color'] ?? '#000000';
 $member = 0;
 
-$id = $form['id'] ?? '';
+$id = $form['id'] ?? null;
 
 $formaction = ROOTPATH;
-if (!empty($form) && isset($form['_id'])) {
+if (!empty($form) && isset($form['id'])) {
     $formaction .= "/crud/categories/update/" . $form['_id'];
     $btntext = '<i class="ph ph-check"></i> ' . lang("Update", "Aktualisieren");
     $url = ROOTPATH . "/admin/categories/" . $id;
@@ -119,13 +119,20 @@ function sel($index, $value)
                 <?php } ?>
 
                 <div class="col-sm">
-                    <label for="icon" class="required">ID</label>
+                    <label for="id" class="required">ID</label>
                     <input type="text" class="form-control" name="values[id]" required value="<?= $type['id'] ?? '' ?>" oninput="sanitizeID(this)">
                     <small><a href="#unique"><i class="ph ph-info"></i> <?= lang('Must be unqiue', 'Muss einzigartig sein') ?></a></small>
                 </div>
                 <div class="col-sm">
                     <label for="icon" class="required element-time"><a href="https://phosphoricons.com/" class="link" target="_blank" rel="noopener noreferrer">Icon</a> </label>
-                    <input type="text" class="form-control" name="values[icon]" required value="<?= $type['icon'] ?? 'placeholder' ?>">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="values[icon]" required value="<?= $type['icon'] ?? 'placeholder' ?>" onchange="iconTest(this.value)">
+                        <div class="input-group-append">
+                            <span class="input-group-text">
+                                <i class="ph ph-<?= $type['icon'] ?? 'placeholder' ?>" id="test-icon"></i>
+                            </span>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-sm">
                     <label for="name_de" class="">Color</label>
@@ -145,26 +152,21 @@ function sel($index, $value)
             </div>
 
             <?php if (!empty($type)) { ?>
-
                 <hr>
                 <h5><?= lang('Types', 'Typen') ?>:</h5>
-                <ul class="horizontal">
+                <div>
                     <?php
                     $children = $osiris->adminTypes->find(['parent' => $id]);
                     foreach ($children as $subtype) { ?>
-                        <li>
-                            <a href="<?= ROOTPATH ?>/admin/types/<?= $subtype['id'] ?>">
+                            <a class="btn primary mb-5" href="<?= ROOTPATH ?>/admin/types/<?= $subtype['id'] ?>">
                                 <i class="ph ph-<?= $subtype['icon'] ?? 'placeholder' ?>"></i>
                                 <?= lang($subtype['name'], $subtype['name_de'] ?? $subtype['name']) ?>
                             </a>
-                        </li>
                     <?php } ?>
-                    <li>
                         <a class="btn" href="<?= ROOTPATH ?>/admin/types/new?parent=<?= $id ?>"><i class="ph ph-plus-circle"></i>
                             <?= lang('Add subtype', 'Neuen Typ hinzufügen') ?>
                         </a>
-                    </li>
-                </ul>
+                </div>
             <?php } ?>
 
         </div>
@@ -190,7 +192,7 @@ function sel($index, $value)
 
         <div class="alert danger mt-20">
             <?= lang("Can\'t delete category: $member activities associated.", "Kann Kategorie nicht löschen: $member Aktivitäten zugeordnet.") ?><br>
-            <a href='<?= ROOTPATH ?>/search/activities#{"$and":[{"type":"<?= $id ?>"}]}' target="_blank" class="text-danger">
+            <a href='<?= ROOTPATH ?>/activities/search#{"$and":[{"type":"<?= $id ?>"}]}' target="_blank" class="text-danger">
                 <i class="ph ph-search"></i>
                 <?= lang('View activities', 'Aktivitäten zeigen') ?>
             </a>

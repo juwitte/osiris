@@ -70,6 +70,7 @@ Route::get('/admin/reports/preview/(.*)', function ($id) {
     $breadcrumb = [
         ['name' => lang('Reports', 'Berichte'), 'path' => "/reports"],
         ['name' => lang('Templates', 'Vorlagen'), 'path' => "/admin/reports"],
+        ['name' => lang('Builder', 'Editor'), 'path' => "/admin/reports/builder/$id"],
         ['name' => lang("Preview", "Vorschau")]
     ];
     if (!DB::is_ObjectID($id)) {
@@ -187,7 +188,8 @@ Route::post('/reports', function () {
     $phpWord->addNumberingStyle(
         'hNum',
         array(
-            'type' => 'multilevel', 'levels' => array(
+            'type' => 'multilevel',
+            'levels' => array(
                 array('pStyle' => 'Heading1', 'format' => 'decimal', 'text' => '%1'),
                 array('pStyle' => 'Heading2', 'format' => 'decimal', 'text' => '%1.%2'),
                 array('pStyle' => 'Heading3', 'format' => 'decimal', 'text' => '%1.%2.%3'),
@@ -214,8 +216,19 @@ Route::post('/reports', function () {
 
     require_once BASEPATH . '/php/Report.php';
     $Report = new Report($report);
-    $year = $_POST['start'];
-    $Report->setYear($year);
+    $year = $_POST['startyear'];
+
+    $startyear = $year;
+    $endyear = $year;
+    $startmonth = $_POST['startmonth'] ?? $Report->report['start'] ?? 1;
+    $duration = $_POST['duration'] ?? $Report->report['duration'] ?? 12;
+    $endmonth = $startmonth + $duration - 1;
+    if ($endmonth > 12) {
+        $endmonth -= 12;
+        $endyear++;
+    }
+
+    $Report->setTime($startyear, $endyear, $startmonth, $endmonth);
 
     foreach ($Report->steps as $step) {
         switch ($step['type']) {
@@ -280,12 +293,7 @@ Route::post('/reports', function () {
     $html = clean_comment_export($html);
     \PhpOffice\PhpWord\Shared\Html::addHtml($section, $html, false, false);
 
-
-
-
-    // dump($result, true);
-    // die;
-
+    // Save file
     if ($_POST['format'] == 'html') {
         $objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'HTML');
         $objWriter->save('.data/report.html');
@@ -294,9 +302,9 @@ Route::post('/reports', function () {
     }
 
     // Download file
-    $file = str_replace(' ', '-', $report['title']) . '_' . $year . '.docx';
+    $filename = $report['title'] . '_' . $year . '.docx';
     header("Content-Description: File Transfer");
-    header('Content-Disposition: attachment; filename="' . $file . '"');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
     header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     header('Content-Transfer-Encoding: binary');
     header('Cache-Control: must-revalidate, post-check=0, pre-check=0');

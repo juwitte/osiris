@@ -234,16 +234,20 @@ $Project = new Project($project);
                                             <?= Project::personRole($person['role']) ?>
                                             <?php
                                             $scientist = $DB->getPerson($username);
+                                            if (!empty($scientist['units'])) {
+                                                
                                             $i = 0;
-                                            foreach ($scientist['depts'] as $d) {
+                                            $units = $Groups->getPersonUnit($username, $project['start'], false, true);
+                                            foreach ($units as $d) {
+                                                $d = $d['unit'];
                                                 $dept = $Groups->getGroup($d);
-                                                if ($dept['level'] !== 1) continue;
                                                 if ($i++ > 0) echo ', ';
                                             ?>
                                                 <br>
-                                                <a href="<?= ROOTPATH ?>/?group=<?= $dept['id'] ?>" style="color:<?= $dept['color'] ?? 'inherit' ?>">
+                                                <a href="<?= ROOTPATH ?>/groups/view/<?= $dept['id'] ?>" style="color:<?= $dept['color'] ?? 'inherit' ?>">
                                                     <?= $dept['name'] ?>
                                                 </a>
+                                            <?php } ?>
                                             <?php } ?>
 
                                         </div>
@@ -280,6 +284,9 @@ $Project = new Project($project);
                     <br>
                     <i class="ph ph-fill ph-circle" style="color:#008083"></i>
                     Partner
+                    <br>
+                    <i class="ph ph-fill ph-circle" style="color:#cccccc"></i>
+                    <?=lang('Accociated', 'Beteiligt')?>
                 </p>
             </div>
             <div class="col-lg-4">

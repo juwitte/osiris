@@ -21,7 +21,7 @@ Route::get('/groups', function () {
         ['name' => lang("Groups", "Gruppen")]
     ];
     include BASEPATH . "/header.php";
-    include BASEPATH . "/pages/groups.php";
+    include BASEPATH . "/pages/groups/groups.php";
     include BASEPATH . "/footer.php";
 }, 'login');
 
@@ -33,7 +33,7 @@ Route::get('/groups/new', function () {
         ['name' => lang("New", "Neu")]
     ];
     include BASEPATH . "/header.php";
-    include BASEPATH . "/pages/groups-add.php";
+    include BASEPATH . "/pages/groups/add.php";
     include BASEPATH . "/footer.php";
 }, 'login');
 
@@ -61,7 +61,7 @@ Route::get('/groups/view/(.*)', function ($id) {
     ];
 
     include BASEPATH . "/header.php";
-    include BASEPATH . "/pages/group.php";
+    include BASEPATH . "/pages/groups/group.php";
     include BASEPATH . "/footer.php";
 }, 'login');
 
@@ -69,7 +69,15 @@ Route::get('/groups/(edit|public)/(.*)', function ($page, $id) {
     include_once BASEPATH . "/php/init.php";
     $user = $_SESSION['username'];
 
-    $group = $osiris->groups->findOne(['id' => $id]);
+    if (DB::is_ObjectID($id)) {
+        $mongo_id = $DB->to_ObjectID($id);
+        $group = $osiris->groups->findOne(['_id' => $mongo_id]);
+        $id = $group['id'];
+    } else {
+        // wichtig für umlaute
+        $group = $osiris->groups->findOne(['id' => $id]);
+        // $id = strval($group['_id'] ?? '');
+    }
     if (empty($group)) {
         header("Location: " . ROOTPATH . "/groups?msg=not-found");
         die;
@@ -80,19 +88,13 @@ Route::get('/groups/(edit|public)/(.*)', function ($page, $id) {
     ];
     if ($page == 'edit') {
         $breadcrumb[] = ['name' => lang("Edit", "Bearbeiten")];
-    } else {
-        $breadcrumb[] = ['name' => lang("Public", "Öffentlich")];
     }
 
     global $form;
     $form = DB::doc2Arr($group);
 
     include BASEPATH . "/header.php";
-    if ($page == 'edit') {
-        include BASEPATH . "/pages/groups-add.php";
-    } else {
-        include BASEPATH . "/pages/group-public.php";
-    }
+    include BASEPATH . "/pages/groups/edit.php";
     include BASEPATH . "/footer.php";
 }, 'login');
 
@@ -125,7 +127,15 @@ Route::post('/crud/groups/create', function () {
         foreach ($values['head'] as $head) {
             $osiris->persons->updateOne(
                 ['username' => $head],
-                ['$push' => ["depts" => $values['id']]]
+                ['$push' => [
+                    "units" => [
+                        'id' => uniqid(),
+                        'unit' => $values['id'],
+                        'start' => date('Y-m-d'),
+                        'end' => null,
+                        'scientific' => true
+                    ]
+                ]]
             );
         }
     }
@@ -169,8 +179,9 @@ Route::post('/crud/groups/update/([A-Za-z0-9]*)', function ($id) {
     if (isset($values['id']) && $group['id'] != $values['id']) {
         // change IDs of Members
         $osiris->persons->updateMany(
-            ['depts' => $group['id']],
-            ['$set' => ['depts.$[elem]' => $values['id']]],
+            ['units' => $group['id']],
+            // ['$set' => ['units.$[elem]' => $values['id']]],
+            ['$set' => ['units.$[elem].unit' => $values['id']]],
             ['arrayFilters' => [['elem' => ['$eq' => $group['id']]]], 'multi' => true]
         );
         // change ID of child elements
@@ -210,11 +221,19 @@ Route::post('/crud/groups/update/([A-Za-z0-9]*)', function ($id) {
     // check if head is connected 
     if (isset($values['head'])) {
         foreach ($values['head'] as $head) {
-            $N = $osiris->persons->count(['username' => $head, 'depts' => $values['id']]);
+            $N = $osiris->persons->count(['username' => $head, 'units.unit' => $values['id']]);
             if ($N == 0) {
                 $osiris->persons->updateOne(
                     ['username' => $head],
-                    ['$push' => ["depts" => $values['id']]]
+                    ['$push' => [
+                        "units" => [
+                            'id' => uniqid(),
+                            'unit' => $values['id'],
+                            'start' => date('Y-m-d'),
+                            'end' => null,
+                            'scientific' => true
+                        ]
+                    ]]
                 );
             }
         }
@@ -245,8 +264,11 @@ Route::post('/crud/groups/delete/([A-Za-z0-9]*)', function ($id) {
     // remove from all users
     $group = $osiris->groups->findOne(['_id' => $id]);
     $osiris->persons->updateOne(
-        ['depts' => $group['id']],
-        ['$pull' => ["depts" => $group['id']]]
+        ['units' => $group['id']],
+        [
+            '$pull' => ['units' => ['unit' => $group['id']]]
+        ],
+        ['multi' => true]
     );
 
     $updateResult = $osiris->groups->deleteOne(
@@ -268,15 +290,75 @@ Route::post('/crud/groups/delete/([A-Za-z0-9]*)', function ($id) {
 
 Route::post('/crud/groups/addperson/(.*)', function ($id) {
     include_once BASEPATH . "/php/init.php";
-    // select the right collection
 
+    if (!isset($_POST['username'])) die("no username given");
+    $user = $_POST['username'];
+    
+    $mode = $_POST['change-or-add'] ?? 'add';
+    if ($mode == 'change' && isset($_POST['start'])) {
+        // set end date of all other units with null date to one day before start date
+        $osiris->persons->updateMany(
+            ['username' => $user, 'units.end' => null],
+            [
+            '$set' => ['units.$[elem].end' => date('Y-m-d', strtotime($_POST['start'] . ' -1 day'))]
+            ],
+            ['arrayFilters' => [['elem.end' => null]]]
+        );
+    }
     // add id to person dept
-    // $person = $osiris->persons->findOne(['username' => $_POST['username']]);
+    $osiris->persons->updateOne(
+        ['username' => $user],
+        [
+            '$push' => ["units" => [
+                'id' => uniqid(),
+                'unit' => $id,
+                'start' => $_POST['start'] ?? null,
+                'end' => null,
+                'scientific' => boolval($_POST['scientific'] ?? true)
+            ]]
+        ]
+    );
+    // update activities from the period the person was in the group
+    include_once BASEPATH . "/php/Render.php";
+    if (isset($_POST['start'])) {
+        renderAuthorUnitsMany(['authors.user' => $user, 'date' => ['$gte' => $_POST['start']]]);
+    } else {
+        renderAuthorUnitsMany(['authors.user' => $user]);
+    }
+
+
+    header("Location: " . ROOTPATH . "/groups/edit/$id?msg=added-person#section-personnel");
+});
+
+Route::post('/crud/groups/removeperson/(.*)', function ($id) {
+    include_once BASEPATH . "/php/init.php";
+    // add id to person dept
     $updateResult = $osiris->persons->updateOne(
         ['username' => $_POST['username']],
-        ['$push' => ["depts" => $id]]
+        ['$pull' => ["units" => ['unit' => $id]]]
     );
 
+    // update activities from the period the person was in the group
+    include_once BASEPATH . "/php/Render.php";
+    renderAuthorUnitsMany(['authors.user' => $_POST['username']]);
+
+    header("Location: " . ROOTPATH . "/groups/edit/$id?msg=removed-person#section-personnel");
+});
+
+
+Route::post('/crud/groups/reorder/(.*)', function ($id) {
+    include_once BASEPATH . "/php/init.php";
+
+    $order = $_POST['order'];
+    $i = 0;
+    foreach ($order as $o) {
+        $osiris->groups->updateOne(
+            ['_id' => $DB->to_ObjectID($o)],
+            ['$set' => ['order' => $i]]
+        );
+        $i++;
+    }
+
     // addUserActivity('delete');
-    header("Location: " . ROOTPATH . "/groups/view/$id?msg=added-person#add-person-modal");
+    header("Location: " . ROOTPATH . "/groups/view/$id?msg=reordered");
 });

@@ -26,7 +26,7 @@ Route::get('/user/browse', function () {
 }, 'login');
 
 
-Route::get('/search/user', function () {
+Route::get('/user/search', function () {
     include_once BASEPATH . "/php/init.php";
     $user = $_SESSION['username'];
     $breadcrumb = [
@@ -37,6 +37,34 @@ Route::get('/search/user', function () {
     include BASEPATH . "/pages/user-search.php";
     include BASEPATH . "/footer.php";
 }, 'login');
+
+
+Route::get('/image/(.*)', function ($user) {
+    include_once BASEPATH . "/php/init.php";
+    $user = urldecode($user);
+    $img = $osiris->userImages->findOne(['user' => $user]);
+    if (empty($img)) {
+        $img = file_get_contents(BASEPATH . "/img/no-photo.png");
+        $type = 'image/png';
+    } else {
+        $type = $img['ext'];
+        if ($img['ext'] == 'svg') {
+            $type = 'image/svg+xml';
+        } else {
+            $type = 'image/' . $img['ext'];
+        }
+        $img = $img['img']->getData();
+        //if image is base64 encoded
+        // if (str_starts_with($img, '/')) {
+        //     $img = explode(',', $img)[1];
+        // }
+
+        $img = base64_decode($img);
+    }
+    header('Content-Type: ' . $type);
+    echo $img;
+    die;
+});
 
 
 Route::get('/whats-up', function () {
@@ -76,10 +104,8 @@ Route::get('/user/edit/(.*)', function ($user) {
 }, 'login');
 
 
-Route::get('/user/edit-bio/(.*)', function ($user) {
+Route::get('/user/units/(.*)', function ($user) {
     include_once BASEPATH . "/php/init.php";
-
-    // $id = $DB->to_ObjectID($id);
 
     $data = $DB->getPerson($user);
     if (empty($data)) {
@@ -89,14 +115,13 @@ Route::get('/user/edit-bio/(.*)', function ($user) {
     $breadcrumb = [
         ['name' => lang('Users', 'Personen'), 'path' => "/user/browse"],
         ['name' => $data['name'], 'path' => "/profile/$user"],
-        ['name' => lang("Edit Biography", "Biographie bearbeiten")]
+        ['name' => lang("Edit units", "Einheiten bearbeiten")]
     ];
 
     include BASEPATH . "/header.php";
-    include BASEPATH . "/pages/user-edit-bio.php";
+    include BASEPATH . "/pages/user-units.php";
     include BASEPATH . "/footer.php";
 }, 'login');
-
 
 Route::get('/user/visibility/(.*)', function ($user) {
     include_once BASEPATH . "/php/init.php";
@@ -140,6 +165,29 @@ Route::get('/user/delete/(.*)', function ($user) {
     include BASEPATH . "/footer.php";
 }, 'login');
 
+
+
+
+Route::get('/user/ldap-example', function () {
+    include_once BASEPATH . "/php/init.php";
+    include_once BASEPATH . "/php/_login.php";
+
+    $data = getUser($_SESSION['username']);
+    $data = DB::doc2Arr($data);
+    if (empty($data)) {
+        header("Location: " . ROOTPATH . "/user/browse");
+        die;
+    }
+
+    $breadcrumb = [
+        ['name' => lang('Users', 'Personen'), 'path' => "/user/browse"],
+        ['name' => lang("LDAP Example", "LDAP Beispiel")]
+    ];
+
+    include BASEPATH . "/header.php";
+    dump($data, true);
+    include BASEPATH . "/footer.php";
+}, 'login');
 
 
 // Profile
@@ -280,179 +328,7 @@ Route::get('/synchronize-users', function () {
     include_once BASEPATH . "/php/init.php";
     include_once BASEPATH . "/php/_login.php";
     include BASEPATH . "/header.php";
-
-    $blacklist = [];
-    $bl = $Settings->get('ldap-sync-blacklist');
-    if (!empty($bl)) {
-        $bl = explode(',', $bl);
-        $blacklist = array_filter(array_map('trim', $bl));
-        echo "<p> There are " . count($blacklist) . " usernames on your blacklist.</p>";
-    } else {
-        echo "<p>Your blacklist is empty, all users are synchronized.</p>";
-    }
-    $whitelist = [];
-    $bl = $Settings->get('ldap-sync-whitelist');
-    if (!empty($bl)) {
-        $bl = explode(',', $bl);
-        $whitelist = array_filter(array_map('trim', $bl));
-        echo "<p> There are " . count($whitelist) . " usernames on your whitelist.</p>";
-    } else {
-        echo "<p>Your whitelist is empty, ignored users are not synchronized.</p>";
-    }
-
-    $users = getUsers();
-
-    $removed = $osiris->persons->find(
-        ['username' => ['$nin' => array_keys($users)], 'is_active' => ['$in' => [1, true, '1']]],
-        ['projection' => ['username' => 1, 'is_active' => 1, 'displayname' => 1]]
-    );
-    $removed = array_column(iterator_to_array($removed), 'displayname', 'username');
-
-    $actions = [
-        'blacklisted' => [],
-        'inactivate' => [],
-        'reactivate' => [],
-        'add' => [],
-        'delete' => $removed ?? [],
-        'unchanged' => []
-    ];
-    foreach ($users as $username => $active) {
-        $exists = false;
-        $dbactive = false;
-
-        // first: check if user is in database
-        $USER = $DB->getPerson($username);
-        if (!empty($USER)) {
-            if ($USER['is_active'])
-                $dbactive = 'active';
-            $exists = true;
-            $name = $USER['displayname'];
-        } else {
-            $USER = newUser($username);
-            $name = $USER['displayname'] ?? $username;
-        }
-
-        // check if username is on the blacklist
-        if (in_array($username, $blacklist)) {
-            $actions['blacklisted'][$username] = $name;
-        } else if (!$active && $exists && $dbactive) {
-            $actions['inactivate'][$username] = $name;
-        } else if ($active && $exists && !$dbactive) {
-            $actions['reactivate'][$username] = $name;
-        } else if (!$exists) {
-            $actions['add'][$username] = $name;
-        } else {
-            $actions['unchanged'][$username] = $name;
-        }
-    }
-?>
-
-    <form action="<?= ROOTPATH ?>/synchronize-users" method="post">
-
-        <?php
-
-        // inactivated users
-        if (!empty($actions['inactivate'])) {
-            // interface to inactivate users
-        ?>
-            <h2><?= lang('Inactivated users', 'Inaktivierte Nutzer') ?></h2>
-            <!-- checkboxes -->
-            <?php
-            $inactivate = $actions['inactivate'];
-            asort($inactivate);
-            foreach ($inactivate as $u => $n) { ?>
-                <div class="">
-                    <input type="checkbox" name="inactivate[]" id="inactivate-<?= $u ?>" value="<?= $u ?>" checked>
-                    <label for="inactivate-<?= $u ?>"><?= $n . ' (' . $u . ')' ?></label>
-                </div>
-            <?php } ?>
-        <?php
-        }
-
-        if (!empty($actions['reactivate'])) {
-            // interface to reactivate users
-        ?>
-            <h2><?= lang('Reactivated users', ' Reaktivierte Nutzer') ?></h2>
-            <!-- checkboxes -->
-            <?php
-            $reactivate = $actions['reactivate'];
-            asort($reactivate);
-            foreach ($reactivate as $u => $n) { ?>
-                <div class="">
-                    <input type="checkbox" name="reactivate[]" id="reactivate-<?= $u ?>" value="<?= $u ?>">
-                    <label for="reactivate-<?= $u ?>"><?= $n . ' (' . $u . ')' ?></label>
-
-                </div>
-            <?php } ?>
-        <?php
-        }
-
-
-        // new users 
-        if (!empty($actions['add'])) {
-            // interface to add users
-        ?>
-            <h2><?= lang('New users', 'Neue Nutzer:innen') ?></h2>
-            <!-- checkboxes -->
-            <?php
-            $add = $actions['add'];
-            asort($add);
-            foreach ($add as $u => $n) { ?>
-                <div>
-                    <!-- radio check for add, blacklist and ignore -->
-                    <input type="checkbox" name="add[]" id="add-<?= $u ?>" value="<?= $u ?>" checked>
-                    <label for="add-<?= $u ?>"><?= $n . ' (' . $u . ')' ?></label>
-                    <!-- add option for blacklist -->
-                    <input type="checkbox" name="blacklist[]" id="blacklist-<?= $u ?>" value="<?= $u ?>" onclick="$('#add-<?= $u ?>').attr('checked', !$('#add-<?= $u ?>').attr('checked'))">
-                    <label for="blacklist-<?= $u ?>"><?= lang('Blacklist', 'Blacklist') ?></label>
-                </div>
-            <?php } ?>
-        <?php
-        }
-
-
-        // unchanged users (as collapsed list)
-        if (!empty($actions['unchanged'])) {
-        ?>
-            <details class="collapse-panel">
-                <summary class="collapse-header">
-                    <?= lang('Unchanged users', 'Unveränderte Nutzer') ?>
-                </summary>
-                <div class="collapse-content">
-                    <ul>
-                        <?php foreach ($actions['unchanged'] as $username => $name) {
-                            echo "<li>$name ($username)</li>";
-                        } ?>
-                    </ul>
-                </div>
-            </details>
-        <?php
-        }
-
-        // blacklisted users
-        if (!empty($actions['blacklisted'])) {
-        ?>
-            <details class="collapse-panel">
-                <summary class="collapse-header">
-                    <?= lang('Blacklisted users', 'Nutzer auf der Blacklist') ?>
-                </summary>
-                <div class="collapse-content">
-                    <ul>
-                        <?php foreach ($actions['blacklisted'] as $username => $name) {
-                            echo "<li>$name ($username)</li>";
-                        } ?>
-                    </ul>
-                </div>
-            </details>
-        <?php } ?>
-
-        <button type="submit" class="btn secondary"><?= lang('Synchronize', 'Synchronisieren') ?></button>
-    </form>
-<?php
-
-
-
-
+    include BASEPATH . "/pages/synchronize-users.php";
     include BASEPATH . "/footer.php";
 });
 
@@ -473,8 +349,11 @@ Route::post('/synchronize-users', function () {
             "first",
             "last",
             "name",
-            "depts",
-            "username"
+            // "depts",
+            "units",
+            "username",
+            "created",
+            "created_by",
         ];
         foreach ($_POST['inactivate'] as $username) {
             $data = $DB->getPerson($username);
@@ -485,6 +364,7 @@ Route::post('/synchronize-users', function () {
                 $arr[$key] = null;
             }
             $arr['is_active'] = false;
+            $arr['inactivated'] = date('Y-m-d');
             $osiris->persons->updateOne(
                 ['username' => $username],
                 ['$set' => $arr]
@@ -502,7 +382,7 @@ Route::post('/synchronize-users', function () {
 
             $osiris->persons->updateOne(
                 ['username' => $username],
-                ['$set' => ['is_active' => true]]
+                ['$set' => ['is_active' => ['$ne' => false]]]
             );
             echo "<p><i class='ph ph-user-check text-danger'></i> $name ($username) reactivated.</p>";
         }
@@ -545,6 +425,20 @@ Route::post('/synchronize-users', function () {
     include BASEPATH . "/footer.php";
 });
 
+
+Route::post('/synchronize-attributes', function () {
+    include_once BASEPATH . "/php/init.php";
+    include_once BASEPATH . "/php/_login.php";
+
+    if (!$Settings->hasPermission('user.synchronize')) {
+        echo "<p>Permission denied.</p>";
+        die();
+    }
+
+    include BASEPATH . "/header.php";
+    include BASEPATH . "/pages/synchronize-attributes-preview.php";
+    include BASEPATH . "/footer.php";
+});
 
 /** 
  * CRUD routes
@@ -605,6 +499,36 @@ Route::post('/crud/users/update/(.*)', function ($user) {
         $person['cv'] = $cv;
     }
 
+    // if new password is set, update password
+    if (isset($_POST['password']) && !empty($_POST['password'])) {
+        // check if old password matches
+        $account = $osiris->accounts->findOne(['username' => $user]);
+        if (!password_verify($_POST['old_password'], $account['password'])) {
+            $_SESSION['msg'] = lang("Old password is incorrect.", "Vorheriges Passwort ist falsch.");
+        } else if ($_POST['password'] != $_POST['password2']) {
+            $_SESSION['msg'] = lang("Passwords do not match.", "Passwörter stimmen nicht überein.");
+        } else {
+            $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+            $osiris->accounts->deleteOne(['username' => $user]);
+            $osiris->accounts->insertOne([
+                'username' => $user,
+                'password' => $password
+            ]);
+            $osiris->persons->updateOne(
+                ['username' => $user],
+                ['$unset' => ['new' => '']]
+            );
+        }
+    }
+    if (isset($values['position_both'])) {
+        $pos = explode(";;", $values['position_both']);
+        $person['position'] = $pos[0];
+        $person['position_de'] = trim($pos[1] ?? '');
+        if (empty($person['position_de'])) {
+            $person['position_de'] = null;
+        }
+    }
+
     $updateResult = $osiris->persons->updateOne(
         ['username' => $user],
         ['$set' => $person]
@@ -619,6 +543,89 @@ Route::post('/crud/users/update/(.*)', function ($user) {
             renderActivities(['authors.user' => $user]);
         }
     }
+
+    if (isset($_POST['redirect']) && !str_contains($_POST['redirect'], "//")) {
+        header("Location: " . $_POST['redirect'] . "?msg=update-success");
+        die();
+    }
+    echo json_encode([
+        'updated' => $updateResult->getModifiedCount()
+    ]);
+});
+
+
+Route::post('/crud/users/units/(.*)', function ($user) {
+    include_once BASEPATH . "/php/init.php";
+    include_once BASEPATH . "/php/Render.php";
+
+    if (!isset($_POST['values']) && isset($_POST['id'])) {
+        // first get the unit that should be deleted
+        $unit = $osiris->persons->findOne(
+            ['username' => $user, 'units.id' => $_POST['id']],
+            ['projection' => ['units.$' => 1]]
+        );
+        if (empty($unit)) {
+            echo "Unit not found.";
+            die();
+        }
+        $unit = $unit['units'][0];
+
+        // delete unit
+        $osiris->persons->updateOne(
+            ['username' => $user],
+            ['$pull' => ['units' => ['id' => $_POST['id']]]]
+        );
+
+        // update all activities that have this user as author
+        if ($unit['scientific']) {
+            // only necessary if unit is scientific
+            $filter = ['authors.user' => $user];
+            if (isset($unit['start'])) {
+                $filter['start_date'] = ['$gte' => $unit['start']];
+            }
+            if (isset($unit['end'])) {
+                $filter['start_date'] = ['$lte' => $unit['end']];
+            }
+            // render all activities that match the filter
+            renderAuthorUnitsMany($filter);
+        }
+
+        header("Location: " . ROOTPATH . "/user/units/$user?msg=delete-success");
+        die();
+    }
+
+    // transform values if needed
+    $values = $_POST['values'];
+    $values['scientific'] = boolval($values['scientific'] ?? false);
+    $values['start'] = !empty($values['start']) ? $values['start'] : null;
+    $values['end'] = !empty($values['end']) ? $values['end'] : null;
+
+    if (isset($_POST['id'])) {
+        // update existing unit
+        $values['id'] = $_POST['id'];
+        $osiris->persons->updateOne(
+            ['username' => $user, 'units.id' => $_POST['id']],
+            ['$set' => ['units.$' => $values]]
+        );
+    } else {
+        // add new unit
+        $values['id'] = uniqid();
+        $osiris->persons->updateOne(
+            ['username' => $user],
+            ['$push' => ['units' => $values]]
+        );
+    }
+
+    // update all activities that have this user as author
+
+    $filter = ['authors.user' => $user];
+    // if (isset($values['start'])) {
+    //     $filter['start_date'] = ['$gte' => $values['start']];
+    // }
+    // if (isset($values['end'])) {
+    //     $filter['start_date'] = ['$lte' => $values['end']];
+    // }
+    renderAuthorUnitsMany($filter);
 
     if (isset($_POST['redirect']) && !str_contains($_POST['redirect'], "//")) {
         header("Location: " . $_POST['redirect'] . "?msg=update-success");
@@ -647,8 +654,11 @@ Route::post('/crud/users/delete/(.*)', function ($user) {
         "first",
         "last",
         "name",
-        "depts",
-        "username"
+        // "depts",
+        "units",
+        "username",
+        "created",
+        "created_by",
     ];
     $arr = [];
     foreach ($data as $key => $value) {
@@ -656,6 +666,7 @@ Route::post('/crud/users/delete/(.*)', function ($user) {
         $arr[$key] = null;
     }
     $arr['is_active'] = false;
+    $arr['inactivated'] = date('Y-m-d');
     $updateResult = $osiris->persons->updateOne(
         ['username' => $user],
         ['$set' => $arr]
@@ -678,12 +689,6 @@ Route::post('/crud/users/delete/(.*)', function ($user) {
 Route::post('/crud/users/profile-picture/(.*)', function ($user) {
     include_once BASEPATH . "/php/init.php";
 
-    $target_dir = BASEPATH . "/img/users";
-    if (!is_writable($target_dir)) {
-        die("User image directory is unwritable. Please contact admin.");
-    }
-    $target_dir .= "/";
-    $filename = "$user.jpg";
 
     if (isset($_FILES["file"])) {
         // if ($_FILES['file']['type'] != 'image/jpeg') die('Wrong extension, only JPEG is allowed.');
@@ -708,16 +713,25 @@ Route::post('/crud/users/profile-picture/(.*)', function ($user) {
         } else {
             // check image settings
             if ($Settings->featureEnabled('db_pictures')) {
-                $img = new MongoDB\BSON\Binary(file_get_contents($_FILES["file"]["tmp_name"]), MongoDB\BSON\Binary::TYPE_GENERIC);
+                $file = file_get_contents($_FILES["file"]["tmp_name"]);
+                $type = pathinfo($_FILES["file"]["name"], PATHINFO_EXTENSION);
+                // encode image
+                $file = base64_encode($file);
+                $img = new MongoDB\BSON\Binary($file, MongoDB\BSON\Binary::TYPE_GENERIC);
                 // first: delete old image, then: insert new one
-                $filetype = 'jpg';
                 $osiris->userImages->deleteOne(['user' => $user]);
                 $updateResult = $osiris->userImages->insertOne([
                     'user' => $user,
                     'img' => $img,
-                    'ext' => $filetype
+                    'ext' => $type
                 ]);
             } else {
+                $target_dir = BASEPATH . "/img/users";
+                if (!is_writable($target_dir)) {
+                    die("User image directory is unwritable. Please contact admin.");
+                }
+                $target_dir .= "/";
+                $filename = "$user.jpg";
                 // upload to file system
                 if (move_uploaded_file($_FILES["file"]["tmp_name"], $target_dir . $filename)) {
                     header("Location: " . ROOTPATH . "/profile/$user?msg=success");
@@ -791,14 +805,8 @@ Route::post('/crud/users/approve', function () {
 });
 
 
-
 Route::post('/crud/queries', function () {
     include_once BASEPATH . "/php/init.php";
-    // name: name,
-    // rules: rules,
-    // user: $_SESSION['username'] 
-    // created: new Date(),
-    // aggregate: $('#aggregate').val()
     if (isset($_POST['id'])) {
         // delete query with _id
         $deleteResult = $osiris->queries->deleteOne(['_id' => DB::to_ObjectID($_POST['id'])]);
@@ -813,7 +821,10 @@ Route::post('/crud/queries', function () {
         'rules' => json_encode($_POST['rules']),
         'user' => $_SESSION['username'],
         'created' => date('Y-m-d'),
-        'aggregate' => $_POST['aggregate'] ?? null
+        'aggregate' => $_POST['aggregate'] ?? null,
+        'columns' => $_POST['columns'] ?? null,
+        'type' => $_POST['type'] ?? 'activity',
+        'expert' => (($_POST['expert'] ?? 'false') == 'true')
     ]);
     return $updateResult->getInsertedId();
 });

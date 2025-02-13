@@ -16,24 +16,16 @@
  * @license     MIT
  */
 
-include_once BASEPATH . "/php/MyParsedown.php";
-$parsedown = new Parsedown;
-
-//  $children = $Groups->getChildren($id);
-//  dump($children, true);
-
-//  dump($Groups->tree, true);
 $level = $Groups->getLevel($id);
 
 $children = $Groups->getChildren($group['id']);
-$persons = $osiris->persons->find(['depts' => ['$in' => $children], 'is_active' => ['$in'=>[true, 'true', 1, '1']]], ['sort' => ['last' => 1]])->toArray();
+
+$persons = $Groups->getAllPersons($children);
 
 if (isset($group['head'])) {
-
     $head = $group['head'];
     if (is_string($head)) $head = [$head];
     else $head = DB::doc2Arr($head);
-
 } else {
     $head = [];
 }
@@ -42,7 +34,7 @@ $users = array_column($persons, 'username');
 
 $show_general = (isset($group['description']) || isset($group['description_de']) || (isset($group['research']) && !empty($group['research'])));
 
-$edit_perm = ( $Settings->hasPermission('units.add') || $Groups->editPermission($id));
+$edit_perm = ($Settings->hasPermission('units.add') || $Groups->editPermission($id));
 ?>
 
 <link rel="stylesheet" href="<?= ROOTPATH ?>/css/usertable.css">
@@ -51,9 +43,9 @@ $edit_perm = ( $Settings->hasPermission('units.add') || $Groups->editPermission(
 <script src="<?= ROOTPATH ?>/js/chart.min.js"></script>
 <script src="<?= ROOTPATH ?>/js/d3.v4.min.js"></script>
 <script src="<?= ROOTPATH ?>/js/popover.js"></script>
-<script src="<?= ROOTPATH ?>/js/d3-chords.js?v=2"></script>
+<script src="<?= ROOTPATH ?>/js/d3-chords.js?v=<?=CSS_JS_VERSION?>"></script>
 <script src="<?= ROOTPATH ?>/js/d3.layout.cloud.js"></script>
-<script src="<?= ROOTPATH ?>/js/d3-graph.js"></script>
+<!-- <script src="<?= ROOTPATH ?>/js/d3-graph.js"></script> -->
 
 <!-- all variables for this page -->
 <script>
@@ -61,7 +53,7 @@ $edit_perm = ( $Settings->hasPermission('units.add') || $Groups->editPermission(
     const DEPT_TREE = <?= json_encode($children) ?>;
     const DEPT = '<?= $id ?>';
 </script>
-<script src="<?= ROOTPATH ?>/js/units.js?v=2"></script>
+<script src="<?= ROOTPATH ?>/js/units.js?v=<?=CSS_JS_VERSION?>"></script>
 
 
 <style>
@@ -112,27 +104,6 @@ $edit_perm = ( $Settings->hasPermission('units.add') || $Groups->editPermission(
     }
 </style>
 
-<!-- modal to add person -->
-<div id="add-person-modal" class="modal">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2><?= lang('Add person', 'Person hinzufügen') ?></h2>
-            <form action="<?= ROOTPATH ?>/crud/groups/addperson/<?= $id ?>" method="post">
-                <div class="form-group">
-                    <label for="username"><?= lang('Username', 'Benutzername') ?></label>
-                    <!-- select for distinct user names from DB -->
-                    <select name="username" id="username" class="form-control">
-                        <?php foreach ($osiris->persons->find(['is_active' => true], ['sort' => ['last' => 1]]) as $person) { ?>
-                            <option value="<?= $person['username'] ?>"><?= $person['last'] . ', ' . $person['first'] ?></option>
-                        <?php } ?>
-                    </select>
-                </div>
-                <button type="submit" class="btn"><?= lang('Add', 'Hinzufügen') ?></button>
-            </form>
-        </div>
-    </div>
-</div>
 
 <div <?= $Groups->cssVar($id) ?> class="">
     <div class="btn-toolbar">
@@ -143,9 +114,13 @@ $edit_perm = ( $Settings->hasPermission('units.add') || $Groups->editPermission(
                     <i class="ph ph-note-pencil ph-fw"></i>
                     <?= lang('Edit', 'Bearbeiten') ?>
                 </a>
-                <a class="btn" href="#add-person-modal">
+                <!-- <a class="btn" href="#add-person-modal">
                     <i class="ph ph-user-plus ph-fw"></i>
                     <?= lang('Add person', 'Person hinzufügen') ?>
+                </a> -->
+                <a href="<?= ROOTPATH ?>/groups/new?parent=<?= $id ?>" class="btn">
+                    <i class="ph ph-plus-circle ph-fw"></i>
+                    <?= lang('Add child unit', 'Untereinheit hinzufügen') ?>
                 </a>
             </div>
         <?php } ?>
@@ -153,13 +128,6 @@ $edit_perm = ( $Settings->hasPermission('units.add') || $Groups->editPermission(
 
         <?php if ($Settings->featureEnabled('portal')) { ?>
             <div class="btn-group">
-
-                <?php if ($edit_perm) { ?>
-                    <a class="btn" href="<?= ROOTPATH ?>/groups/public/<?= $id ?>">
-                        <i class="ph ph-note-pencil ph-fw"></i>
-                        <?= lang('Public', 'Öffentliche Darstellung') ?>
-                    </a>
-                <?php } ?>
                 <a class="btn" href="<?= ROOTPATH ?>/preview/group/<?= $id ?>">
                     <i class="ph ph-eye ph-fw"></i>
                     <?= lang('Preview', 'Vorschau') ?>
@@ -170,7 +138,6 @@ $edit_perm = ( $Settings->hasPermission('units.add') || $Groups->editPermission(
 
     <h1>
         <?= lang($group['name'] ?? '-', $group['name_de'] ?? null) ?>
-
     </h1>
     <h3 class="subtitle">
         <?= $Groups->getUnit($group['unit'] ?? null, 'name') ?>
@@ -184,12 +151,10 @@ $edit_perm = ( $Settings->hasPermission('units.add') || $Groups->editPermission(
     <!-- TAB AREA -->
 
     <nav class="pills mt-20 mb-0">
-        <?php if ($show_general) { ?>
-            <a onclick="navigate('general')" id="btn-general" class="btn active">
-                <i class="ph ph-info" aria-hidden="true"></i>
-                <?= lang('General', 'Allgemein') ?>
-            </a>
-        <?php } ?>
+        <a onclick="navigate('general')" id="btn-general" class="btn active">
+            <i class="ph ph-info" aria-hidden="true"></i>
+            <?= lang('General', 'Allgemein') ?>
+        </a>
         <?php if (!empty($group['research'] ?? null)) { ?>
 
             <a onclick="navigate('research')" id="btn-research" class="btn <?= !$show_general ? 'active' : '' ?>">
@@ -205,16 +170,18 @@ $edit_perm = ( $Settings->hasPermission('units.add') || $Groups->editPermission(
             <span class="index"><?= count($users) ?></span>
         </a>
 
-        <a onclick="navigate('graph')" id="btn-graph" class="btn">
-            <i class="ph ph-graph" aria-hidden="true"></i>
-            <?= lang('Graph')  ?>
-        </a>
+        <?php if ($level !== 0) { ?>
+            <a onclick="navigate('graph')" id="btn-graph" class="btn">
+                <i class="ph ph-graph" aria-hidden="true"></i>
+                <?= lang('Graph')  ?>
+            </a>
+        <?php } ?>
 
         <?php if ($level !== 0) { ?>
 
             <?php
             $publication_filter = [
-                'authors.user' => ['$in' => $users],
+                'authors.units' => ['$in' => $children],
                 'type' => 'publication'
             ];
             $count_publications = $osiris->activities->count($publication_filter);
@@ -229,7 +196,7 @@ $edit_perm = ( $Settings->hasPermission('units.add') || $Groups->editPermission(
 
             <?php
             $activities_filter = [
-                'authors.user' => ['$in' => $users],
+                'authors.units' => ['$in' => $children],
                 'type' => ['$ne' => 'publication']
             ];
             $count_activities = $osiris->activities->count($activities_filter);
@@ -249,7 +216,7 @@ $edit_perm = ( $Settings->hasPermission('units.add') || $Groups->editPermission(
                         ['contact' => ['$in' => $users]],
                         ['persons.user' => ['$in' => $users]]
                     ),
-                    "status" => ['$ne' => "rejected"]
+                    "status" => ['$nin' => ["rejected", "applied"]]
                 ];
 
                 $count_projects = $osiris->projects->count($project_filter);
@@ -278,55 +245,143 @@ $edit_perm = ( $Settings->hasPermission('units.add') || $Groups->editPermission(
                 <?php } ?>
             <?php } ?>
 
-        <?php } ?>
+            <a onclick="navigate('collab')" id="btn-collab" class="btn">
+                <i class="ph ph-users-three" aria-hidden="true"></i>
+                <?= lang('Other units', 'Andere Einheiten')  ?>
+            </a>
 
-        <a onclick="navigate('collab')" id="btn-collab" class="btn">
-            <i class="ph ph-users-three" aria-hidden="true"></i>
-            <?= lang('Other units', 'Andere Einheiten')  ?>
-        </a>
+        <?php } ?>
 
     </nav>
 
     <section id="general">
         <!-- head -->
+
         <?php
-        $head = $group['head'] ?? [];
-        if (is_string($head)) $head = [$head];
-        else $head = DB::doc2Arr($head);
+        $children = $osiris->groups->find(['parent' => $id], ['sort' => ['order' => 1]])->toArray();
 
-        usort($persons, function ($a, $b) use ($head) {
-            return in_array($a['username'], $head)  ? -1 : 1;
-        });
-        if (!empty($head)) { ?>
-            <div class="head">
-                <h5 class="mt-0"><?= $Groups->getUnit($group['unit'] ?? null, 'head') ?></h5>
-                <div>
-                    <?php foreach ($head as $h) { ?>
-                        <a href="<?= ROOTPATH ?>/profile/<?= $h ?>" class="colorless d-flex align-items-center border bg-white p-10 rounded mt-10">
-                            <?= $Settings->printProfilePicture($h, 'profile-img small mr-20') ?>
-                            <div class="">
-                                <h5 class="my-0">
-                                    <?= $DB->getNameFromId($h) ?>
-                                </h5>
-                            </div>
-                        </a>
-                    <?php } ?>
+        if ($edit_perm) { ?>
+            <script src="<?= ROOTPATH ?>/js/jquery-ui.min.js"></script>
+            <!-- reorder modal -->
+            <div id="reorder-modal" class="modal">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h2><?= lang('Reorder child units', 'Untereinheiten neu anordnen') ?></h2>
+                        <form action="<?= ROOTPATH ?>/crud/groups/reorder/<?= $id ?>" method="post">
+                            <p>
+                                <?= lang('Drag and drop to reorder', 'Ziehen und Ablegen zum Neuanordnen') ?>
+                            </p>
+                            <ul id="reorder-list" class="list">
+                                <?php foreach ($children as $child) { ?>
+                                    <li class="cursor-pointer">
+                                        <input type="hidden" name="order[]" value="<?= $child['_id'] ?>">
+                                        <?= $child['name'] ?>
+                                    </li>
+                                <?php } ?>
+                            </ul>
+                            <button type="submit" class="btn"><?= lang('Save', 'Speichern') ?></button>
+                        </form>
+                        <script>
+                            $('#reorder-list').sortable({
+                                // handle: ".handle",
+                                // change: function( event, ui ) {}
+                            });
+                        </script>
+                    </div>
                 </div>
-
             </div>
-        <?php } ?>
-
-
-
-        <?php if (isset($group['description']) || isset($group['description_de'])) { ?>
-
-            <h5>
-                <?= lang('About', 'Information') ?>
-            </h5>
-            <?= $parsedown->text(lang($group['description'] ?? '-', $group['description_de'] ?? null)) ?>
 
         <?php } ?>
 
+        <div class="row row-eq-spacing">
+            <div class="col-md-3">
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <span class="key"><?= lang('Parent unit', 'Übergeordnete Einheit') ?></span>
+                                <?php if ($group['parent']) { ?>
+                                    <a href="<?= ROOTPATH ?>/groups/view/<?= $group['parent'] ?>"><?= $Groups->getName($group['parent']) ?></a>
+                                <?php } else { ?>
+                                    -
+                                <?php } ?>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+
+                                <span class="key"><?= lang('Child units', 'Untereinheiten') ?></span>
+
+                                <?php if (!empty($children)) { ?>
+                                    <ul class="list">
+                                        <?php foreach ($children as $child) { ?>
+                                            <li>
+                                                <a href="<?= ROOTPATH ?>/groups/view/<?= $child['id'] ?>"><?= lang($child['name'], $child['name_de'] ?? null) ?></a><br>
+                                                <small class="text-muted"><?= $child['unit'] ?></small>
+                                            </li>
+                                        <?php } ?>
+                                    </ul>
+                                    <?php if ($edit_perm) { ?>
+                                        <a href="#reorder-modal" class="btn primary small" id="reorder">
+                                            <i class="ph ph-sort-ascending"></i>
+                                            <?= lang('Reorder child units', 'Untereinheiten neu anordnen') ?>
+                                        </a>
+                                    <?php } ?>
+                                <?php } else { ?>
+                                    -
+                                <?php } ?>
+
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col">
+                <?php
+                $head = $group['head'] ?? [];
+                if (is_string($head)) $head = [$head];
+                else $head = DB::doc2Arr($head);
+
+                usort($persons, function ($a, $b) use ($head) {
+                    return in_array($a['username'], $head)  ? -1 : 1;
+                });
+                if (!empty($head)) { ?>
+                    <div class="head">
+                        <h5 class="mt-0"><?= $Groups->getUnit($group['unit'] ?? null, 'head') ?></h5>
+                        <div>
+                            <?php foreach ($head as $h) { ?>
+                                <a href="<?= ROOTPATH ?>/profile/<?= $h ?>" class="colorless d-flex align-items-center border bg-white p-10 rounded mt-10">
+                                    <?= $Settings->printProfilePicture($h, 'profile-img small mr-20') ?>
+                                    <div class="">
+                                        <h5 class="my-0">
+                                            <?= $DB->getNameFromId($h) ?>
+                                        </h5>
+                                    </div>
+                                </a>
+                            <?php } ?>
+                        </div>
+
+                    </div>
+                <?php } ?>
+
+
+                <?php if (isset($group['description']) || isset($group['description_de'])) { ?>
+                    <style>
+                        #description img {
+                            width: 100%;
+                            max-width: 80rem;
+                        }
+                    </style>
+                    <h5>
+                        <?= lang('About', 'Information') ?>
+                    </h5>
+                    <div id="description">
+                        <?= lang($group['description'] ?? '-', $group['description_de'] ?? null) ?>
+                    </div>
+                <?php } ?>
+            </div>
+        </div>
 
     </section>
 
@@ -345,11 +400,13 @@ $edit_perm = ( $Settings->hasPermission('units.add') || $Groups->editPermission(
         <?php if (isset($group['research']) && !empty($group['research'])) { ?>
             <?php foreach ($group['research'] as $r) { ?>
                 <div class="box">
-                    <h5 class="header">
-                        <?= lang($r['title'], $r['title_de'] ?? null) ?>
-                    </h5>
                     <div class="content">
-                        <?= $parsedown->text(lang($r['info'], $r['info_de'] ?? null)) ?>
+                        <h5 class="title">
+                            <?= lang($r['title'], $r['title_de'] ?? null) ?>
+                            <br>
+                            <small class="text-muted"><?= lang($r['subtitle'] ?? '', $r['subtitle_de'] ?? null) ?></small>
+                        </h5>
+                        <?= lang($r['info'], $r['info_de'] ?? null) ?>
                     </div>
                     <?php if (!empty($r['projects'] ?? null)) {
                         echo '<hr>';
@@ -526,76 +583,32 @@ $edit_perm = ( $Settings->hasPermission('units.add') || $Groups->editPermission(
 
     <section id="collab" style="display:none">
 
-        <div class="row row-eq-spacing">
-            <div class="col-md-6">
+        <?php if ($level !== 0) { ?>
 
-                <h3><?= lang('Relevant units', 'Verwandte Einheiten') ?></h3>
-                <table class="table">
-                    <tbody>
-                        <tr>
-                            <td>
-                                <span class="key"><?= lang('Parent unit', 'Übergeordnete Einheit') ?></span>
-                                <?php if ($group['parent']) { ?>
-                                    <a href="<?= ROOTPATH ?>/groups/view/<?= $group['parent'] ?>"><?= $Groups->getName($group['parent']) ?></a>
-                                <?php } else { ?>
-                                    -
-                                <?php } ?>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <span class="key"><?= lang('Child units', 'Untereinheiten') ?></span>
-                                <?php
-                                $children = $osiris->groups->find(['parent' => $id])->toArray();
-                                ?>
-                                <?php if (!empty($children)) { ?>
-                                    <ul class="list">
-                                        <?php foreach ($children as $child) { ?>
-                                            <li>
-                                                <a href="<?= ROOTPATH ?>/groups/view/<?= $child['id'] ?>" class="colorless font-weight-bold"><?= $child['name'] ?></a><br>
-                                                <span class="text-muted"><?= $child['unit'] ?></span>
-                                            </li>
-                                        <?php } ?>
-                                    </ul>
-                                <?php } else { ?>
-                                    -
-                                <?php } ?>
+            <h3><?= lang('Collaboration with other groups', 'Zusammenarbeit mit anderen Gruppen') ?></h3>
+            <p class="text-muted">
+                <?= lang('Based on publications within the past 5 years.', 'Basierend auf Publikationen aus den vergangenen 5 Jahren.') ?>
+            </p>
+            <div id="collab-chart" style="max-width: 60rem"></div>
 
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="col-md-6">
-                <?php if ($level !== 0) { ?>
-
-                    <h3><?= lang('Collaboration with other groups', 'Zusammenarbeit mit anderen Gruppen') ?></h3>
-                    <p class="text-muted">
-                        <?= lang('Based on publications within the past 5 years.', 'Basierend auf Publikationen aus den vergangenen 5 Jahren.') ?>
-                    </p>
-                    <div id="collab-chart" style="max-width: 60rem"></div>
-
-                <?php } ?>
-
-
-            </div>
-        </div>
+        <?php } ?>
 
 
 
     </section>
 
+    <?php if ($level !== 0) { ?>
 
-    <section id="graph" style="display:none">
-        <h3><?= lang('Graph', 'Graph') ?></h3>
+        <section id="graph" style="display:none">
+            <h3><?= lang('Graph', 'Graph') ?></h3>
 
-        <p class="text-muted m-0">
-            <?= lang('Based on publications with associated affiliations.', 'Basierend auf affilierten Publikationen.') ?>
-        </p>
-        <div id="collabGraph"></div>
+            <p class="text-muted m-0">
+                <?= lang('Based on publications with associated affiliations.', 'Basierend auf affilierten Publikationen.') ?>
+            </p>
+            <div id="collabGraph" class="mw-full w-800"></div>
 
-    </section>
+        </section>
+    <?php } ?>
 
 </div>
 

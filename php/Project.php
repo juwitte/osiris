@@ -16,6 +16,7 @@
 
 require_once "DB.php";
 require_once "Country.php";
+require_once "Groups.php";
 
 class Project
 {
@@ -45,6 +46,7 @@ class Project
             'role',
             'coordinator',
             'nagoya',
+            'countries'
         ],
         'Stipendium' => [
             'name',
@@ -138,6 +140,7 @@ class Project
     public const ROLE = [
         'coordinator' => 'Koordinator',
         'partner' => 'Partner',
+        'associated' => 'Beteiligt',
     ];
 
     public const FUNDING = [
@@ -147,6 +150,16 @@ class Project
         'subproject' => 'Teilprojekt',
         'other' => 'Sonstiges',
     ];
+    public const FUNDER = [
+        'DFG',
+        'Bund',
+        'Bundesländer',
+        'Wirtschaft',
+        'EU',
+        'Stiftungen',
+        'Leibniz Wettbewerb',
+        'Sonstige Drittmittelgeber',
+    ];
 
     public const PERSON_ROLE = [
         'PI' => 'Projektleitung',
@@ -155,6 +168,7 @@ class Project
         'scholar' => 'Stipediat:in',
         'supervisor' => 'Betreuer:in',
         'associate' => 'Beteiligte Person',
+        'coordinator' => 'Wiss. Koordinator:in'
     ];
 
     public const COLLABORATOR = [
@@ -181,11 +195,24 @@ class Project
         'role',
         'coordinator',
     ];
+    public const INHERITANCE_PUBLIC = [
+        'website',
+        'funder',
+        'funding_organization',
+        'purpose',
+        'role',
+        'coordinator',
+        'collaborators'
+    ];
+
+    private $db;
 
     function __construct($project = null)
     {
         if ($project !== null)
             $this->project = $project;
+        $DB = new DB();
+        $this->db = $DB->db;
     }
 
     public function getFields($type)
@@ -198,8 +225,7 @@ class Project
     }
     public function setProjectById($project_id)
     {
-        $DB = new DB();
-        $this->project = $DB->db->projects->findOne(['_id' => $DB->to_ObjectID($project_id)]);
+        $this->project = $this->db->projects->findOne(['_id' => DB::to_ObjectID($project_id)]);
     }
 
     public function getStatus()
@@ -251,12 +277,25 @@ class Project
 <?php }
     }
 
+    public function getRoleRaw()
+    {
+        if (($this->project['role'] ?? '') == 'coordinator')
+            return lang('Coordinator', 'Koordinator');
+        if (($this->project['role'] ?? '') == 'associated')
+            return lang('Associated', 'Beteiligt');
+        return 'Partner';
+    }
+
     public function getRole()
     {
+        $label = $this->getRoleRaw();
         if (($this->project['role'] ?? '') == 'coordinator') {
-            return "<span class='badge no-wrap'>" . '<i class="ph ph-crown text-signal"></i> ' . lang('Coordinator', 'Koordinator') . "</span>";
+            return "<span class='badge no-wrap'>" . '<i class="ph ph-crown text-signal"></i> ' . $label . "</span>";
         }
-        return "<span class='badge no-wrap'>" . '<i class="ph ph-handshake text-muted"></i> ' . lang('Partner') . "</span>";
+        if (($this->project['role'] ?? '') == 'associated') {
+            return "<span class='badge no-wrap'>" . '<i class="ph ph-address-book text-muted"></i> ' . $label . "</span>";
+        }
+        return "<span class='badge no-wrap'>" . '<i class="ph ph-handshake text-muted"></i> ' . $label . "</span>";
     }
 
     public static function getCollaboratorIcon($collab, $cls = "")
@@ -343,6 +382,16 @@ class Project
     {
         return sprintf('%02d', $this->project['end']['month']) . "/" . $this->project['end']['year'];
     }
+    public function getDuration()
+    {
+        $year1 = $this->project['start']['year'];
+        $year2 = $this->project['end']['year'];
+
+        $month1 = $this->project['start']['month'];
+        $month2 = $this->project['end']['month'];
+
+        return (($year2 - $year1) * 12) + ($month2 - $month1) + 1;
+    }
     public function getProgress()
     {
         $end = new DateTime();
@@ -367,23 +416,30 @@ class Project
         return round($progress);
     }
 
-    public static function personRole($role, $gender = 'n')
+    public static function personRoleRaw($role)
     {
         switch ($role) {
             case 'PI':
-                // '<i class="ph ph-crown text-signal"></i>' . 
-                return lang('Project lead', 'Projektleitung');
+                return ['en' => 'Project lead', 'de' => 'Projektleitung'];
             case 'applicant':
-                return lang('Applicant', 'Antragsteller:in');
+                return ['en' => 'Applicant', 'de' => 'Antragsteller:in'];
             case 'worker':
-                return lang('Project member', 'Projektmitarbeiter:in');
+                return ['en' => 'Project member', 'de' => 'Projektmitarbeiter:in'];
             case 'scholar':
-                return lang('Scholar', 'Stipediat:in');
+                return ['en' => 'Scholar', 'de' => 'Stipediat:in'];
             case 'supervisor':
-                return lang('Supervisor', 'Betreuer:in');
+                return ['en' => 'Supervisor', 'de' => 'Betreuer:in'];
+            case 'coordinator':
+                return ['en' => 'Scientific Coordinator', 'de' => 'Wiss. Koordinator:in'];
             default:
-                return lang('Associate', 'Beteiligte Person');
+                return ['en' => 'Associate', 'de' => 'Beteiligte Person'];
         }
+    }
+
+    public static function personRole($role, $gender = 'n')
+    {
+        $role = self::personRoleRaw($role);
+        return lang($role['en'], $role['de']);
     }
 
     public function widgetSmall()
@@ -456,8 +512,7 @@ class Project
 
     public function getScope()
     {
-        $DB = new DB();
-        $req = $DB->db->adminGeneral->findOne(['key' => 'affiliation']);
+        $req = $this->db->adminGeneral->findOne(['key' => 'affiliation']);
         $institute = DB::doc2Arr($req['value']);
         $institute['role'] = $this->project['role'] ?? 'Partner';
 
@@ -497,5 +552,27 @@ class Project
         }
         $continents = array_unique($continents);
         return $continents;
+    }
+    public function getUnits($depts_only = false)
+    {
+        // get units based on project persons
+        $units = [];
+        $Groups = new Groups();
+
+        $start = $this->project['start_date'];
+        foreach ($this->project['persons'] as $person) {
+            $u = $person['units'] ?? null;
+            if (empty($u)) {
+               $u = $Groups->getPersonUnit($person['user'], $start);
+               if (empty($u)) continue;
+               $u = array_column($u, 'unit');
+            }
+
+            if (!empty($u)) {
+                $units = array_merge($units, $u);
+            }
+        }
+        if (!$depts_only) return $units;
+        return $Groups->deptHierarchies($units);
     }
 }

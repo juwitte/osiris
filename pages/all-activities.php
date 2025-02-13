@@ -21,7 +21,18 @@ $user = $user ?? $_SESSION['username'];
 ?>
 
 
-<?php if ($page == 'activities' && $Settings->hasPermission('scientist')) { ?>
+<?php if (isset($_GET['user'])) { ?>
+    <h1 class='m-0'>
+        <i class="ph ph-folder-user"></i>
+
+        <?= lang("Activities of ", "Aktivitäten von ") ?>
+        <a href="<?= ROOTPATH ?>/profile/<?= $user ?>"><?= $DB->getNameFromId($user) ?></a>
+    </h1>
+    <a href="<?= ROOTPATH ?>/activities" class="btn small mb-10" id="user-btn">
+        <i class="ph ph-book-open"></i>
+        <?= lang('Show  all activities', "Zeige alle Aktivitäten") ?>
+    </a>
+<?php } elseif ($page == 'activities' || !$Settings->hasPermission('scientist')) { ?>
     <h1 class='m-0'>
         <i class="ph ph-book-open"></i>
         <?= lang("All activities", "Alle Aktivitäten") ?>
@@ -34,18 +45,7 @@ $user = $user ?? $_SESSION['username'];
     <a class="mt-10" href="<?= ROOTPATH ?>/add-activity"><i class="ph ph-plus"></i> <?= lang('Add activity', 'Aktivität hinzufügen') ?></a>
 
 <?php
-} elseif (isset($_GET['user'])) { ?>
-    <h1 class='m-0'>
-        <i class="ph ph-folder-user"></i>
-
-        <?= lang("Activities of ", "Aktivitäten von ") ?>
-        <a href="<?= ROOTPATH ?>/profile/<?= $user ?>"><?= $DB->getNameFromId($user) ?></a>
-    </h1>
-    <a href="<?= ROOTPATH ?>/activities" class="btn small mb-10" id="user-btn">
-        <i class="ph ph-book-open"></i>
-        <?= lang('Show  all activities', "Zeige alle Aktivitäten") ?>
-    </a>
-<?php } elseif ($page == 'my-activities') { ?>
+} elseif ($page == 'my-activities') { ?>
     <h1 class='m-0'>
         <i class="ph ph-folder-user"></i>
         <?= lang("My activities", "Meine Aktivitäten") ?>
@@ -87,6 +87,7 @@ $user = $user ?? $_SESSION['username'];
                     <th><?= lang('Title', 'Titel') ?></th>
                     <th><?= lang('Authors', 'Autoren') ?></th>
                     <th><?= lang('Year', 'Jahr') ?></th>
+                    <th><?= lang('Research Topics', 'Forschungsbereiche') ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -109,7 +110,34 @@ $user = $user ?? $_SESSION['username'];
                 <?= lang('By type', 'Nach Typ') ?>
                 <a class="float-right" onclick="filterActivities('#filter-type .active', null, 7)"><i class="ph ph-x"></i></a>
             </h6>
-            <div class="filter">
+            <style>
+                .filter {
+                    overflow-x: hidden;
+                }
+
+                .filter tr td .submenu a {
+                    padding: .2rem 1rem .2rem 2.5rem;
+                    font-size: small;
+                    color: var(--highlight-color);
+                    font-weight: normal;
+                    white-space: nowrap;
+                    text-overflow: ellipsis;
+                    overflow: hidden;
+                }
+
+                .filter tr td .submenu a.active {
+                    font-weight: bold;
+                }
+
+                /* .filter tr td .submenu a.active::before {
+                    content: '●';
+                    color: var(--highlight-color);
+                    font-size: small;
+                    position: absolute;
+                    left: 2rem;
+                } */
+            </style>
+            <div class="filter" style="max-height: 22rem;">
                 <table id="filter-type" class="table small simple">
                     <?php foreach ($Settings->getActivities() as $a) {
                         $id = $a['id'];
@@ -122,6 +150,29 @@ $user = $user ?? $_SESSION['username'];
                                         <?= $Settings->title($id, null) ?>
                                     </span>
                                 </a>
+                                <?php
+                                $subtypes = $osiris->adminTypes->find(['parent' => $id])->toArray();
+                                if (count($subtypes) > 1) {
+                                ?>
+
+                                    <div class="submenu" style="display: none;">
+                                        <?php
+                                        foreach ($subtypes as $subtype) {
+                                            $subid = $subtype['id'];
+                                        ?>
+                                            <a data-type="<?= $subid ?>" onclick="filterSubtype(this, '<?= $subid ?>')" class="item" id="<?= $subid ?>-sub-btn">
+                                                <span class="text-<?= $subid ?>">
+                                                    <span class="mr-5"> <i class="ph ph-<?= $subtype['icon'] ?>"></i> </span>
+                                                    <?= lang($subtype['name'], $subtype['name_de']) ?>
+                                                </span>
+                                            </a>
+                                        <?php
+                                        }
+                                        ?>
+                                    </div>
+                                <?php
+                                }
+                                ?>
                             </td>
                         </tr>
                     <?php } ?>
@@ -165,11 +216,34 @@ $user = $user ?? $_SESSION['username'];
                 <input type="date" name="to" id="filter-to" class="form-control">
             </div>
 
+            <?php if ($Settings->featureEnabled('topics')) { ?>
+                <h6><?= lang('Research Topics', 'Forschungsbereiche') ?></h6>
+
+                <div class="filter">
+                    <table id="filter-type" class="table small simple">
+                        <?php foreach ($osiris->topics->find([], ['sort' => ['order' => 1]]) as $a) {
+                            $id = $a['id'];
+                        ?>
+                            <tr style="--highlight-color:  <?= $a['color'] ?>;">
+                                <td>
+                                    <a data-type="<?= $id ?>" onclick="filterActivities(this, '<?= $id ?>', 14)" class="item" id="<?= $id ?>-btn">
+                                        <span style="color: var(--highlight-color)">
+                                            <?= lang($a['name'], $a['name_en'] ?? null) ?>
+                                        </span>
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php } ?>
+                    </table>
+
+                </div>
+            <?php } ?>
+
 
             <h6><?= lang('More', 'Weiteres') ?></h6>
             <div class="custom-switch">
                 <input type="checkbox" id="epub-switch" value="" onchange="filterEpub(this)">
-                <label for="epub-switch"><?= lang('without Epub', 'ohne Epub') ?></label>
+                <label for="epub-switch"><?= lang('without Online ahead of print', 'ohne <em>Online ahead of print</em>') ?></label>
             </div>
 
         </div>
@@ -182,9 +256,6 @@ $user = $user ?? $_SESSION['username'];
 <script src="<?= ROOTPATH ?>/js/datatables/buttons.html5.min.js"></script>
 
 <script>
-    const CARET_DOWN = ' <i class="ph ph-caret-down"></i>';
-
-    // $.fn.DataTable.moment( 'HH:mm MMM D, YY' );
     var dataTable;
 
     const minEl = document.querySelector('#filter-from');
@@ -247,6 +318,10 @@ $user = $user ?? $_SESSION['username'];
             title: lang('Year', 'Jahr'),
             'key': 'year'
         },
+        {
+            title: lang('Research topics', 'Forschungsbereiche'),
+            'key': 'topics'
+        }
     ]
 
     $(document).ready(function() {
@@ -265,12 +340,22 @@ $user = $user ?? $_SESSION['username'];
             language: {
                 url: lang(null, ROOTPATH + '/js/datatables/de-DE.json')
             },
-            buttons: [{
+            buttons: [
+                // custom link button
+                {
+                    text: '<i class="ph ph-magnifying-glass-plus"></i> <?= lang('Advanced search', 'Erweiterte Suche') ?>',
+                    className: 'btn small text-primary mr-10',
+                    action: function(e, dt, node, config) {
+                        window.location.href = '<?= ROOTPATH ?>/activities/search';
+                    }
+                },
+                {
                     extend: 'copyHtml5',
                     exportOptions: {
                         columns: [4]
                     },
-                    className: 'btn small'
+                    className: 'btn small',
+                    text: '<i class="ph ph-clipboard"></i> <?= lang('Copy', 'Kopieren') ?>',
                 },
                 {
                     extend: 'excelHtml5',
@@ -286,7 +371,8 @@ $user = $user ?? $_SESSION['username'];
                         console.log(filters);
                         if (filters.length == 0) return "OSIRIS All Activities";
                         return 'OSIRIS ' + filters.join('_')
-                    }
+                    },
+                    text: '<i class="ph ph-file-xls"></i> <?= lang('Excel', 'Excel') ?>',
                 },
                 {
                     extend: 'csvHtml5',
@@ -303,8 +389,10 @@ $user = $user ?? $_SESSION['username'];
                         console.log(filters);
                         if (filters.length == 0) return "OSIRIS All Activities";
                         return 'OSIRIS ' + filters.join('_')
-                    }
+                    },
+                    text: '<i class="ph ph-file-csv"></i> <?= lang('CSV', 'CSV') ?>',
                 },
+                
             ],
             dom: 'fBrtip',
             // dom: '<"dtsp-dataTable"frtip>',
@@ -313,7 +401,7 @@ $user = $user ?? $_SESSION['username'];
                     data: "quarter",
                     searchPanes: {
                         show: false
-                    },
+                    }
                 },
                 {
                     targets: 1,
@@ -322,6 +410,17 @@ $user = $user ?? $_SESSION['username'];
                 {
                     targets: 2,
                     data: 'activity',
+                    render: function(data, type, row) {
+                        var text = data;
+                        if (row.topics && row.topics.length > 0) {
+                            text = '<span class="float-right topic-icons">'
+                            row.topics.forEach(function(topic) {
+                                text += `<a href="<?= ROOTPATH ?>/topics/view/${topic}" class="topic-icon topic-${topic}"></a> `
+                            })
+                            text += '</span>' + data
+                        }
+                        return text;
+                    }
                 },
                 {
                     targets: 3,
@@ -385,13 +484,13 @@ $user = $user ?? $_SESSION['username'];
                 },
                 {
                     targets: 9,
-                    data: 'type',
+                    data: 'raw_type',
                     searchable: true,
                     visible: false,
                 },
                 {
                     targets: 10,
-                    data: 'subtype',
+                    data: 'raw_subtype',
                     searchable: true,
                     visible: false,
                 },
@@ -418,6 +517,17 @@ $user = $user ?? $_SESSION['username'];
                     //     header: lang('Year', 'Jahr')
                     // },
                 },
+                {
+                    targets: 14,
+                    data: 'topics',
+                    searchable: true,
+                    visible: false,
+                    render: function(data, type, row) {
+                        return data.join(', ')
+                        return `<a href="<?= ROOTPATH ?>/topics/view/${row.topics}">${data}</a>`
+                    }
+
+                }
             ],
             "order": [
                 [5, 'desc'],
@@ -530,7 +640,10 @@ $user = $user ?? $_SESSION['username'];
     }
 
     function filterActivities(btn, activity = null, column = 1) {
+        // var inSubmenu = ($(btn).closest('.submenu').length > 0)
+        console.log(btn, activity, column);
         var tr = $(btn).closest('tr')
+        var submenu = tr.find('.submenu')
         var table = tr.closest('table')
         $('#filter-' + column).remove()
         const field = headers[column]
@@ -541,10 +654,11 @@ $user = $user ?? $_SESSION['username'];
             hash[field.key] = null
             table.find('.active').removeClass('active')
             dataTable.columns(column).search("", true, false, true).draw();
-
+            submenu.slideUp()
         } else {
 
             table.find('.active').removeClass('active')
+
             tr.addClass('active')
             dataTable.columns(column).search(activity, true, false, true).draw();
             // indicator
@@ -557,9 +671,32 @@ $user = $user ?? $_SESSION['username'];
             })
             filterBtn.append(a)
             activeFilters.append(filterBtn)
+
+            table.find('.submenu').slideUp()
+            submenu.slideDown()
+        }
+        // if key was type, we need to reset subtype
+        if (field.key == 'type') {
+            dataTable.columns(10).search("", true, false, true).draw();
+            table.find('.submenu > a').removeClass('active')
+            hash['subtype'] = null
         }
         writeHash(hash)
+    }
 
+    function filterSubtype(btn, subtype) {
+        // filterActivities(btn, subtype, 10)
+        var active = $(btn).hasClass('active')
+        var column = 10;
+
+        if (active) {
+            dataTable.columns(column).search("", true, false, true).draw();
+            $(btn).removeClass('active')
+        } else {
+            dataTable.columns(column).search(subtype, true, false, true).draw();
+            $(btn).closest('table').find('.submenu > a').removeClass('active')
+            $(btn).addClass('active')
+        }
     }
 
     // Changes to the inputs will trigger a redraw to update the table

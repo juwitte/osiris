@@ -7,6 +7,10 @@ from diophila import OpenAlex
 from nameparser import HumanName
 from Levenshtein import ratio
 
+from datetime import datetime
+import html
+from pprint import pprint
+
 
 class OpenAlexParser():
     def __init__(self, ignore_duplicates=False) -> None:
@@ -42,6 +46,8 @@ class OpenAlexParser():
             "dataset": "others",
             "book-series": "book",
             "edited-book": "book",
+            "review": "magazine",
+            "preprint": "preprint",
         }
 
 
@@ -50,14 +56,12 @@ class OpenAlexParser():
         path = os.path.dirname(__file__)
         config.read(os.path.join(path, 'config.ini'))
 
-        self.inst_id = config['OpenAlex']['Institution']
+        self.inst_id = config['OpenAlex']['Institution'].upper()
         self.startyear = config['DEFAULT']['StartYear']
 
         # set up database connection
         client = MongoClient(config['Database']['Connection'])
         self.osiris = client[config['Database']['Database']]
-
-        # osiris['queue'].delete_many({})
 
 
         # set up OpenAlex
@@ -77,13 +81,19 @@ class OpenAlexParser():
 
     def getUserId(self, name, orcid=None):
         if orcid:
-            user = self.osiris['users'].find_one({'orcid': orcid})
+            user = self.osiris['persons'].find_one({'orcid': orcid})
             if user:
-                return user['_id']
-        user = self.osiris['users'].find_one(
-            {'last': name.last, 'first': {'$regex': '^'+name.first+'.*'}})
+                return user['username']
+        user = self.osiris['persons'].find_one(
+            {'$or': [
+                {'last': name.last, 'first': {'$regex': '^'+name.first+'.*'}},
+                {'names': f'{name.last}, {name.first}'}
+            ]}
+        )
+        # print(user)
+        # exit()
         if user:
-            return user['_id']
+            return user['username']
         return None
 
     def getAbstract(self, inverted_abstract):
@@ -156,6 +166,7 @@ class OpenAlexParser():
             print(f'Activity type {work["type"]} is unknown (DOI: {doi}).')
             return False
 
+        # print(doi)
         authors = []
         for a in work['authorships']:
             # match via name and ORCID
@@ -169,11 +180,12 @@ class OpenAlexParser():
             if pos == 'middle' and a.get('is_corresponding'):
                 pos = 'corresponding'
 
+            inst = [i.get('id') for i in a['institutions']]
             authors.append({
                 'last': name.last,
                 'first': name.first + (' ' + name.middle if name.middle else ''),
                 'position': pos,
-                'aoi': ('https://openalex.org/'+self.inst_id in [i.get('id') for i in a['institutions']]),
+                'aoi': ('https://openalex.org/'+self.inst_id in inst),
                 'orcid': orcid,
                 'user': user,
                 'approved': False
@@ -199,6 +211,7 @@ class OpenAlexParser():
             day = int(date[2])
 
         abstract = self.getAbstract(work.get('abstract_inverted_index'));
+        work['title'] = html.unescape(work['title'])
         element = {
             'doi': doi,
             'type': 'publication',
@@ -219,27 +232,42 @@ class OpenAlexParser():
         }
         if (typ == 'others'):
             element['doc_type'] = work['type'].title()
-
-        if (typ == 'article'):
-            # print(element)
-            if not loc or not loc['issn']:
-                element['subtype'] = 'magazine'
-                element['magazine'] = loc.get('display_name') if loc else None
-            else:
-                journal = self.getJournal(loc['issn'])
+        
+        journal = None
+        if loc and loc.get('type') == 'journal':
+            element['location'] = loc['display_name']
+            journal = self.getJournal(loc['issn'])
+            if journal:
                 element.update({
-                    'volume': work['biblio']['volume'],
-                    'issue': work['biblio']['issue'],
-                    'journal': journal['journal'],
-                    'journal_id': str(journal['_id'])
-                })
+                        'volume': work['biblio']['volume'],
+                        'issue': work['biblio']['issue'],
+                        'journal': journal['journal'],
+                        'issn': journal['issn'],
+                        'journal_id': str(journal['_id'])
+                    })
                 if (not element['volume']) and not element['issue']:
                     element['epub'] = True
 
-        if (typ == 'chapter'):
+        if (typ == 'article'):
+            if not loc or not loc['issn']:
+                element['subtype'] = 'magazine'
+            elif loc.get('type')== 'repository':
+                element['subtype'] = 'preprint'
+            elif not journal:
+                element['subtype'] = 'magazine'
+
+        if (typ == 'chapter' and loc and loc.get('display_name')):
             element.update({
                 'book': loc['display_name'],
+                'issn': loc['issn'],
+                
             })
+        if typ == 'preprint':
+            element['subtype'] = 'preprint'
+        
+        if (typ == 'magazine' or typ == 'preprint'):
+            element['magazine'] = loc.get('display_name') if loc else None
+
 
         for id, dupl in self.possible_dupl:
             dist = ratio(dupl, element['title'])
@@ -249,26 +277,44 @@ class OpenAlexParser():
                 break
         return element
     
-    def get_work(self, id, idtype='doi', ignoreDupl=True):
+    def get_work(self, id, idtype='doi', ignoreDupl=True, test=False):
+        if (test):
+            # delete all entries with the same DOI
+            self.osiris['activities'].delete_many({'doi': id})
         work = self.openalex.get_single_work(id, idtype)
         element = self.parseWork(work)
+        if test:
+            pprint(element)
+            
         if (element != False):
             if ignoreDupl and element.get('duplicate'):
                 print(f'Activity might have a duplicate (DOI {element["doi"]}) and was omitted.')
                 return
             self.osiris['activities'].insert_one(element)
             print(f'{idtype.upper()} {id} has been added to the database.')
-        
     
-    def get_works(self):
+    def get_works_dois(self, filters=None):
+        if not filters:
+            filters = {
+                "from_publication_date": self.startyear + "-01-01",
+                "institutions.id": self.inst_id,
+                "has_doi": 'true'
+            }
+        pages_of_works = self.openalex.get_list_of_works(filters=filters, pages=None)
+        for page in pages_of_works:
+            for work in page['results']:
+                yield work['doi']
+                    
+    def get_works(self, filters=None):
         # NOPE: use created_date and updated_date to filter
         # Not possible, needs payed version
 
-        filters = {
-            "from_publication_date": self.startyear + "-01-01",
-            "institutions.id": self.inst_id,
-            "has_doi": 'true'
-        }
+        if not filters:
+            filters = {
+                "from_publication_date": self.startyear + "-01-01",
+                "institutions.id": self.inst_id,
+                "has_doi": 'true'
+            }
 
 
         pages_of_works = self.openalex.get_list_of_works(filters=filters, pages=None)
@@ -276,11 +322,24 @@ class OpenAlexParser():
         i = 0
         for page in pages_of_works:
             for work in page['results']:
-                element = self.parseWork(work)
-                if element == False: continue
-                i+=1
-                yield element
+                try: 
+                    element = self.parseWork(work)
+                    if element == False: continue
+                    i+=1
+                    yield element
+                except Exception as e:
+                    print(f'Error with DOI {work["doi"]}')
+                    print(e)
+                    continue
         print(f'--- Finished. Imported {i} documents.')
+    
+    def getHistory(self, element):
+        return {
+            'type': 'imported',
+            'user': None,
+            'date': datetime.now().date().isoformat(),
+            # 'data': element
+        }
     
     def queueJob(self):
         for element in self.get_works():
@@ -292,9 +351,13 @@ class OpenAlexParser():
             if element.get('duplicate'):
                 print(f'Activity might have a duplicate (DOI {element["doi"]}) and was omitted.')
                 continue
+            element['imported'] = datetime.now().date().isoformat()
+            element['history'] = [self.getHistory(element)]
             self.osiris['activities'].insert_one(element)
 
 
 if __name__ == '__main__':
     parser = OpenAlexParser()
-    parser.queueJob()
+    # parser.queueJob()
+    
+    parser.get_work('10.1007/978-3-319-69075-9_13', test=True)

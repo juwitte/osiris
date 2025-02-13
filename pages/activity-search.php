@@ -6,7 +6,7 @@
  * This file is part of the OSIRIS package.
  * Copyright (c) 2024 Julia Koblitz, OSIRIS Solutions GmbH
  * 
- * @link /search/activities
+ * @link /activities/search
  *
  * @package OSIRIS
  * @since 1.0 
@@ -17,18 +17,349 @@
  */
 
 $Format = new Document(true);
+$expert = isset($_GET['expert']);
+
+include_once BASEPATH . "/php/fields.php";
+
+// dump($FIELDS, true);
+
+$filters = array_filter($FIELDS, function ($f) {
+    return in_array('filter', $f['usage'] ?? []);
+});
+
+// convert into valid query-builder format
+$filters = array_map(function ($f) {
+    if (!isset($f['type'])) {
+        dump($f);
+    }
+    if ($f['type'] == 'boolean') {
+        $f['input'] = 'radio';
+        $f['values'] = ['true' => lang('Yes', 'Ja'), 'false' => lang('No', 'Nein')];
+    }
+    if ($f['type'] == 'list') {
+        $f['type'] = 'string';
+    }
+    if (isset($f['usage'])) {
+        unset($f['usage']);
+    }
+    return $f;
+}, $filters);
+
 ?>
 
 <link rel="stylesheet" href="<?= ROOTPATH ?>/css/query-builder.default.min.css">
-<script src="<?= ROOTPATH ?>/js/query-builder.standalone.js"></script>
+<script src="<?= ROOTPATH ?>/js/query-builder.standalone.js?v=date"></script>
 <script src="<?= ROOTPATH ?>/js/datatables/jszip.min.js"></script>
 <script src="<?= ROOTPATH ?>/js/datatables/dataTables.buttons.min.js"></script>
 <script src="<?= ROOTPATH ?>/js/datatables/buttons.html5.min.js"></script>
 
 <script>
     var RULES;
+    var EXPERT = <?= $expert ? 'true' : 'false' ?>;
 </script>
 
+
+<div class="modal" id="saved-queries-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <a href="#/" class="close" role="button" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </a>
+            <h5 class="title">
+                <?php if ($expert) { ?>
+                    <?= lang('My expert queries', 'Meine Experten-Abfragen') ?>
+                <?php } else { ?>
+                    <?= lang('My saved queries', 'Meine Abfragen') ?>
+                <?php } ?>
+            </h5>
+            <?php
+            $filter = ['user' => $_SESSION['username'], 'type' => ['$ne' => 'project']];
+            if (!$expert) {
+                $filter['$or'] = [
+                    ['expert' => false],
+                    ['expert' => ['$exists' => false]]
+                ];
+            } else {
+                $filter['expert'] = true;
+            }
+            $queries = $osiris->queries->find($filter)->toArray();
+            if (empty($queries)) {
+                echo '<p>' . lang('You have not saved any queries yet.', 'Du hast noch keine Abfragen gespeichert.') . '</p>';
+            } else { ?>
+                <div class="collapse-group" id="saved-queries">
+                    <?php foreach ($queries as $query) {
+                        $rules = json_decode($query['rules'], true);
+                        if (empty($rules['rules'])) {
+                            $rules['rules'] = ['id' => 'No rules'];
+                        }
+                    ?>
+                        <details id="query-<?= $query['_id'] ?>" class="mb-10">
+                            <summary class="collapse-header font-weight-bold">
+                                <?= $query['name'] ?>
+                            </summary>
+                            <div class="collapse-content">
+                                <a class="btn primary" onclick="applyFilter('<?= $query['_id'] ?>', '<?= $query['aggregate'] ?>', '<?= implode(';', DB::doc2Arr($query['columns'] ?? [])) ?>')"><?= lang('Apply filter', 'Filter anwenden') ?></a>
+
+                                <table class="table simple my-10">
+
+                                    <tr>
+                                        <th style="vertical-align: baseline;"><?= lang('Rules', 'Regeln') ?>:</th>
+                                        <td>
+                                            <ul>
+                                                <?php foreach ($rules['rules'] as $key) { ?>
+                                                    <li>
+                                                        <b class="text-primary"><?= $key['id'] ?></b>
+                                                        <code class="code"><?php
+                                                                            switch ($key['operator'] ?? '') {
+                                                                                case 'equal':
+                                                                                    echo '=';
+                                                                                    break;
+                                                                                case 'not_equal':
+                                                                                    echo '!=';
+                                                                                    break;
+                                                                                case 'less':
+                                                                                    echo '<';
+                                                                                    break;
+                                                                                case 'less_or_equal':
+                                                                                    echo '<=';
+                                                                                    break;
+                                                                                case 'greater':
+                                                                                    echo '>';
+                                                                                    break;
+                                                                                case 'greater_or_equal':
+                                                                                    echo '>=';
+                                                                                    break;
+                                                                                case 'contains':
+                                                                                    echo 'CONTAINS';
+                                                                                    break;
+                                                                                case 'not_contains':
+                                                                                    echo 'NOT CONTAINS';
+                                                                                    break;
+                                                                                case 'begins_with':
+                                                                                    echo 'BEGINS WITH';
+                                                                                    break;
+                                                                                case 'ends_with':
+                                                                                    echo 'ENDS WITH';
+                                                                                    break;
+                                                                                case 'between':
+                                                                                    echo 'BETWEEN';
+                                                                                    break;
+                                                                                case 'not_between':
+                                                                                    echo 'NOT BETWEEN';
+                                                                                    break;
+                                                                                case 'is_empty':
+                                                                                    echo 'IS EMPTY';
+                                                                                    break;
+                                                                                case 'is_not_empty':
+                                                                                    echo 'IS NOT EMPTY';
+                                                                                    break;
+                                                                                case 'is_null':
+                                                                                    echo 'IS NULL';
+                                                                                    break;
+                                                                                case 'is_not_null':
+                                                                                    echo 'IS NOT NULL';
+                                                                                    break;
+                                                                                case 'in':
+                                                                                    echo 'IN';
+                                                                                    break;
+                                                                                case 'not_in':
+                                                                                    echo 'NOT IN';
+                                                                                    break;
+                                                                            }
+                                                                            ?></code> <?php if (!empty($key['value'] ?? null)) { ?>
+                                                            <q><?= $key['value'] ?></q>
+                                                        <?php } ?>
+                                                    </li>
+                                                <?php } ?>
+                                            </ul>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <th><?= lang('Aggregate', 'Aggregieren') ?>:</th>
+                                        <td>
+                                            <?php if (isset($query['aggregate']) && !empty($query['aggregate'])) { ?>
+                                                <?= $query['aggregate'] ?>
+                                            <?php } else {
+                                                echo lang('No aggregation', 'Keine Aggregation angewendet');
+                                            } ?>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <th><?= lang('Columns', 'Spalten') ?>:</th>
+                                        <td>
+                                            <?php if (isset($query['columns']) && !empty($query['columns'])) { ?>
+                                                <?= implode(', ', DB::doc2Arr($query['columns'])) ?>
+                                            <?php } else {
+                                                echo lang('Default columns', 'Standard-Spalten');
+                                            } ?>
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <th><?= lang('Created', 'Erstellt') ?>:</th>
+                                        <td><?= date('d.m.Y H:i', strtotime($query['created'])) ?></td>
+                                    </tr>
+                                </table>
+
+                                <a class="btn danger small text-right" onclick="deleteQuery('<?= $query['_id'] ?>')"><i class="ph ph-trash"></i> <?= lang('Delete Query', 'Abfrage löschen') ?></a>
+                            </div>
+                        </details>
+                    <?php } ?>
+                </div>
+            <?php  } ?>
+
+            <script>
+                var queries = {};
+                <?php foreach ($queries as $query) { ?>
+                    queries['<?= $query['_id'] ?>'] = '<?= $query['rules'] ?>';
+                <?php } ?>
+            </script>
+
+            <div class="box padded">
+                <!-- save current query -->
+                <label for="query-name" class="font-weight-bold">
+                    <?= lang('Save current query', 'Aktuelle Abfrage speichern') ?>
+                </label>
+                <input type="text" class="form-control" id="query-name" placeholder="<?= lang('Name of query', 'Name der Abfrage') ?>">
+                <button class="btn secondary mt-10" onclick="saveQuery()"><?= lang('Save query', 'Abfrage speichern') ?></button>
+            </div>
+            <div class="text-right mt-20">
+                <a href="#/" class="btn mr-5" role="button"><?= lang('Close', 'Schließen') ?></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="filter-code" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <a href="#/" class="close" role="button" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </a>
+            <h5 class="title"><?= lang('Filter code', 'Filter-Code') ?></h5>
+
+            <p>
+                <?= lang('This filter is needed for example for generating report templates.', 'Dieser Filter wird zum Beispiel für die Erstellung von Berichtsvorlagen benötigt.') ?>
+            </p>
+            <!-- copy to clipboard -->
+            <script>
+                function copyToClipboard() {
+                    var text = $('#result').text()
+                    navigator.clipboard.writeText(text)
+                    toastSuccess('Query copied to clipboard.')
+                }
+            </script>
+
+            <div class="position-relative">
+                <button class="btn secondary small position-absolute top-0 right-0 m-10" onclick="copyToClipboard()"><i class="ph ph-clipboard" aria-label="Copy to clipboard"></i></button>
+
+                <pre id="result" class="code p-20"></pre>
+            </div>
+            <div class="text-right mt-20">
+                <a href="#/" class="btn mr-5" role="button"><?= lang('Close', 'Schließen') ?></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .checkbox-badge {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .checkbox-badge label {
+        margin-bottom: .5rem;
+        background: white;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        padding: .5rem;
+        padding-left: 3rem;
+    }
+
+    .checkbox-badge label:before {
+        top: .5rem;
+        left: .5rem;
+    }
+
+    .checkbox-badge label:after {
+        left: 1.1rem;
+        top: 0.8rem;
+    }
+</style>
+
+<div class="modal" id="column-select-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <a href="#/" class="close" role="button" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </a>
+            <h5 class="title"><?= lang('Select columns to display', 'Wähle Spalten zum Anzeigen aus') ?></h5>
+            <div id="column-select">
+                <?php
+                $selected = $_GET['columns'] ?? [
+                    'icon',
+                    'web',
+                    'year'
+                ];
+                // $ignore = ['_id', 'authors.user', 'authors.position', 'authors.approved', 'authors.aoi', 'authors.last', 'authors.first'];
+                // $fields = array_values($FIELDS);
+                $fields = array_filter($FIELDS, function ($f) {
+                    return in_array('columns', $f['usage'] ?? []);
+                });
+                // sort by module_of
+                usort($fields, function ($a, $b) use ($selected) {
+                    if (in_array($a['id'], $selected)) {
+                        return -1;
+                    } elseif (in_array($b['id'], $selected)) {
+                        return 1;
+                    } elseif (in_array('general', $a['module_of'] ?? [])) {
+                        return -1;
+                    } elseif (in_array('general', $b['module_of'] ?? [])) {
+                        return 1;
+                    } elseif (count($b['module_of'] ?? []) == count($a['module_of'] ?? [])) {
+                        return in_array($a['id'], $selected) ? -1 : 1;
+                    }
+                    return count($b['module_of'] ?? []) <=> count($a['module_of'] ?? []);
+                });
+
+                foreach ($fields as $field) {
+                    $modules = $field['module_of'] ?? [];
+                ?>
+                    <div class="custom-checkbox checkbox-badge <?= empty($modules) ? 'text-muted' : '' ?>">
+                        <input type="checkbox" class="form-check-input" id="column-<?= $field['id'] ?>" <?= (in_array($field['id'], $selected) ? 'checked' : '') ?>>
+                        <label class="form-check-label" for="column-<?= $field['id'] ?>" value="<?= $field['id'] ?>">
+                            <?= $field['label'] ?>
+                            <?php if ($field['custom'] ?? false) { ?>
+                                <span data-toggle="tooltip" data-title="Custom field">
+                                    <i class="ph ph-fill ph-gear text-muted"></i>
+                                </span>
+                            <?php } ?>
+                            <?php foreach ($modules as $key) {
+                                if ($key == 'general') { ?>
+                                    <span data-toggle="tooltip" data-title="<?= lang('General field', 'Generelles Datenfeld') ?>">
+                                        <i class="ph ph-globe text-muted"></i>
+                                    </span>
+                            <?php
+                                    continue;
+                                }
+                                echo $Settings->icon($key);
+                            } ?>
+
+
+                        </label>
+                    </div>
+                <?php } ?>
+            </div>
+            <div class="text-right mt-20">
+                <a href="#/" class="btn mr-5" role="button"><?= lang('Close', 'Schließen') ?></a>
+                <a class="btn secondary" role="button" onclick="getResult()"><?= lang('Apply', 'Anwenden') ?></a>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 <div class="container">
@@ -38,527 +369,109 @@ $Format = new Document(true);
         <?= lang('Advanced activity search', 'Erweiterte Aktivitäten-Suche') ?>
     </h1>
 
-    <div class="row row-eq-spacing">
-        <div class="col-md-8">
+    <div class="box">
+        <div class="content">
 
-            <div class="box">
+            <h3 class="title"><?= lang('Filter', 'Filtern') ?></h3>
+            <div id="builder" class="<?= $expert ? 'hidden' : '' ?>"></div>
+
+            <?php if ($expert) { ?>
+                <textarea name="expert" id="expert" cols="30" rows="5" class="form-control"></textarea>
+            <?php } ?>
+
+        </div>
+
+        <div class="row position-relative">
+            <div class="col">
                 <div class="content">
-
-                    <h3 class="title"><?= lang('Filter', 'Filtern') ?></h3>
-                    <div id="builder" class="<?= isset($_GET['expert']) ? 'hidden' : '' ?>"></div>
-
-                    <?php if (isset($_GET['expert'])) { ?>
-                        <textarea name="expert" id="expert" cols="30" rows="5" class="form-control"></textarea>
-                    <?php } ?>
-
+                    <a href="#column-select-modal">
+                        <i class="ph ph-columns-plus-right"></i>
+                        <?= lang('Select Columns', 'Spalten auswählen') ?>
+                    </a>
+                    <!-- 
+                    <div id="selected-columns">
+                        <span class="badge">Webdarstellung</span>
+                    </div> -->
                 </div>
-
+            </div>
+            <div class="text-divider"><?= lang('OR', 'ODER') ?></div>
+            <div class="col">
+                <!-- Aggregations -->
                 <div class="content">
-                    <!-- Aggregations -->
-                    <h3 class="title"><?= lang('Aggregate', 'Aggregieren') ?></h3>
+                    <a onclick="$('#aggregate-form').slideToggle()">
+                        <i class="ph ph-squares-four"></i>
+                        <?= lang('Aggregate', 'Aggregieren') ?>
+                    </a>
 
-                    <div class="input-group">
+                    <div class="input-group" style="display:none;" id="aggregate-form">
                         <select name="aggregate" id="aggregate" class="form-control w-auto">
                             <option value=""><?= lang('Without aggregation (show all)', 'Ohne Aggregation (zeige alles)') ?></option>
+                            <?php foreach ($filters as $f) { ?>
+                                <option value="<?=$f['id']?>"><?=$f['label']?></option>
+                            <?php } ?>
+                            
                         </select>
 
                         <!-- remove aggregation -->
                         <div class="input-group-append">
                             <button class="btn text-danger" onclick="$('#aggregate').val(''); getResult()"><i class="ph ph-x"></i></button>
-
                         </div>
-                    </div>
-                </div>
-
-                <div class="footer">
-
-                    <div class="btn-toolbar">
-
-                        <?php if (isset($_GET['expert'])) { ?>
-                            <button class="btn secondary" onclick="run()"><i class="ph ph-magnifying-glass"></i> <?= lang('Apply', 'Anwenden') ?></button>
-
-                            <script>
-                                function run() {
-                                    var rules = $('#expert').val()
-                                    RULES = JSON.parse(decodeURI(rules))
-                                    dataTable.ajax.reload()
-                                }
-                            </script>
-                            <a class="btn osiris" href="?"><i class="ph ph-search-plus"></i> <?= lang('Sandbox mode', 'Baukasten-Modus') ?></a>
-
-                        <?php } else { ?>
-                            <button class="btn secondary" onclick="getResult()"><i class="ph ph-magnifying-glass"></i> <?= lang('Apply', 'Anwenden') ?></button>
-                            <a class="btn osiris" href="?expert"><i class="ph ph-search-plus"></i> <?= lang('Expert mode', 'Experten-Modus') ?></a>
-                        <?php } ?>
-
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <!-- User saved queries -->
-            <div class="box">
-                <div class="content">
-                    <h3 class="title"><?= lang('My saved queries', 'Meine Abfragen') ?></h3>
-                    <?php
-                    $queries = $osiris->queries->find(['user' => $_SESSION['username']])->toArray();
-                    if (empty($queries)) {
-                        echo '<p>' . lang('You have not saved any queries yet.', 'Du hast noch keine Abfragen gespeichert.') . '</p>';
-                    } else { ?>
-                        <div class="list-group" id="saved-queries">
-                            <?php foreach ($queries as $query) { ?>
-                                <!-- use rules (json)  -->
-                                <div class="d-flex justify-content-between" id="query-<?= $query['_id'] ?>">
-                                    <a onclick="applyFilter('<?= $query['_id'] ?>', '<?= $query['aggregate'] ?>')"><?= $query['name'] ?></a>
-                                    <a onclick="deleteQuery('<?= $query['_id'] ?>')" class="text-danger"><i class="ph ph-x"></i></a>
-                                </div>
-                            <?php } ?>
-                        </div>
-                    <?php  } ?>
 
-                    <script>
-                        var queries = {};
-                        <?php foreach ($queries as $query) { ?>
-                            queries['<?= $query['_id'] ?>'] = '<?= $query['rules'] ?>';
-                        <?php } ?>
-                    </script>
 
-                </div>
-                <hr>
-                <div class="content">
-                    <!-- save current query -->
-                    <div class="form-group" id="save-query">
-                        <label for="query-name"><?= lang('Save query', 'Abfrage speichern') ?></label>
-                        <input type="text" class="form-control" id="query-name" placeholder="<?= lang('Name of query', 'Name der Abfrage') ?>">
-                        <button class="btn secondary mt-10" onclick="saveQuery()"><?= lang('Save query', 'Abfrage speichern') ?></button>
-                    </div>
-                </div>
+        <div class="footer">
+
+            <div class="btn-toolbar">
+                <?php if ($expert) { ?>
+                    <button class="btn secondary" onclick="getResult()"><i class="ph ph-magnifying-glass"></i> <?= lang('Apply', 'Anwenden') ?></button>
+
+                    <a class="btn osiris" href="?"><i class="ph ph-lego"></i> <?= lang('Sandbox mode', 'Baukasten-Modus') ?></a>
+
+                <?php } else { ?>
+                    <button class="btn secondary" onclick="getResult()"><i class="ph ph-magnifying-glass"></i> <?= lang('Apply', 'Anwenden') ?></button>
+                    <a class="btn osiris" href="?expert"><i class="ph ph-magnifying-glass-plus"></i> <?= lang('Expert mode', 'Experten-Modus') ?></a>
+                <?php } ?>
+
+                <a href="#saved-queries-modal" class="btn" role="button">
+                    <i class="ph ph-floppy-disk"></i> <?= lang('Saved queries', 'Gespeicherte Abfragen') ?>
+                </a>
+
+                <a href="#filter-code" class="btn" role="button">
+                    <i class="ph ph-code"></i> <?= lang('Show filter', 'Zeige Filter') ?>
+                </a>
+
             </div>
         </div>
     </div>
 
-
-    <!-- copy to clipboard -->
-    <script>
-        function copyToClipboard() {
-            var text = $('#result').text()
-            navigator.clipboard.writeText(text)
-            toastSuccess('Query copied to clipboard.')
-        }
-    </script>
-
-    <div class="position-relative">
-        <button class="btn secondary small position-absolute top-0 right-0 m-10" onclick="copyToClipboard()"><i class="ph ph-clipboard" aria-label="Copy to clipboard"></i></button>
-
-        <pre id="result" class="code p-20"></pre>
-    </div>
-
-    <br>
 
     <table class="table" id="activity-table">
-        <thead>
-            <th><?= lang('Type', 'Typ') ?></th>
-            <th><?= lang('Result', 'Ergebnis') ?></th>
-            <th><?= lang('Count', 'Anzahl') ?></th>
-            <th><?= lang('Year', 'Jahr') ?></th>
-            <th><?= lang('Print', 'Print') ?></th>
-            <th><?= lang('Type', 'Typ') ?></th>
-            <th><?= lang('Subtype', 'Subtyp') ?></th>
-            <th><?= lang('Title', 'Titel') ?></th>
-            <th><?= lang('Authors', 'Autoren') ?></th>
-            <th>Link</th>
-        </thead>
-        <tbody>
-        </tbody>
+        <thead></thead>
+        <tbody></tbody>
     </table>
-
-    <?php
-    $categories = $osiris->adminCategories->distinct('id');
-    $types = $osiris->adminTypes->distinct('id');
-    ?>
 
     <script>
         // var mongo = $('#builder').queryBuilder('getMongo');
-        const types = JSON.parse('<?= json_encode($categories) ?>')
-        const subtypes = JSON.parse('<?= json_encode($types) ?>')
 
-        const filters = [{
-                id: 'type',
-                label: lang('Category', 'Kategorie'),
-                type: 'string',
-                input: 'select',
-                values: types
-            },
-            {
-                id: 'subtype',
-                label: lang('Type', 'Typ'),
-                type: 'string',
-                input: 'select',
-                values: subtypes
-            },
-            {
-                id: 'title',
-                label: lang('Title', 'Titel'),
-                type: 'string'
-            },
-            {
-                id: 'abstract',
-                label: lang('Abstract', 'Abstract'),
-                type: 'string'
-            },
-            {
-                id: 'authors.first',
-                label: lang('Author (first name)', 'Autor (Vorname)'),
-                type: 'string'
-            },
-            {
-                id: 'authors.last',
-                label: lang('Author (last name)', 'Autor (Nachname)'),
-                type: 'string'
-            },
-            {
-                id: 'authors.user',
-                label: lang('Author (username)', 'Autor (Username)'),
-                type: 'string'
-            },
-            {
-                id: 'authors.position',
-                label: lang('Author (position)', 'Autor (Position)'),
-                type: 'string',
-                input: 'select',
-                values: ['first', 'middle', 'last', 'corresponding']
-            },
-            {
-                id: 'authors.approved',
-                label: lang('Author (approved)', 'Autor (Bestätigt)'),
-                type: 'boolean',
-                values: {
-                    'true': 'yes',
-                    'false': 'no'
-                },
-                input: 'radio'
-            },
-            {
-                id: 'authors.aoi',
-                label: lang('Author (affiliated)', 'Autor (Affiliated)'),
-                type: 'boolean',
-                values: {
-                    'true': 'yes',
-                    'false': 'no'
-                },
-                input: 'radio'
-            },
-            {
-                id: 'journal',
-                label: lang('Journal'),
-                type: 'string'
-            },
-            {
-                id: 'issn',
-                label: lang('ISSN'),
-                type: 'string'
-            },
-            {
-                id: 'magazine',
-                label: lang('Magazine', 'Magazin'),
-                type: 'string'
-            },
-            {
-                id: 'year',
-                label: lang('Year', 'Jahr'),
-                type: 'integer',
-                default_value: <?= CURRENTYEAR ?>
-            },
-            {
-                id: 'month',
-                label: lang('Month', 'Monat'),
-                type: 'integer'
-            },
-            {
-                id: 'lecture_type',
-                label: lang('Lecture type', 'Vortragstyp'),
-                input: 'select',
-                values: ['short', 'long', 'repetition']
-            },
-            {
-                id: 'editor_type',
-                label: lang('Editor type', 'Editortyp'),
-                type: 'string'
-            },
-            {
-                id: 'doi',
-                label: lang('DOI'),
-                type: 'string'
-            },
-            {
-                id: 'link',
-                label: lang('Link'),
-                type: 'string'
-            },
-            {
-                id: 'pubmed',
-                label: lang('Pubmed-ID'),
-                type: 'integer'
-            },
-            {
-                id: 'pubtype',
-                label: lang('Publication type', 'Publikationstyp'),
-                type: 'string',
-                input: 'select',
-                values: ['article', 'book', 'chapter', 'preprint', 'magazine', 'dissertation', 'others']
-            },
-            {
-                id: 'gender',
-                label: lang('Gender', 'Geschlecht'),
-                type: 'string',
-                input: 'select',
-                values: ['f', 'm', 'd']
-            },
-            {
-                id: 'issue',
-                label: lang('Issue'),
-                type: 'string'
-            },
-            {
-                id: 'volume',
-                label: lang('Volume'),
-                type: 'string'
-            },
-            {
-                id: 'pages',
-                label: lang('Pages', 'Seiten'),
-                type: 'string'
-            },
-            {
-                id: 'impact',
-                label: lang('Impact factor'),
-                type: 'double'
-            },
-            {
-                id: 'book',
-                label: lang('Book title', 'Buchtitel'),
-                type: 'string'
-            },
-            {
-                id: 'publisher',
-                label: lang('Publisher', 'Verlag'),
-                type: 'string'
-            },
-            {
-                id: 'city',
-                label: lang('Location (Publisher)', 'Ort (Verlag)'),
-                type: 'string'
-            },
-            {
-                id: 'edition',
-                label: lang('Edition'),
-                type: 'string'
-            },
-            {
-                id: 'isbn',
-                label: lang('ISBN'),
-                type: 'string'
-            },
-            {
-                id: 'doc_type',
-                label: lang('Document type', 'Dokumententyp'),
-                type: 'string'
-            },
-            {
-                id: 'iteration',
-                label: lang('Iteration (Misc)', 'Wiederholung (misc)'),
-                type: 'string',
-                input: 'select',
-                values: ['once', 'annual']
-            },
-            {
-                id: 'software_type',
-                label: lang('Type of software', 'Art der Software'),
-                type: 'string',
-                input: 'select',
-                values: ['software', 'database', 'dataset', 'webtool', 'report']
-            },
-            {
-                id: 'software_venue',
-                label: lang('Publication venue (Software)', 'Ort der Veröffentlichung (Software)'),
-                type: 'string'
-            },
-            {
-                id: 'version',
-                label: lang('Version'),
-                type: 'string'
-            },
-            // {
-            //         id: 'affiliation',
-            //         label: lang('Affiliation', ''),
-            //         type: 'string'
-            // },
-            // {
-            //     id: 'sws',
-            //     label: lang('SWS'),
-            //     type: 'string'
-            // },
-            {
-                id: 'category',
-                label: lang('Category (students/guests)', 'Kategorie (Studenten/Gäste)'),
-                type: 'string',
-                input: 'select',
-                values: {
-                    'guest scientist': lang('Guest Scientist', 'Gastwissenschaftler:in'),
-                    'lecture internship': lang('Lecture Internship', 'Pflichtpraktikum im Rahmen des Studium'),
-                    'student internship': lang('Student Internship', 'Schülerpraktikum'),
-                    'other': lang('Other', 'Sonstiges'),
-                    'doctoral thesis': lang('Doctoral Thesis', 'Doktorand:in'),
-                    'master thesis': lang('Master Thesis', 'Master-Thesis'),
-                    'bachelor thesis': lang('Bachelor Thesis', 'Bachelor-Thesis')
-                }
+        var filters = <?= json_encode($filters) ?>;
 
-            },
-            {
-                id: 'status',
-                label: lang('Status (Thesis)'),
-                type: 'string',
-                input: 'select',
-                values: ['in progress', 'completed', 'aborted']
+        // clean up if filters is an object
+        if (filters.constructor === Object) {
+            filters = Object.values(filters)
+        }
 
-            },
-            {
-                id: 'role',
-                label: lang('Role (Reviews)', 'Rolle (Reviews)'),
-                type: 'string',
-                input: 'select',
-                values: {
-                    'review': 'Reviewer',
-                    'editorial': 'Editorial board',
-                    'grant-rev': 'Grant proposal',
-                    'thesis-rev': 'Thesis review'
-                }
+        // get fields
+        var fields = <?= json_encode($fields) ?>;
+        // console.log(fields);
 
-            },
-            {
-                id: 'name',
-                label: lang('Name of guest', 'Name des Gastes'),
-                type: 'string'
-            },
-            {
-                id: 'academic_title',
-                label: lang('Academic title of guest', 'Akad. Titel des Gastes'),
-                type: 'string'
-            },
-            {
-                id: 'details',
-                label: lang('Details (Students/guests)', 'Details (Studenten/Gäste)'),
-                type: 'string'
-            },
-            {
-                id: 'conference',
-                label: lang('Conference', 'Konferenz'),
-                type: 'string'
-            },
-            {
-                id: 'location',
-                label: lang('Location', 'Ort'),
-                type: 'string'
-            },
-            {
-                id: 'country',
-                label: lang('Country', 'Land'),
-                type: 'string'
-            },
-            {
-                id: 'rendered.depts',
-                label: lang('Department (abbr.)', 'Abteilung (Kürzel)'),
-                type: 'string'
-            },
-            {
-                id: 'open_access',
-                label: lang('Open Access'),
-                type: 'boolean',
-                values: {
-                    'true': 'yes',
-                    'false': 'no'
-                },
-                input: 'radio'
-            },
-            {
-                id: 'oa_status',
-                label: lang('Open Access Status'),
-                type: 'string',
-                values: ['gold', 'green', 'bronze', 'hybrid', 'open', 'closed'],
-                input: 'select'
-            },
-            {
-                id: 'epub',
-                label: lang('Online ahead of print'),
-                type: 'boolean',
-                values: {
-                    'true': 'yes',
-                    'false': 'no'
-                },
-                input: 'radio'
-            },
-            {
-                id: 'correction',
-                label: lang('Correction'),
-                type: 'boolean',
-                values: {
-                    'true': 'yes',
-                    'false': 'no'
-                },
-                input: 'radio'
-            },
-            {
-                id: 'invited_lecture',
-                label: lang('Invited lecture'),
-                type: 'boolean',
-                values: {
-                    'true': 'yes',
-                    'false': 'no'
-                },
-                input: 'radio'
-            },
-            {
-                id: 'created_by',
-                label: lang('Created by (Abbreviation)', 'Erstellt von (Kürzel)'),
-                type: 'string'
-            },
-            {
-                id: 'created',
-                label: lang('Created at', 'Erstellt am'),
-                type: 'string'
-            },
-            {
-                id: 'updated_by',
-                label: lang('Updated by (Abbreviation)', 'Aktualisiert von (Kürzel)'),
-                type: 'string'
-            },
-            <?php
-            foreach ($osiris->adminFields->find() as $field) {
-                $f = [
-                    'id' => $field['id'],
-                    'label' => lang($field['name'], $field['name_de'] ?? null),
-                    'type' => $field['format'] == 'int' ? 'integer' : $field['format']
-                ];
+        // clean up if fields is an object
+        if (fields.constructor === Object) {
+            fields = Object.values(fields)
+        }
 
-                if ($field['format'] == 'boolean') {
-                    $f['values'] =  [
-                        'true' => 'yes',
-                        'false' => 'no'
-                    ];
-                    $f['input'] = 'radio';
-                }
-
-                if ($field['format'] == 'list') {
-                    $f['type'] = 'string';
-                    $f['values'] =  $field['values'];
-                    $f['input'] = 'select';
-                }
-
-                echo json_encode($f);
-                echo ',';
-            }
-            ?>
-        ];
         var mongoQuery = $('#builder').queryBuilder({
             filters: filters,
             'lang_code': lang('en', 'de'),
@@ -575,19 +488,190 @@ $Format = new Document(true);
 
         var dataTable;
 
-        filters.forEach(el => {
-            console.log(el);
-            if (el.type == 'string') {
-                $('#aggregate').append(`<option value="${el.id}">${el.label}</option>`)
-            }
-        });
+        // filters.forEach(el => {
+        //     // console.log(el);
+        //     if (el.type == 'string') {
+        //         $('#aggregate').append(`<option value="${el.id}">${el.label}</option>`)
+        //     }
+        // });
 
-        function getResult() {
-            var rules = $('#builder').queryBuilder('getMongo')
-            RULES = rules
-            dataTable.ajax.reload()
+
+        function initializeTable(data) {
+            // destroy existing table
+            if ($.fn.DataTable.isDataTable('#activity-table')) {
+                $('#activity-table').DataTable().clear().destroy();
+                $('#activity-table thead').empty(); // Header leeren
+                $('#activity-table tbody').empty(); // Daten leeren
+            }
+
+            // Extrahiere die Spaltennamen aus der API-Antwort
+            const first_row = Object.keys(data[0]);
+
+            // check for aggregation
+            var aggregate = $('#aggregate').val()
+
+            // Generiere dynamisch das thead
+            const thead = document.querySelector('#activity-table thead');
+            const headerRow = document.createElement('tr');
+
+            var columns = [];
+
+            if (aggregate !== "") {
+                data = data.map(row => ({
+                    value: row.value || lang('No Activity', 'Keine Aktivität'),
+                    count: row.count || 0
+                }));
+
+                // add aggregate column
+                var th = document.createElement('th');
+                th.textContent = lang('Activity', 'Aktivität');
+                headerRow.appendChild(th);
+                th = document.createElement('th');
+                th.textContent = lang('Count', 'Anzahl');
+                headerRow.appendChild(th);
+                thead.appendChild(headerRow);
+
+                columns = [{
+                        data: 'value',
+                        title: lang('Value', 'Wert')
+                    },
+                    {
+                        data: 'count',
+                        title: lang('Count', 'Anzahl')
+                    }
+                ]
+
+            } else {
+                var selected_columns = []
+                $('#column-select input:checked').each(function() {
+                    selected_columns.push($(this).attr('id').replace('column-', ''))
+                })
+
+                // add dynamic column heads
+                first_row.forEach(field => {
+                    const th = document.createElement('th');
+                    th.textContent = field.charAt(0).toUpperCase() + field.slice(1); // Optional: Titel formatieren
+                    headerRow.appendChild(th);
+                });
+                thead.appendChild(headerRow);
+                // Konfiguriere die Spalten für Datatables
+                columns = first_row.map(function(field) {
+                    // remove from selected columns
+                    selected_columns = selected_columns.filter(column => column !== field);
+                    // get name from `fields`
+
+                    const filter = fields.find(f => f.id == field);
+                    var r = {
+                        data: field,
+                        title: filter ? filter.label : field,
+                        defaultContent: '-'
+                    }
+                    if (field == 'id') {
+                        r.render = function(data, type, row, meta) {
+                            return `<a href="<?= ROOTPATH ?>/activity/${data}"><i class="ph ph-arrow-fat-line-right"></i></a>`
+                        }
+                    }
+                    return r
+                });
+                if (selected_columns.length > 0) {
+                    toastWarning(lang('The following columns are not found in the result and are not shown:', 'Die folgenden Spalten waren im Ergebnis komplett leer und werden nicht gezeigt:') + ' <strong>' + selected_columns.join(', ') + '</strong>');
+                }
+
+            }
+
+            console.log(thead);
+            console.log(columns);
+            console.log(data);
+
+            // Initialisiere Datatables
+            $('#activity-table').DataTable({
+                destroy: true, // Alte Tabelle entfernen, falls sie existiert
+                data: data, // Daten direkt übergeben
+                columns: columns, // Dynamisch generierte Spalten
+                language: {
+                    url: lang(null, ROOTPATH + '/js/datatables/de-DE.json')
+                },
+                dom: 'fBrtip',
+                buttons: [{
+                    extend: 'excelHtml5',
+                    exportOptions: {
+                        columns: ':visible,:hidden' // Include hidden columns
+                    },
+                    className: 'btn small',
+                    title: "OSIRIS Search",
+                    text: '<i class="ph ph-file-xls"></i> Excel'
+                }],
+                initComplete: function() {
+                    var tableWidth = $('#activity-table').width();
+                    var containerWidth = $('#activity-table').parent().width();
+                    if (tableWidth > containerWidth && !$('#activity-table').parent().hasClass('table-responsive')) {
+                        $('#activity-table').wrap('<div class="table-responsive"></div>');
+                    }
+                }
+            });
+
+            // check if table exceeds the width of the container
         }
 
+        // AJAX-Call zum Abrufen der Daten
+        function getResult() {
+            if (EXPERT) {
+                var rules = $('#expert').val()
+                if (rules == '') {
+                    return
+                }
+                try {
+                    var rules = JSON.parse(rules)
+                } catch (SyntaxError) {
+                    toastError(lang('Invalid JSON', 'Ungültiges JSON'))
+                    return
+                }
+            } else {
+                var rules = $('#builder').queryBuilder('getMongo')
+            }
+            if (rules === null) rules = []
+            rules = JSON.stringify(rules)
+
+            var data = {
+                json: rules,
+                formatted: true
+            }
+
+            var aggregate = $('#aggregate').val()
+            if (aggregate !== "") {
+                data.aggregate = aggregate
+            }
+
+            // columns
+            var columns = []
+            $('#column-select input:checked').each(function() {
+                columns.push($(this).attr('id').replace('column-', ''))
+            })
+            data.columns = columns
+
+            console.log(data);
+            window.location.hash = rules
+
+            $('#result').html(rules)
+            $.ajax({
+                url: ROOTPATH + '/api/activities', // Deine API-URL
+                method: 'GET',
+                data: data,
+                success: function(response) {
+                    console.log(response);
+                    if (response.count > 0) {
+                        initializeTable(response.data); // Tabelle initialisieren
+                    } else {
+                        // $('#activity-table').DataTable().destroy(); // Tabelle entfernen
+                        $('#activity-table tbody').html('<tr><td colspan="10" class="text-center">Keine Daten gefunden</td></tr>'); // Keine Daten gefunden
+
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Fehler beim Abrufen der API:', error);
+                }
+            });
+        }
 
         $(document).ready(function() {
             var hash = window.location.hash.substr(1);
@@ -600,187 +684,55 @@ $Format = new Document(true);
                     console.info('invalid hash')
                 }
             }
-
-            // on hash change
-            // window.onhashchange = function() {
-            //     var hash = window.location.hash.substr(1);
-            //     if (hash !== undefined && hash != "") {
-            //         try {
-            //             var rules = JSON.parse(decodeURI(hash))
-            //             RULES = rules;
-            //             $('#builder').queryBuilder('setRulesFromMongo', rules);
-            //         } catch (SyntaxError) {
-            //             console.info('invalid hash')
-            //         }
-            //     }
-            //     // remove aggregation
-            //     $('#aggregate').val('')
-            //     // run
-            //     getResult()
-            // }
-
-            dataTable = $('#activity-table').DataTable({
-                ajax: {
-                    "url": ROOTPATH + '/api/activities',
-                    data: function(d) {
-                        // https://medium.com/code-kings/datatables-js-how-to-update-your-data-object-for-ajax-json-data-retrieval-c1ac832d7aa5
-                        var rules = RULES
-                        if (rules === null) rules = []
-                        // console.log(rules);
-
-                        rules = JSON.stringify(rules)
-                        $('#result').html(rules)
-                        d.json = rules
-                        d.formatted = true
-
-                        var aggregate = $('#aggregate').val()
-                        if (aggregate !== "") {
-                            d.aggregate = aggregate
-                        }
-
-                        window.location.hash = rules
-                    },
-                },
-                buttons: [{
-                        extend: 'copyHtml5',
-                        exportOptions: {
-                            columns: [4]
-                        },
-                        className: 'btn small'
-                    },
-                    {
-                        extend: 'excelHtml5',
-                        exportOptions: {
-                            columns: [3, 4, 5, 6, 7, 8]
-                        },
-                        className: 'btn small',
-                        title: "OSIRIS Search"
-                    },
-                    {
-                        extend: 'csvHtml5',
-                        exportOptions: {
-                            // columns: ':visible'
-                            columns: [3, 4, 5, 6, 7, 8]
-                        },
-                        className: 'btn small',
-                        title: "OSIRIS Search"
-                    }
-                ],
-                dom: 'fBrtip',
-                language: {
-                    "zeroRecords": lang("No matching records found", 'Keine passenden Aktivitäten gefunden'),
-                    "emptyTable": lang('No activities found for your filters.', 'Für diese Filter konnten keine Aktivitäten gefunden werden.'),
-                },
-                deferRender: true,
-                responsive: true,
-                // "pageLength": 5,
-                columnDefs: [{
-                        targets: 0,
-                        data: 'icon',
-                        defaultContent: ''
-                    },
-                    {
-                        targets: 1,
-                        data: 'activity',
-                        defaultContent: ''
-                    },
-                    {
-                        targets: 2,
-                        data: 'count',
-                        defaultContent: '-'
-                    },
-                    {
-                        "targets": 9,
-                        "data": "id",
-                        "render": function(data, type, full, meta) {
-                            if ($('#aggregate').val()) {
-                                return ''
-                                // const field = $('#aggregate').val()
-                                // on click add filter to query builder
-                                // return `<a onclick="$('#builder').queryBuilder('addRule', {id: '${field}', operator: 'equal', value: '${full.activity}'})"><i class="ph ph-magnifying-glass-plus"></a>`;
-                            } else {
-                                return `<a href="${ROOTPATH}/activities/view/${data}"><i class="ph ph-arrow-fat-line-right"></a>`;
-                            }
-                        },
-                        sortable: false,
-                        className: 'unbreakable',
-                        defaultContent: ''
-                    },
-                    {
-                        targets: 3,
-                        data: 'year',
-                        searchable: true,
-                        visible: false,
-                        defaultContent: ''
-                    },
-                    {
-                        targets: 4,
-                        data: 'print',
-                        searchable: true,
-                        visible: false,
-                        defaultContent: ''
-                    },
-                    {
-                        targets: 5,
-                        data: 'type',
-                        searchable: true,
-                        visible: false,
-                        defaultContent: ''
-                    },
-                    {
-                        targets: 6,
-                        data: 'subtype',
-                        searchable: true,
-                        visible: false,
-                        defaultContent: ''
-                    },
-                    {
-                        targets: 7,
-                        data: 'title',
-                        searchable: true,
-                        visible: false,
-                        defaultContent: ''
-                    },
-                    {
-                        targets: 8,
-                        data: 'authors',
-                        searchable: true,
-                        visible: false,
-                        defaultContent: ''
-                    },
-                ]
-            });
-
-            // getResult()
+            getResult()
         });
 
+
         function saveQuery() {
-            var rules = $('#builder').queryBuilder('getRules')
+            if (EXPERT) {
+                var rules = $('#expert').val()
+                rules = JSON.parse(rules)
+            } else {
+                var rules = $('#builder').queryBuilder('getRules')
+            }
             var name = $('#query-name').val()
             if (name == "") {
                 toastError('Please provide a name for your query.')
                 return
             }
+
+            var columns = []
+            $('#column-select input:checked').each(function() {
+                columns.push($(this).attr('id').replace('column-', ''))
+            })
+
             var query = {
                 name: name,
                 rules: rules,
                 user: '<?= $_SESSION['username'] ?>',
                 created: new Date(),
-                aggregate: $('#aggregate').val()
+                aggregate: $('#aggregate').val(),
+                columns: columns,
+                expert: EXPERT
             }
+
             $.post(ROOTPATH + '/crud/queries', query, function(data) {
                 // reload
                 queries[data.id] = JSON.stringify(rules)
 
                 $('#saved-queries').append(`<a class="d-block" onclick="applyFilter(${data.id}, '${$('#aggregate').val()}')">${name}</a>`)
                 $('#query-name').val('')
-                toastSuccess('Query saved successfully.')
+                toastSuccess(lang('Query saved successfully. Please reload the page to see it completely.', 'Abfrage erfolgreich gespeichert. Lade die Seite neu, um sie vollständig anzuzeigen.'))
 
             })
         }
 
-        function applyFilter(id, aggregate) {
-            console.log((id));
+        function applyFilter(id, aggregate, columns) {
+            // console.log((id));
+            if (EXPERT) {
+                applyFilterExpert(id, aggregate, columns)
+                return
+            }
             var filter = queries[id];
             if (!filter) {
                 toastError('Query not found.')
@@ -797,11 +749,34 @@ $Format = new Document(true);
                 }
                 return value;
             });
+
+            if (!columns) {
+                columns = 'icon;web;year';
+            }
+            $('#column-select input').prop('checked', false)
+            columns.split(';').forEach(column => {
+                $('#column-' + column).prop('checked', true)
+            })
+
+
             $('#builder').queryBuilder('setRules', parsedFilter);
-            var rules = $('#builder').queryBuilder('getMongo')
-            RULES = rules
-            dataTable.ajax.reload()
+            // var rules = $('#builder').queryBuilder('getMongo')
+            getResult()
         }
+
+        function applyFilterExpert(id, aggregate) {
+            // console.log((id));
+            var filter = queries[id];
+            if (!filter) {
+                toastError('Query not found.')
+                return
+            }
+            $('#aggregate').val(aggregate)
+            $('#expert').val(filter)
+
+            getResult()
+        }
+
 
         function deleteQuery(id) {
             $.ajax({

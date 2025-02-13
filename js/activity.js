@@ -18,8 +18,17 @@ function navigate(key) {
             break;
     }
 
+    // save as hash
+    window.location.hash = 'section-'+key
 }
 
+$(document).ready(function () {
+    // get hash
+    var hash = window.location.hash
+    if (hash && hash.includes('#section-')) {
+        navigate(hash.replace('#section-', ''))
+    }
+});
 
 coauthorsExists = false;
 function coauthors() {
@@ -77,7 +86,6 @@ function coauthors() {
             var legend = d3.select('#dept-legend')
                 .append('div')
             // .attr('class', 'content')
-            console.log(legend);
 
             legend.append('h5')
                 .attr('class', 'mt-0')
@@ -105,6 +113,11 @@ function coauthors() {
                 });
             });
 
+            if (data.multi){
+                legend.append('p')
+                    .text(lang('* Multiple affiliations', '* Mehrere Zugehörigkeiten'))
+                    .style('font-size', 'small')
+            }
         },
         error: function (response) {
             console.log(response);

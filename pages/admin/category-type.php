@@ -39,7 +39,6 @@ if (!empty($form) && isset($form['_id'])) {
         ]]
     );
     $member = $osiris->activities->count(['subtype' => $id]);
-    
 } else {
     $formaction .= "/crud/types/create";
     $btntext = '<i class="ph ph-check"></i> ' . lang("Save", "Speichern");
@@ -123,13 +122,21 @@ if (!empty($form) && isset($form['_id'])) {
                 <?php } ?>
 
                 <div class="col-sm-2">
-                    <label for="icon" class="required">ID</label>
+                    <label for="id" class="required">ID</label>
                     <input type="text" class="form-control" name="values[id]" required value="<?= $type['id'] ?>" oninput="sanitizeID(this)">
                     <small><a href="#unique"><i class="ph ph-info"></i> <?= lang('Must be unqiue', 'Muss einzigartig sein') ?></a></small>
                 </div>
                 <div class="col-sm-2">
                     <label for="icon" class="required element-time"><a href="https://phosphoricons.com/" class="link" target="_blank" rel="noopener noreferrer">Icon</a> </label>
-                    <input type="text" class="form-control" name="values[icon]" required value="<?= $type['icon'] ?? 'placeholder' ?>">
+
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="values[icon]" required value="<?= $type['icon'] ?? 'placeholder' ?>" onchange="iconTest(this.value)">
+                        <div class="input-group-append">
+                            <span class="input-group-text">
+                                <i class="ph ph-<?= $type['icon'] ?? 'placeholder' ?>" id="test-icon"></i>
+                            </span>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-sm">
                     <label for="name" class="required ">Name (en)</label>
@@ -153,11 +160,47 @@ if (!empty($form) && isset($form['_id'])) {
                 </div>
             </div>
 
+            <div class="mt-20">
+                <input type="hidden" name="values[guests]" value="">
+                <div class="custom-checkbox">
+                    <input type="checkbox" id="guest-question" value="1" name="values[guests]" <?= ($type['guests'] ?? false) ? 'checked' : '' ?>>
+                    <label for="guest-question">
+                        <?= lang('Guests should be registered for this activity', 'Gäste sollen zu dieser Aktivität angemeldet werden können?') ?>
+                    </label>
+                </div>
+            </div>
+            <?php if ($Settings->featureEnabled('portal')) { ?>
+                <div class="mt-20">
+                    <input type="hidden" name="values[portfolio]" value="">
+                    <div class="custom-checkbox">
+                        <input type="checkbox" id="portfolio-question" value="1" name="values[portfolio]" <?= ($type['portfolio'] ?? $type['parent'] == 'publication') ? 'checked' : '' ?>>
+                        <label for="portfolio-question">
+                            <?= lang('This type of activity should be visible in OSIRIS Portfolio.', 'Diese Art von Aktivität sollte in OSIRIS Portfolio sichtbar sein.') ?>
+                        </label>
+                    </div>
+                </div>
+            <?php } ?>
+            <?php if ($Settings->featureEnabled('topics')) { ?>
+                <div class="mt-20">
+                    <input type="hidden" name="values[topics-required]" value="">
+                    <div class="custom-checkbox">
+                        <input type="checkbox" id="topics-question" value="1" name="values[topics-required]" <?= ($type['topics-required'] ?? false) ? 'checked' : '' ?>>
+                        <label for="topics-question">
+                            <?= lang('Research Topics are a required field for this activity', 'Forschungsbereiche sind für diese Aktivität ein Pflichtfeld') ?>
+                        </label>
+                    </div>
+                </div>
+            <?php } ?>
+
         </div>
         <hr>
 
         <div class="content">
-            <label for="module" class="font-weight-bold">Modules:</label>
+            <label for="module" class="font-weight-bold"><?=lang('Data fields', 'Datenfelder')?>:</label>
+            
+            <a href="<?=ROOTPATH?>/admin/module-helper?type=<?=$st?>" target="_blank" rel="noopener noreferrer" class="ml-10">
+                <?=lang('Field overview', 'Datenfelder-Übersicht')?> <i class="ph ph-arrow-square-out ml-5"></i>
+            </a>
             <div class="author-widget">
                 <div class="author-list p-10">
                     <?php
@@ -187,14 +230,14 @@ if (!empty($form) && isset($form['_id'])) {
                             <?php
                             // read custom modules first
                             $custom_modules = $osiris->adminFields->distinct('id');
-                            if (!empty($custom_modules)){
+                            if (!empty($custom_modules)) {
                                 foreach ($custom_modules as $m) {
                                     if (in_array($m, $module_lst)) continue;
-                                ?>
+                            ?>
                                     <option><?= $m ?></option>
                                 <?php } ?>
-                                  <option disabled>---</option>
-                              <?php
+                                <option disabled>---</option>
+                            <?php
                             }
                             include_once BASEPATH . "/php/Modules.php";
                             $Modules = new Modules();
@@ -219,7 +262,11 @@ if (!empty($form) && isset($form['_id'])) {
         <hr>
 
         <div class="content">
-            <label for="format" class="font-weight-bold">Templates:</label>
+            <label for="format" class="font-weight-bold">Templates:</label> 
+
+            <a href="<?=ROOTPATH?>/admin/templates?type=<?=$st?>" target="_blank" rel="noopener noreferrer" class="ml-10">
+                <?=lang('Template builder', 'Template-Baukasten')?> <i class="ph ph-arrow-square-out ml-5"></i>
+            </a>
 
             <div class="input-group mb-10">
                 <div class="input-group-prepend">
@@ -305,7 +352,7 @@ if (!empty($form) && isset($form['_id'])) {
 
         <div class="alert danger mt-20">
             <?= lang("Can\'t delete type: $member activities associated.", "Kann Typ nicht löschen: $member Aktivitäten zugeordnet.") ?><br>
-            <a href='<?= ROOTPATH ?>/search/activities#{"$and":[{"type":"<?= $id ?>"}]}' target="_blank" class="text-danger">
+            <a href='<?= ROOTPATH ?>/activities/search#{"$and":[{"type":"<?= $id ?>"}]}' target="_blank" class="text-danger">
                 <i class="ph ph-search"></i>
                 <?= lang('View activities', 'Aktivitäten zeigen') ?>
             </a>

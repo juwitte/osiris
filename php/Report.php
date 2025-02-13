@@ -39,10 +39,10 @@ class Report
 
     public function setTime($startyear, $endyear, $startmonth, $endmonth)
     {
-        $this->startmonth = $startmonth;
-        $this->endmonth = $endmonth;
-        $this->startyear = $startyear;
-        $this->endyear = $endyear;
+        $this->startmonth = intval($startmonth);
+        $this->endmonth = intval($endmonth);
+        $this->startyear = intval($startyear);
+        $this->endyear = intval($endyear);
 
         if ($this->startyear == $this->endyear) {
             $this->timefilter = [
@@ -147,7 +147,7 @@ class Report
         $data = $DB->db->activities->find($filter, $options);
 
         return array_map(function ($item) {
-            return strip_tags($item['rendered']['print']);
+            return ($item['rendered']['print']);
         }, $data->toArray());
     }
 

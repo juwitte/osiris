@@ -13,6 +13,20 @@ Route::get('/guests/?', function () {
 }, 'login');
 
 
+Route::get('/guests/overview', function () {
+    include_once BASEPATH . "/php/init.php";
+
+    $breadcrumb = [
+        ['name' => lang('Guests', 'Gäste'), 'path' => "/guests"],
+        ['name' => lang("Overview", "Überblick")]
+    ];
+
+    include BASEPATH . "/header.php";
+    include BASEPATH . "/pages/guests/overview.php";
+    include BASEPATH . "/footer.php";
+}, 'login');
+
+
 Route::get('/guests/new', function () {
     include_once BASEPATH . "/php/init.php";
 
@@ -29,7 +43,6 @@ Route::get('/guests/new', function () {
     include BASEPATH . "/pages/guests/form.php";
     include BASEPATH . "/footer.php";
 }, 'login');
-
 
 Route::get('/guests/edit/([a-z0-9]*)', function ($id) {
     include_once BASEPATH . "/php/init.php";
@@ -103,7 +116,8 @@ Route::post('/guests/save', function () {
         // add supervisor information
         $values['supervisor'] = [
             "user" => $supervisor['username'],
-            "name" => $supervisor['displayname']
+            "name" => $supervisor['displayname'],
+            "email" => $supervisor['mail'],
         ];
 
         // check if mail should be sent
@@ -115,7 +129,7 @@ Route::post('/guests/save', function () {
     }
 
     $msg = "success";
-    
+
     if (!$finished && $Settings->featureEnabled('guest-forms')) {
 
         // check if server and secret key are defined
@@ -153,6 +167,47 @@ Route::post('/guests/save', function () {
     header("Location: " . ROOTPATH . "/guests/view/$id?msg=$msg");
 }, 'login');
 
+
+
+Route::post('/guests/activity-qr/(.*)', function ($id) {
+    include_once BASEPATH . "/php/init.php";
+
+    if (!$Settings->featureEnabled('guest-forms')) {
+        die("Guest forms are not enabled.");
+    }
+
+    $mongo_id = DB::to_ObjectID($id);
+    $activity = $osiris->activities->findOne(['id' => $mongo_id]);
+
+    $values = $_POST['values'];
+
+    // check if server and secret key are defined
+    $guest_server = $Settings->get('guest-forms-server');
+    $guest_secret = $Settings->get('guest-forms-secret-key');
+    if (empty($guest_server)) {
+        $msg = "Guest+server+is+not+defined.+Please+contact+admin.";
+    } else if (empty($guest_secret)) {
+        $msg = "Secret+key+is+not+defined.+Please+contact+admin.";
+    } else {
+        // if server and key is defined:
+        // send data to guest server
+        $URL = $guest_server . '/api/post';
+        $postData = $values;
+        $postData['secret'] = $guest_secret;
+        $postRes = CallAPI('JSON', $URL, $postData);
+        $postRes = json_decode($postRes, true);
+        if ($postRes['message'] != 'Success') {
+            die($postRes['message']);
+        }
+    }
+
+    $osiris->activities->updateOne(
+        ['id' => $mongo_id],
+        ['$set' => ['guest-qrcode' => true]]
+    );
+
+    header("Location: " . ROOTPATH . "/guests/view/$id?msg=$msg");
+}, 'login');
 
 
 
@@ -226,7 +281,7 @@ Route::post('/guests/cancel/([a-z0-9]*)', function ($id) {
 
     $cancel = boolval($_POST['cancel'] ?? true);
 
-    if ($cancel){
+    if ($cancel) {
         $values = [
             'cancelled' => true,
             'cancelled_by' => $_SESSION['username'],
@@ -305,7 +360,7 @@ Route::post('/guests/upload-files/(.*)', function ($id) {
         } else {
             printMsg(lang("Sorry, there was an error uploading your file.", "Entschuldigung, aber es gab einen Fehler beim Dateiupload."), "error");
         }
-    
+
         header("Location: " . ROOTPATH . "/guests/view/" . $id . "?msg=upload-successful");
         die();
     } else if (isset($_POST['delete'])) {
@@ -330,3 +385,105 @@ Route::post('/guests/upload-files/(.*)', function ($id) {
     }
 });
 
+
+// crud/activities/guests
+Route::post('/crud/activities/guests', function () {
+    include_once BASEPATH . "/php/init.php";
+
+    if (!isset($_POST['id'])) {
+        echo "no id given";
+        die;
+    }
+    $activity_id = $_POST['id'];
+    $mongo_id = DB::to_ObjectID($activity_id);
+
+    $activity = $osiris->activities->findOne(['_id' => $mongo_id]);
+    $existing_guests = DB::doc2Arr($activity['guests'] ?? []);
+
+    if (!empty($existing_guests)){
+        $existing_guests = array_column($existing_guests, null, 'id');
+    }
+
+    $guests = $_POST['guests'];
+
+    // zip arrays with keys
+    $result = [];
+    foreach ($guests['id'] as $key => $id) {
+        $guest = [
+            'id' => $id,
+            'last' => $guests['last'][$key],
+            'first' => $guests['first'][$key],
+            'email' => $guests['email'][$key],
+            'form' => false,
+            'status' => 'new'
+        ];
+
+        if (isset($existing_guests[$id])) {
+            $guest['qr'] = $existing_guests[$id]['qr'] ?? false;
+            $guest['status'] = $existing_guests[$id]['status'] ?? 'new';
+
+            // if if not new but mail changed
+            if ($guest['status'] !== 'new' && $existing_guests[$id]['email'] != $guest['email']) {
+                $guest['status'] = 'changed';
+            }
+        }
+
+        $result[] = $guest;
+    }
+
+    $osiris->activities->updateOne(
+        ['_id' => $mongo_id],
+        ['$set' => ['guests' => $result]]
+    );
+
+    header("Location: " . ROOTPATH . "/activities/view/$activity_id?msg=success");
+
+}, 'login');
+
+
+Route::post('/crud/activities/guests/qr', function () {
+    include_once BASEPATH . "/php/init.php";
+
+    if (!isset($_POST['id'])) {
+        echo "no id given";
+        die;
+    }
+    $activity_id = $_POST['id'];
+    $mongo_id = DB::to_ObjectID($activity_id);
+
+    $activity = $osiris->activities->findOne(['_id' => $mongo_id]);
+    $existing_guests = DB::doc2Arr($activity['guests'] ?? []);
+
+    if (!empty($existing_guests)){
+        $existing_guests = array_column($existing_guests, null, 'id');
+    }
+
+    $guests = $_POST['guests'];
+
+    // zip arrays with keys
+    $result = [];
+    foreach ($guests['id'] as $key => $id) {
+        $guest = [
+            'id' => $id,
+            'last' => $guests['last'][$key],
+            'first' => $guests['first'][$key],
+            'email' => $guests['email'][$key],
+            'qr' => $guests['qr'][$key] ?? false,
+            'status' => 'new'
+        ];
+
+        if (isset($existing_guests[$id])) {
+            $guest['status'] = $existing_guests[$id]['status'] ?? 'new';
+        }
+
+        $result[] = $guest;
+    }
+
+    $osiris->activities->updateOne(
+        ['_id' => $mongo_id],
+        ['$set' => ['guests' => $result]]
+    );
+
+    header("Location: " . ROOTPATH . "/activities/view/$activity_id?msg=success");
+
+}, 'login');

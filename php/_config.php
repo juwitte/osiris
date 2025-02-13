@@ -36,14 +36,18 @@ function validateValues($values, $DB)
                 $value = explode('10.', $value, 2);
                 $values[$key] = "10." . $value[1];
             }
-            // dump($value);
-            // die;
         } else if ($key == 'authors' || $key == "editors") {
             $values[$key] = array();
             $i = 0;
             foreach ($value as $author) {
                 if (is_array($author)) {
                     $author['approved'] = ($author['user'] ?? '') == $_SESSION['username'];
+                    if (isset($author['aoi'])) {
+                        $author['aoi'] = boolval($author['aoi']);
+                    }
+                    if (isset($author['sws'])) {
+                        $author['sws'] = floatval($author['sws']);
+                    }
                     $values[$key][] = $author;
                     continue;
                 }
@@ -122,6 +126,7 @@ function validateValues($values, $DB)
         } else if ($key == 'start' || $key == 'end') {
             if (DateTime::createFromFormat('Y-m-d', $value) !== FALSE) {
                 $values[$key] = valiDate($value);
+                $values[$key . '_date'] = $value;
                 if ($key == 'start') {
                     if (!isset($values['year']) && isset($values[$key]['year'])) {
                         $values['year'] = $values[$key]['year'];
@@ -175,6 +180,27 @@ function validateValues($values, $DB)
     // dump($values, true);
     // die();
     return $values;
+}
+
+
+function get_preview($html, $length = 150)
+{
+    // 1. Entferne HTML-Tags
+    if (empty($html)) return '';
+    $text = strip_tags($html);
+
+    if (empty($text)) return '';
+
+    // 2. Kürze den Text auf die gewünschte Länge
+    if (strlen($text) > $length) {
+        $preview = substr($text, 0, $length);
+        // 3. Stelle sicher, dass das letzte Wort nicht abgeschnitten wird
+        $preview = substr($preview, 0, strrpos($preview, ' ')) . '...';
+    } else {
+        $preview = $text;
+    }
+
+    return $preview;
 }
 
 function valiDate($date)
@@ -696,12 +722,12 @@ function getFileIcon($type)
  * current/provided date falls within
  *
  * @param string   $period The period to find the last day of. ('year', 'quarter', 'month', 'week')
- * @param DateTime $date   The date to use instead of the current date
+ * @param DateTime|null $date   The date to use instead of the current date
  *
  * @return DateTime
  * @throws InvalidArgumentException
  */
-function lastDayOf($period, DateTime $date = null)
+function lastDayOf($period, $date = null)
 {
     $period = strtolower($period);
     $validPeriods = array('year', 'quarter', 'month', 'week');
@@ -737,4 +763,40 @@ function lastDayOf($period, DateTime $date = null)
     }
 
     return $newDate;
+}
+
+function socialLogo($type)
+{
+    switch ($type) {
+        case 'researchgate':
+            return 'ph-student';
+        case 'youtube':
+            return 'ph-youtube-logo';
+        case 'github':
+            return 'ph-github-logo';
+        case 'linkedin':
+            return 'ph-linkedin-logo';
+        case 'xing':
+            return 'ph-xing-logo';
+        case 'mastodon':
+            return 'ph-mastodon-logo';
+        case 'bluesky':
+            return 'ph-butterfly';
+        case 'instagram':
+            return 'ph-instagram-logo';
+        case 'facebook':
+            return 'ph-facebook-logo';
+        case 'X':
+            return 'ph-x-logo';
+        case 'website':
+            return 'ph-browser';
+        case 'twitter':
+            return 'ph-twitter-logo';
+        case 'orcid':
+            return 'ph-student';
+        case 'email':
+            return 'ph-email-logo';
+        default:
+            return 'ph-link';
+    }
 }

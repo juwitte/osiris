@@ -16,18 +16,27 @@
  * @license     MIT
  */
 
+use chillerlan\QRCode\{QRCode, QROptions};
+
 include_once BASEPATH . "/php/Modules.php";
 
 // check if this is an ongoing activity type
 $ongoing = false;
 $sws = false;
 
-$M = $Format->subtypeArr['modules'] ?? array();
+$typeArr = $Format->subtypeArr;
+
+$M = $typeArr['modules'] ?? array();
 foreach ($M as $m) {
     if (str_ends_with($m, '*')) $m = str_replace('*', '', $m);
     if ($m == 'date-range-ongoing') $ongoing = true;
     if ($m == 'supervisor') $sws = true;
 }
+
+$guests_involved = boolval($typeArr['guests'] ?? false);
+$guests = $doc['guests'] ?? [];
+// if ($guests_involved)
+//     $guests = $osiris->guests->find(['activity' => $id])->toArray();
 
 if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
 
@@ -99,6 +108,11 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
     .show-on-hover:hover .invisible {
         visibility: visible !important;
     }
+
+    .badge.block {
+        display: block;
+        text-align: center;
+    }
 </style>
 
 <script>
@@ -111,7 +125,7 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
 
 <script src="<?= ROOTPATH ?>/js/chart.min.js"></script>
 <script src="<?= ROOTPATH ?>/js/chartjs-plugin-datalabels.min.js"></script>
-<script src="<?= ROOTPATH ?>/js/activity.js?v=1"></script>
+<script src="<?= ROOTPATH ?>/js/activity.js?v=<?=CSS_JS_VERSION?>"></script>
 
 
 
@@ -241,83 +255,196 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
 </div>
 
 
-<?php if ($Settings->featureEnabled('portal') && ($user_activity || $Settings->hasPermission('activities.edit'))) {
-    $highlights = DB::doc2Arr($USER['highlighted'] ?? []);
-    $highlighted = in_array($id, $highlights);
+<!-- show research topics -->
+<?= $Settings->printTopics($doc['topics'] ?? []) ?>
 
-?>
 
-    <div class="box">
-        <div class="p-10">
-            <b><?= lang('Portfolio visibility', 'Sichtbarkeit in Portfolio') ?></b>
-            <div class="mt-10 d-flex">
-                <?php if (in_array($doc['type'], ['publication', 'poster', 'lecture', 'awards', 'software'])) { ?>
-                    <?php if ($user_activity) { ?>
-                        <div class="custom-switch ml-10">
-                            <input type="checkbox" id="highlight" <?= ($highlighted) ? 'checked' : '' ?> name="values[highlight]" onchange="fav()">
-                            <label for="highlight">
-                                <?= lang('Highlight on your profile', 'Auf deinem Profil hervorheben') ?>
-                            </label>
-                        </div>
-                    <?php } ?>
+<div class="d-flex">
 
-                <!-- hide in all activities on portal -->
-                    <div class="custom-switch ml-10">
-                        <input type="checkbox" id="hide" <?= ($doc['hide'] ?? false) ? 'checked' : '' ?> name="values[hide]" onchange="hide()">
-                        <label for="hide">
-                            <?= lang('Hide in portfolio', 'Im Portfolio verstecken') ?>
-                        </label>
-                    </div>
-                <?php } else { ?>
-                    <span class="badge signal ml-10" data-toggle="tooltip" data-title="<?= lang('This activity cannot be shown on Portfolio due to institute settings.', 'Diese Aktivität kann aufgrund von Instituts-Einstellungen nicht im Portfolio gezeigt werden.') ?>">
+    <div class="mr-10 badge bg-white">
+        <small><?= lang('Date', 'Datum') ?>: </small>
+        <br />
+        <span class="badge"><?= $Format->format_date($doc) ?></span>
+    </div>
+
+    <div class="mr-10 badge bg-white">
+        <small><?= $Settings->get('affiliation') ?>: </small>
+        <br />
+        <?php
+
+        if ($doc['affiliated'] ?? true) { ?>
+            <div class="badge success" data-toggle="tooltip" data-title="<?= lang('At least on author of this activity has an affiliation with the institute.', 'Mindestens ein Autor dieser Aktivität ist mit dem Institut affiliert.') ?>">
+                <!-- <i class="ph ph-handshake m-0"></i> -->
+                <?= lang('Affiliated', 'Affiliert') ?>
+            </div>
+        <?php } else { ?>
+            <div class="badge danger" data-toggle="tooltip" data-title="<?= lang('None of the authors has an affiliation to the Institute.', 'Keiner der Autoren ist mit dem Institut affiliert.') ?>">
+                <!-- <i class="ph ph-hand-x m-0"></i> -->
+                <?= lang('Not affiliated', 'Nicht affiliert') ?>
+            </div>
+        <?php } ?>
+    </div>
+
+    <!-- cooperative -->
+    <div class="mr-10 badge bg-white">
+        <small><?= lang('Cooperation', 'Zusammenarbeit') ?>: </small>
+        <br />
+        <?php
+        switch ($doc['cooperative'] ?? '-') {
+            case 'individual': ?>
+                <span class="badge block primary" data-toggle="tooltip" data-title="<?= lang('Only one author', 'Nur ein Autor/eine Autorin') ?>">
+                    <?= lang('Individual', 'Einzelarbeit') ?>
+                </span>
+            <?php
+                break;
+            case 'departmental': ?>
+                <span class="badge block primary" data-toggle="tooltip" data-title="<?= lang('Authors from the same department of this institute', 'Autoren aus der gleichen Abteilung des Instituts') ?>">
+                    <?= lang('Departmental', 'Abteilungsübergreifend') ?>
+                </span>
+            <?php
+                break;
+            case 'institutional': ?>
+                <span class="badge block primary" data-toggle="tooltip" data-title="<?= lang('Authors from different departments but all from this institute', 'Autoren aus verschiedenen Abteilungen, aber alle vom Institut') ?>">
+                    <?= lang('Institutional', 'Institutionell') ?>
+                </span>
+            <?php
+                break;
+            case 'contributing': ?>
+                <span class="badge block primary" data-toggle="tooltip" data-title="<?= lang('Authors from different institutes with us being middle authors', 'Autoren aus unterschiedlichen Instituten mit uns als Mittelautoren') ?>">
+                    <?= lang('Cooperative (Contributing)', 'Kooperativ (Beitragend)') ?>
+                </span>
+            <?php
+                break;
+            case 'leading': ?>
+                <span class="badge block primary" data-toggle="tooltip" data-title="<?= lang('Authors from different institutes with us being leading authors', 'Autoren aus unterschiedlichen Instituten mit uns als führenden Autoren') ?>">
+                    <?= lang('Cooperative (Leading)', 'Kooperativ (Führend)') ?>
+                </span>
+            <?php
+                break;
+            default: ?>
+                <span class="badge block" data-toggle="tooltip" data-title="<?= lang('No author affiliated', 'Autor:innen sind nicht affiliert') ?>">
+                    <?= lang('None', 'Keine') ?>
+                </span>
+        <?php
+                break;
+        }
+        ?>
+
+    </div>
+
+    <?php if ($doc['impact'] ?? false) { ?>
+        <div class="mr-10 badge bg-white">
+            <small><?= lang('Impact', 'Impact') ?>: </small>
+            <br />
+            <span class="badge danger"><?= $doc['impact'] ?></span>
+        </div>
+    <?php } ?>
+    <?php if ($doc['quartile'] ?? false) { ?>
+        <div class="mr-10 badge bg-white">
+            <small><?= lang('Quartile', 'Quartil') ?>: </small>
+            <br />
+            <span class="quartile <?= $doc['quartile'] ?>"><?= $doc['quartile'] ?></span>
+        </div>
+    <?php } ?>
+
+    <?php if (isset($doc['projects']) && count($doc['projects']) > 0) { ?>
+        <div class="mr-10 badge bg-white">
+            <small><?= lang('Projects', 'Projekte') ?>: </small>
+            <br />
+            <?php foreach ($doc['projects'] as $p) { ?>
+                <a class="badge" href="<?= ROOTPATH ?>/projects/view/<?= $p ?>"><?= $p ?></a>
+            <?php } ?>
+        </div>
+    <?php } ?>
+
+    <?php if ($Settings->featureEnabled('portal')) {
+        $doc['hide'] = $doc['hide'] ?? false;
+    ?>
+        <div class="mr-10 badge bg-white">
+            <small><?= lang('Online Visibility', 'Online-Sichtbarkeit') ?>: </small>
+            <br />
+            <?php if ($user_activity || $Settings->hasPermission('activities.edit')) { ?>
+                <div class="custom-switch">
+                    <input type="checkbox" id="hide" <?= $doc['hide'] ? 'checked' : '' ?> name="values[hide]" onchange="hide()">
+                    <label for="hide" id="hide-label">
+                        <?= $doc['hide'] ? lang('Visible', 'Sichtbar') : lang('Hidden', 'Versteckt') ?>
+                    </label>
+                </div>
+
+                <script>
+                    function hide() {
+                        $.ajax({
+                            type: "POST",
+                            url: ROOTPATH + "/crud/activities/hide",
+                            data: {
+                                activity: ACTIVITY_ID
+                            },
+                            success: function(response) {
+                                var hide = $('#hide').prop('checked');
+                                $('#hide-label').text(hide ? '<?= lang('Visible', 'Sichtbar') ?>' : '<?= lang('Hidden', 'Versteckt') ?>');
+                                toastSuccess(lang('Highlight status changed', 'Hervorhebungsstatus geändert'))
+                            },
+                            error: function(response) {
+                                console.log(response);
+                            }
+                        });
+                    }
+                </script>
+
+
+            <?php } else { ?>
+                <?php if ($doc['hide']) { ?>
+                    <span class="badge danger" data-toggle="tooltip" data-title="<?= lang('This activity is hidden on the portal.', 'Diese Aktivität ist auf dem Portal versteckt.') ?>">
                         <i class="ph ph-eye-slash"></i>
-                        <?= lang('Not visible', 'Nicht sichtbar') ?>
+                        <?= lang('Hidden', 'Versteckt') ?>
+                    </span>
+                <?php } else { ?>
+                    <span class="badge success" data-toggle="tooltip" data-title="<?= lang('This activity is visible on the portal.', 'Diese Aktivität ist auf dem Portal sichtbar.') ?>">
+                        <i class="ph ph-eye"></i>
+                        <?= lang('Visible', 'Sichtbar') ?>
                     </span>
                 <?php } ?>
-            </div>
-            <script>
-                function fav() {
-                    $.ajax({
-                        type: "POST",
-                        url: ROOTPATH + "/crud/activities/fav",
-                        data: {
-                            activity: ACTIVITY_ID
-                        },
-                        dataType: "json",
-                        success: function(response) {
-                            toastSuccess(lang('Highlight status changed', 'Hervorhebungsstatus geändert'))
-                        },
-                        error: function(response) {
-                            console.log(response);
-                        }
-                    });
-                }
-
-
-                function hide() {
-                    $.ajax({
-                        type: "POST",
-                        url: ROOTPATH + "/crud/activities/hide",
-                        data: {
-                            activity: ACTIVITY_ID
-                        },
-                        dataType: "json",
-                        success: function(response) {
-                            toastSuccess(lang('Highlight status changed', 'Hervorhebungsstatus geändert'))
-                        },
-                        error: function(response) {
-                            console.log(response);
-                        }
-                    });
-                }
-            </script>
-
-
-
+            <?php } ?>
         </div>
-    </div>
-<?php } ?>
+    <?php } ?>
 
+    <?php if ($user_activity) {
+        $highlights = DB::doc2Arr($USER['highlighted'] ?? []);
+        $highlighted = in_array($id, $highlights);
+    ?>
+        <div class="mr-10 badge bg-white">
+            <small><?= lang('Displayed in your profile', 'Darstellung in deinem Profil') ?>: </small>
+            <br />
+            <div class="custom-switch">
+                <input type="checkbox" id="highlight" <?= ($highlighted) ? 'checked' : '' ?> name="values[highlight]" onchange="fav()">
+                <label for="highlight" id="highlight-label">
+                    <?= $highlighted ? lang('Highlighted', 'Hervorgehoben') : lang('Normal', 'Normal') ?>
+                </label>
+            </div>
+        </div>
+        <script>
+            function fav() {
+                $.ajax({
+                    type: "POST",
+                    url: ROOTPATH + "/crud/activities/fav",
+                    data: {
+                        activity: ACTIVITY_ID
+                    },
+                    dataType: "json",
+                    success: function(response) {
+                        var highlight = $('#highlight').prop('checked');
+                        $('#highlight-label').text(highlight ? '<?= lang('Highlighted', 'Hervorgehoben') ?>' : '<?= lang('Normal', 'Normal') ?>');
+                        toastSuccess(lang('Highlight status changed', 'Hervorhebungsstatus geändert'))
+                    },
+                    error: function(response) {
+                        console.log(response);
+                    }
+                });
+            }
+        </script>
+    <?php } ?>
+
+</div>
 
 <!-- TAB AREA -->
 
@@ -326,6 +453,15 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
         <i class="ph ph-info" aria-hidden="true"></i>
         <?= lang('General', 'Allgemein') ?>
     </a>
+
+    <?php if ($guests_involved) { ?>
+        <a onclick="navigate('guests')" id="btn-guests" class="btn">
+            <i class="ph ph-user-plus" aria-hidden="true"></i>
+            <?= lang('Guests', 'Gäste') ?>
+            <span class="index"><?= count($guests) ?></span>
+        </a>
+    <?php } ?>
+
 
     <?php if (count($doc['authors']) > 1) { ?>
         <a onclick="navigate('coauthors')" id="btn-coauthors" class="btn">
@@ -425,7 +561,7 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
 
 <section id="general">
     <div class="row row-eq-spacing-lg">
-        <div class="col-lg-7">
+        <div class="col-lg-6">
 
             <div class="btn-toolbar float-sm-right">
                 <?php if (($user_activity || $Settings->hasPermission('activities.edit')) && (!$locked || $Settings->hasPermission('activities.edit-locked'))) { ?>
@@ -519,6 +655,44 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                                 </a>
                             </td>
                         </tr>
+                    <?php elseif ($module == 'conference' && isset($doc['conference_id'])) :
+                        $conference = $DB->getConnected('conference', $doc['conference_id']);
+                    ?>
+
+                        <tr>
+                            <td>
+                                <span class="key">Event</span>
+                                <?php if (empty($conference)) { ?>
+                                    <span class="text-danger">
+                                        <?= lang('This event has been deleted.', 'Diese Veranstaltung wurde gelöscht.') ?>
+                                    </span>
+                                <?php } else { ?>
+
+                                    <div class="module ">
+                                        <h6 class="m-0">
+                                            <a href="<?= ROOTPATH ?>/conferences/<?= $doc['conference_id'] ?>">
+                                                <?= $conference['title'] ?>
+                                            </a>
+                                        </h6>
+                                        <div class="text-muted mb-10"><?= $conference['title_full'] ?></div>
+                                        <ul class="horizontal mb-0">
+                                            <li>
+                                                <b><?= lang('Location', 'Ort') ?></b>: <?= $conference['location'] ?>
+                                            </li>
+                                            <li>
+                                                <b><?= lang('Date', 'Datum') ?></b>: <?= fromToDate($conference['start'], $conference['end']) ?>
+                                            </li>
+                                            <li>
+                                                <a href="<?= $conference['url'] ?>" target="_blank">
+                                                    <i class="ph ph-link"></i>
+                                                    <?= lang('Website', 'Website') ?>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                <?php } ?>
+                            </td>
+                        </tr>
                     <?php else : ?>
 
                         <tr>
@@ -559,16 +733,16 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                 if ($locked && !$Settings->hasPermission('activities.delete-locked')) : ?>
                     <p class="mt-0">
                         <?= lang(
-                            'This activity has been locked because it was already used by Controlling in a report. Due to the documentation and verification obligation, activities may not be easily changed or deleted after the report. However, if a change is necessary, please contact the responsible persons.',
-                            'Diese Aktivität wurde gesperrt, da sie bereits vom Controlling in einem Report verwendet wurde. Wegen der Dokumentations- und Nachweispflicht dürfen Aktivitäten nach dem Report nicht mehr so einfach verändert oder gelöscht werden. Sollte dennoch eine Änderung notwenig sein, meldet euch bitte bei den Verantwortlichen.'
+                            'This activity has been locked because it was already used by reporters in a report. Due to the documentation and verification obligation, activities may not be easily changed or deleted after the report. However, if a change is necessary, please contact the responsible persons.',
+                            'Diese Aktivität wurde gesperrt, da sie bereits von den Berichterstattenden in einem Report verwendet wurde. Wegen der Dokumentations- und Nachweispflicht dürfen Aktivitäten nach dem Report nicht mehr so einfach verändert oder gelöscht werden. Sollte dennoch eine Änderung notwenig sein, meldet euch bitte bei den Verantwortlichen.'
                         ) ?>
                     </p>
                     <?php
-                    $body = $USER['displayname'] . " möchte folgenden OSIRIS-Eintrag bearbeiten/löschen: $name%0D%0A%0D%0ABegründung/Reason:%0D%0A%0D%0Ahttp://osiris.int.dsmz.de/activities/view/$id";
+                    // $body = $USER['displayname'] . " möchte folgenden OSIRIS-Eintrag bearbeiten/löschen: $name%0D%0A%0D%0ABegründung/Reason:%0D%0A%0D%0Ahttp://osiris.int.dsmz.de/activities/view/$id";
                     ?>
-                    <!-- <a class="btn danger" href="mailto:dominic.koblitz@dsmz.de?cc=julia.koblitz@dsmz.de&subject=[OSIRIS] Antrag auf Änderung&body=<?= $body ?>">
+                    <!-- <a class="btn danger" href="mailto:someone&subject=[OSIRIS] Antrag auf Änderung&body=<?= $body ?>">
                     <i class="ph ph-envelope" aria-hidden="true"></i>
-                    <?= lang('Contact controlling', 'Controlling kontaktieren') ?>
+                    <?= lang('Contact editors', 'Editoren kontaktieren') ?>
                 </a> -->
                 <?php
                 elseif ($Settings->hasPermission('activities.delete')) :
@@ -617,7 +791,43 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
         </div>
 
 
-        <div class="col-lg-5">
+        <div class="col-lg-6">
+
+            <div class="">
+                <?php
+                // calculate units based on publication date and authors
+                // $units = [];
+                // $startdate = strtotime($doc['start_date']);
+
+                // foreach (array_filter($doc['authors']) as $i => $author) {
+                //     if (!($author['aoi'] ?? false) || !isset($author['user'])) continue;
+                //     $user = $author['user'];
+                //     $person = $DB->getPerson($user);
+                //     if (isset($person['units']) && !empty($person['units'])) {
+                //         $u = DB::doc2Arr($person['units']);
+                //         // dump($u);
+                //         // filter units that have been active at the time of activity
+                //         $u = array_filter($u, function ($unit) use ($startdate) {
+                //             if (!$unit['scientific']) return false; // we are only interested in scientific units
+                //             if (empty($unit['start'])) return true; // we have basically no idea when this unit was active
+                //             return strtotime($unit['start']) <= $startdate && (empty($unit['end']) || strtotime($unit['end']) >= $startdate);
+                //         });
+                //         $u = array_column($u, 'unit');
+                //         $activity['authors'][$i]['units'] = $u;
+                //         $units = array_merge($units, $u);
+                //     }
+                // }
+
+                // $units = array_unique($units);
+                // // add parent units
+                // foreach ($units as $unit) {
+                //     $units = array_merge($units, $Groups->getParents($unit, true));
+                // }
+                // $units = array_unique($units);
+                $units = $doc['units'] ?? [];
+                ?>
+            </div>
+
             <?php foreach (['authors', 'editors'] as $role) {
                 if (!isset($activity[$role])) continue;
             ?>
@@ -643,14 +853,15 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                 <table class="table">
                     <thead>
                         <tr>
-                            <th><?=lang('Last', 'Nachname')?></th>
-                            <th><?=lang('First', 'Vorname')?></th>
+                            <th><?= lang('Last', 'Nachname') ?></th>
+                            <th><?= lang('First', 'Vorname') ?></th>
 
                             <?php if ($sws) : ?>
                                 <th>SWS</th>
                             <?php elseif ($role == 'authors') : ?>
                                 <th>Position</th>
                             <?php endif; ?>
+                            <th>Unit</th>
                             <th>User</th>
                         </tr>
                     </thead>
@@ -659,7 +870,13 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                         ?>
                             <tr>
                                 <td class="<?= (($author['aoi'] ?? 0) == '1' ? 'font-weight-bold' : '') ?>">
-                                    <?= $author['last'] ?? '' ?>
+                                    <?php if (isset($author['user'])) { ?>
+                                        <a href="<?= ROOTPATH ?>/profile/<?= $author['user'] ?>">
+                                            <?= $author['last'] ?? '' ?>
+                                        </a>
+                                    <?php } else { ?>
+                                        <?= $author['last'] ?? '' ?>
+                                    <?php } ?>
                                 </td>
                                 <td>
                                     <?= $author['first'] ?? '' ?>
@@ -674,12 +891,19 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                                     </td>
                                 <?php endif; ?>
                                 <td>
+                                    <?php
+                                    if (isset($author['units']) && !empty($author['units'])) {
+                                        foreach ($author['units'] as $unit) {
+                                            echo "<a href='" . ROOTPATH . "/groups/view/$unit' class='mr-10'>$unit</a>";
+                                        }
+                                    } ?>
+                                </td>
+                                <td>
                                     <?php if (isset($author['user']) && !empty($author['user'])) : ?>
-                                        <a href="<?= ROOTPATH ?>/profile/<?= $author['user'] ?>"><i class="ph ph-user"></i></a>
                                         <span data-toggle="tooltip" data-title="<?= lang('Author approved activity?', 'Autor hat die Aktivität bestätigt?') ?>">
                                             <?= bool_icon($author['approved'] ?? 0) ?>
                                         </span>
-                                    <?php else : ?>
+                                    <?php elseif (!$user_activity) : ?>
                                         <div class="dropdown">
                                             <button class="btn small" data-toggle="dropdown" type="button" id="dropdown-1" aria-haspopup="true" aria-expanded="false">
                                                 <?= lang('Claim', 'Beanspruchen') ?>
@@ -707,50 +931,76 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                         <?php } ?>
                     </tbody>
                 </table>
-                <?php
+            <?php } ?>
 
-                // $users = [];
-                // $depts = [];
+            <h3>
+                <?=lang('Affiliated positions', 'Affilierte Positionen')?>
+            </h3>
 
-                // if (isset($activity['authors']) && !empty($activity['authors'])) {
-                //     $users = array_column(DB::doc2Arr($activity['authors']), 'user');
-                //     $depts = $osiris->persons->aggregate([
-                //         ['$match' => ['username' => ['$in' => $users]]],
-                //         ['$project' => ['depts' => 1]],
-                //         ['$unwind' => '$depts'],
-                //         [
-                //             '$group' => [
-                //                 '_id' => '$depts',
-                //                 'count' => ['$sum' => 1],
-                //             ]
-                //         ],
-                //         ['$sort' => ['count' => -1]],
-                //         ['$limit' => 100]
-                //     ]);
-                // }
+            <?php
+                $positions = [
+                    'first' => lang('First author', 'Erstautor:in'),
+                    'last' => lang('Last author', 'Letztautor:in'),
+                    'first_and_last' => lang('First and last author', 'Erst- und Letztautor:in'),
+                    'first_or_last' => lang('First or last author', 'Erst- oder Letztautor:in'),
+                    'middle' => lang('Middle author', 'Mittelautor:in'),
+                    'single' => lang('One single affiliated author', 'Ein einzelner affiliierter Autor'),
+                    'none' => lang('No author affiliated', 'Kein:e Autor:in affiliert'),
+                    'all' => lang('All authors affiliated', 'Alle Autoren affiliert'),
+                    'corresponding' => lang('Corresponding author', 'Korrespondierender Autor:in'),
+                    'not_first' => lang('Not first author', 'Nicht Erstautor:in'),
+                    'not_last' => lang('Not last author', 'Nicht letzter Autor:in'),
+                    'not_middle' => lang('Not middle author', 'Nicht Mittelautor:in'),
+                    'not_corresponding' => lang('Not corresponding author', 'Nicht korrespondierender Autor:in'),
+                    'not_first_or_last' => lang('Not first or last author', 'Nicht Erst- oder Letztautor:in'),
+                    'not_first_and_last' => lang('Not first and last author', 'Nicht Erst- und Letztautor:in'),
+                    'unspecified' => lang('Unspecified (no position specified)', 'Unspezifiziert (keine Positionsangabe)'),
+                ];
+            ?>
+            
 
+            <?php foreach ($doc['affiliated_positions'] ?? [] as $key) { ?>
+                <span class="badge bg-white mr-5 mb-5"><?=$positions[$key] ?? $key?></span>
+            <?php } ?>
+            <br>
+            <small class="text-muted">
+                <?=lang('Automatically calculated', 'Automatisch berechnet')?>
+            </small>
 
-                // if ($role == 'authors' && !empty($depts)) {
-                if (false) {
-                ?>
+            <h3>
+                <?= lang('Participating units', 'Beteiligte Einheiten') ?>
+            </h3>
+            <table class="table unit-table w-full">
+                <tbody>
+                    <?php
+                    if (!empty($units)) {
+                        $hierarchy = $Groups->getPersonHierarchyTree($units);
+                        $tree = $Groups->readableHierarchy($hierarchy);
 
-                    <h3>
-                        <?= lang('Organisational units involved', 'Involvierte Organisationseinheiten') ?>
-                    </h3>
-                    <p>
-                        <?php foreach ($depts as $g) {
-                            $group = $Groups->getGroup($g['_id']);
-                        ?>
-                            <a href="<?= ROOTPATH ?>/groups/view/<?= $g['_id'] ?>" style="background-color:<?= $group['color'] ?>70" class="badge font-size-12">
-                                <b><?= $g['_id'] ?></b> (<?= $g['count'] ?>)
-                            </a>
-                        <?php } ?>
-
-                    <?php } ?>
-                    </p>
+                        foreach ($tree as $row) {
+                            $dept = $Groups->getGroup($row['id']);
+                    ?>
+                            <tr>
+                                <td class="indent-<?= $row['indent'] ?>">
+                                    <a href="<?= ROOTPATH ?>/group/<?= $row['id'] ?>">
+                                        <?= lang($row['name_en'], $row['name_de'] ?? null) ?>
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php
+                        }
+                    } else { ?>
+                        <tr>
+                            <td>
+                                <?= lang('No organisational unit connected', 'Keine Organisationseinheit verknüpft') ?>
+                            </td>
+                        </tr>
+                    <?php }
+                    ?>
+                </tbody>
+            </table>
         </div>
-    <?php } ?>
-
+    </div>
 </section>
 
 
@@ -959,6 +1209,10 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
         <i class="ph ph-graph" aria-hidden="true"></i>
         <?= lang('Coauthors', 'Koautoren') ?>
     </h2>
+    <a href="<?= ROOTPATH ?>/activities/edit/<?= $id ?>/authors" class="btn secondary">
+        <i class="ph ph-pencil-simple-line"></i>
+        <?= lang('Edit', 'Bearbeiten') ?>
+    </a>
     <div class="row row-eq-spacing">
         <div class="col-md-6 flex-grow-0" style="max-width: 40rem">
             <div id="chart-authors">
@@ -1029,10 +1283,18 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                     <h5 class="m-0">
                         <?php if ($h['type'] == 'created') {
                             echo lang('Created by ', 'Erstellt von ');
-                        } else {
+                        } else if ($h['type'] == 'edited') {
                             echo lang('Edited by ', 'Bearbeitet von ');
+                        } else if ($h['type'] == 'imported') {
+                            echo lang('Imported by ', 'Importiert von ');
+                        } else {
+                            echo $h['type'] . lang(' by ', ' von ');
                         }
-                        echo $DB->getNameFromId($h['user']);
+                        if (isset($h['user']) && !empty($h['user'])) {
+                            echo '<a href="' . ROOTPATH . '/profile/' . $h['user'] . '">' . $DB->getNameFromId($h['user']) . '</a>';
+                        } else {
+                            echo "System";
+                        }
                         ?>
                     </h5>
 
@@ -1091,6 +1353,339 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
         </div>
     <?php } ?>
 </section>
+
+<?php if ($guests_involved) { ?>
+
+
+    <?php if ($Settings->featureEnabled('guest-forms')) {
+
+        $guest_server = $Settings->get('guest-forms-server');
+        $url = $guest_server . "/a/" . $id;
+    ?>
+        <script src="<?= ROOTPATH ?>/js/papaparse.min.js"></script>
+        <!-- modals -->
+        <div class="modal" id="add-guests" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <a data-dismiss="modal" class="btn float-right" role="button" aria-label="Close" href="#close-modal">
+                        <span aria-hidden="true">&times;</span>
+                    </a>
+                    <h5 class="title">
+                        <?= lang('Add guests', 'Gäste hinzufügen') ?>
+                    </h5>
+                    <div>
+                        <h3>
+                            <?= lang('Add guests to this activity', 'Füge Gäste zu dieser Aktivität hinzu') ?>
+                        </h3>
+                        <p>
+                            <?= lang('You can add guests to this activity by entering their names and affiliations.', 'Du kannst Gäste zu dieser Aktivität hinzufügen, indem du ihre Namen und Zugehörigkeiten eingibst.') ?>
+                        </p>
+
+                        <form action="<?= ROOTPATH ?>/crud/activities/guests" method="post">
+                            <input type="hidden" name="id" value="<?= $id ?>">
+                            <table class="table mb-20">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th><?= lang('Last', 'Nachname') ?></th>
+                                        <th><?= lang('First', 'Vorname') ?></th>
+                                        <th><?= lang('Email') ?></th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="guest-list">
+                                    <?php foreach ($guests as $guest) { ?>
+                                        <tr>
+                                            <td>
+                                                <input type="text" name="guests[id][]" class="form-control disabled" required value="<?= $guest['id'] ?>" readonly>
+                                            </td>
+                                            <td>
+                                                <input type="text" name="guests[last][]" class="form-control" required value="<?= $guest['last'] ?>">
+                                            </td>
+                                            <td>
+                                                <input type="text" name="guests[first][]" class="form-control" required value="<?= $guest['first'] ?>">
+                                            </td>
+                                            <td>
+                                                <input type="email" name="guests[email][]" class="form-control" required value="<?= $guest['email'] ?>">
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn small link" id="remove-guest" onclick="$(this).closest('tr').remove()">
+                                                    <i class="ph ph-trash text-danger"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <?php } ?>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="5">
+                                            <button type="button" class="btn small" id="add-guest" onclick="addGuestRow()">
+                                                <i class="ph ph-plus"></i>
+                                                <?= lang('Add guest', 'Gast hinzufügen') ?>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+
+                            <button type="submit" class="btn primary">
+                                <i class="ph ph-save"></i>
+                                <?= lang('Save guests', 'Gäste speichern') ?>
+                            </button>
+
+                        </form>
+
+                        <div class="box">
+                            <div class="content">
+                                <h3>
+                                    <?= lang('Import guests from CSV', 'Gäste aus CSV importieren') ?>
+                                </h3>
+                                <p>
+                                    <?= lang('You can import a list of guests from a CSV file.', 'Du kannst eine Liste von Gästen aus einer CSV-Datei importieren.') ?>
+                                </p>
+                                <div class="custom-file">
+                                    <input type="file" id="guest-file">
+                                    <label for="guest-file"><?= lang('Select file', 'Datei auswählen') ?></label>
+                                </div>
+                                <small>
+                                    <?= lang('The file should contain columns for last name, first name and email address. A header row is required.', 'Die Datei sollte Spalten für Nachname, Vorname und E-Mail-Adresse enthalten. Eine Zeile mit Überschriften ist notwendig.') ?>
+                                </small>
+                            </div>
+
+                            <script>
+                                document.getElementById('guest-file').addEventListener('change', function(e) {
+                                    var file = e.target.files[0];
+                                    if (!file) return;
+                                    Papa.parse(file, {
+                                        header: true,
+                                        complete: function(results) {
+                                            console.log(results);
+                                            results.data.forEach(function(raw) {
+                                                var row = {};
+                                                // try to find first and last name and email
+                                                ['first', 'first name', 'vorname', 'First name', 'First', 'Vorname', 'FIRST', 'FIRST NAME', 'VORNAME'].forEach(key => {
+                                                    if (raw[key]) {
+                                                        row.first = raw[key];
+                                                        return
+                                                    }
+                                                });
+                                                ['last', 'last name', 'nachname', 'Last name', 'Last', 'Nachname', 'LAST', 'LAST NAME', 'NACHNAME'].forEach(key => {
+                                                    if (raw[key]) {
+                                                        row.last = raw[key];
+                                                        return
+                                                    }
+                                                });
+                                                ['email', 'mail', 'Email', 'Mail', 'E-Mail'].forEach(key => {
+                                                    if (raw[key]) {
+                                                        row.email = raw[key];
+                                                        return
+                                                    }
+                                                });
+                                                if (!row.first && !row.last) {
+                                                    ['name', 'Name', 'NAME'].forEach(key => {
+                                                        if (raw[key]) {
+
+                                                            // try last, first
+                                                            var parts = raw[key].split(', ');
+                                                            if (parts.length == 2) {
+                                                                row.last = parts[0];
+                                                                row.first = parts[1];
+                                                                return
+                                                            }
+                                                            // try first last
+                                                            var parts = raw[key].split(' ');
+                                                            if (parts.length == 2) {
+                                                                row.first = parts[0];
+                                                                row.last = parts[1];
+                                                                return
+                                                            }
+                                                        }
+                                                    });
+                                                }
+
+
+                                                addGuestRow(row);
+                                            });
+                                        }
+                                    });
+                                });
+                            </script>
+
+                        </div>
+
+                        <script>
+                            function addGuestRow(data = {}) {
+                                var row = document.createElement('tr');
+                                var id = Math.random().toString(36).substring(7);
+                                row.innerHTML = `
+                                    <td>
+                                        <input type="text" name="guests[id][]" class="form-control disabled" required readonly value="${id}">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="guests[last][]" class="form-control" required value="${data.last ?? ''}">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="guests[first][]" class="form-control" required value="${data.first ?? ''}">
+                                    </td>
+                                    <td>
+                                        <input type="email" name="guests[email][]" class="form-control" required value="${data.email ?? ''}">
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn small link" id="remove-guest" onclick="$(this).closest('tr').remove()">
+                                            <i class="ph ph-trash text-danger"></i>
+                                        </button>
+                                    </td>
+                                `;
+                                document.getElementById('guest-list').appendChild(row);
+                            }
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <?php } ?>
+
+
+    <section id="guests" style="display:none">
+
+        <h2 class="title">
+            <?= lang('Guests', 'Gäste') ?>
+        </h2>
+
+        <?php if ($Settings->featureEnabled('guest-forms')) {
+
+        ?>
+            <a href="#add-guests" class="btn primary">
+                <i class="ph ph-plus" aria-hidden="true"></i>
+                <?= lang('Add guests', 'Gäste hinzufügen') ?>
+            </a>
+
+        <?php } ?>
+
+        <p>
+            <?= lang('There are currently ' . count($guests) . ' guests involved in this activity.', 'Aktuell sind ' . count($guests) . ' Gäste an dieser Aktivität beteiligt.') ?>
+        </p>
+
+        <?php if ($user_activity || $Settings->hasPermission('guests.view')) {
+            $new_guests = false;
+        ?>
+
+            <table class="table mb-20">
+                <thead>
+                    <tr>
+                        <th><?= lang('Last', 'Nachname') ?></th>
+                        <th><?= lang('First', 'Vorname') ?></th>
+                        <th><?= lang('Email') ?></th>
+                        <th><?= lang('Status') ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($guests as $guest) { ?>
+                        <tr>
+                            <td><?= $guest['last'] ?></td>
+                            <td><?= $guest['first'] ?></td>
+                            <td><?= $guest['email'] ?></td>
+                            <td>
+                                <?php
+                                switch ($guest['status'] ?? 'new') {
+                                    case 'pending':
+                                        echo '<span class="badge primary">' . lang('Pending', 'Ausstehend') . '</span>';
+                                        break;
+                                    case 'approved':
+                                        echo '<span class="badge success">' . lang('Approved', 'Bestätigt') . '</span>';
+                                        break;
+                                    case 'new':
+                                        echo '<span class="badge signal">' . lang('New', 'Neu') . '</span>';
+                                        $new_guests = true;
+                                        break;
+                                    default:
+                                        echo '<span class="badge danger">' . lang('Unknown', 'Unbekannt') . '</span>';
+                                        break;
+                                }
+                                ?>
+
+                                <!-- action buttons -->
+                                <!-- send mail -->
+                                <?php if (($guest['status'] ?? 'new') == 'new') { ?>
+                                    <form action="<?= ROOTPATH ?>/crud/activities/guest-mail/<?= $id ?>" method="post" class="d-inline-block">
+                                        <input type="hidden" name="guest" value="<?= $guest['id'] ?>">
+                                        <button type="submit" class="btn small">
+                                            <i class="ph ph-envelope" aria-hidden="true"></i>
+                                            <?= lang('Send email', 'E-Mail senden') ?>
+                                        </button>
+                                    </form>
+                                <?php } ?>
+
+                                <!-- show qr code -->
+                                <button type="button" class="btn small" data-toggle="modal" data-target="qr-<?= $guest['id'] ?>">
+                                    <i class="ph ph-qr-code" aria-hidden="true"></i>
+                                    <?= lang('QR code', 'QR-Code') ?>
+                                </button>
+
+                            </td>
+                        </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
+
+            <!-- qr modals -->
+            <?php foreach ($guests as $guest) {
+                $guest_server = $Settings->get('guest-forms-server');
+                $url = $guest_server . "/a/" . $id . "." . $guest['id'];
+                $options = new QROptions([]);
+
+                try {
+                    $qr = (new QRCode($options))->render($url);
+                } catch (Throwable $e) {
+                    $qr = '';
+                    exit($e->getMessage());
+                }
+            ?>
+                <div class="modal" id="qr-<?= $guest['id'] ?>" tabindex="-1" role="dialog">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <a data-dismiss="modal" class="btn float-right" role="button" aria-label="Close" href="#close-modal">
+                                <span aria-hidden="true">&times;</span>
+                            </a>
+                            <h5 class="title">
+                                <?= lang('QR code for ', 'QR-Code für ') . $guest['first'] . ' ' . $guest['last'] ?>
+                            </h5>
+                            <div>
+                                <div style="background-color: white; display: inline-block;">
+                                    <img src="<?= $qr ?>" alt="QR code for <?= $guest['first'] . ' ' . $guest['last'] ?>" class="w-200">
+                                </div>
+                                <br>
+                                <b>Link:</b>
+                                <a href="<?= $url ?>" target="_blank"><?= $url ?></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php } ?>
+
+            <?php if ($new_guests) { ?>
+                <!-- send email to all new guests -->
+                <form action="<?= ROOTPATH ?>/crud/activities/guest-mail/<?= $id ?>" method="post">
+                    <button type="submit" class="btn primary">
+                        <i class="ph ph-envelope" aria-hidden="true"></i>
+                        <?= lang('Send email to new guests', 'Sende E-Mail an neue Gäste') ?>
+                    </button>
+                </form>
+            <?php } ?>
+
+
+        <?php } else { ?>
+            <p>
+                <?= lang('You do not have permission to view the list of guests. Only authors of the activity and users with the `guests.view` permission can view the list.', 'Du hast keine Berechtigung, die Liste der Gäste einzusehen. Nur Autor:innen der Aktivität und Personen mit der `guests.view`-Berechtigung können die Liste sehen.') ?>
+            </p>
+        <?php } ?>
+
+
+
+
+    </section>
+<?php } ?>
 
 
 <section id="raw" style="display:none">

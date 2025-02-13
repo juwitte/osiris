@@ -546,6 +546,7 @@ QueryBuilder.types = {
 QueryBuilder.inputs = [
     'text',
     'number',
+    'date',
     'textarea',
     'radio',
     'checkbox',
@@ -3265,7 +3266,13 @@ QueryBuilder.prototype.getRuleInput = function(rule, value_id) {
                 if (filter.size) h += ' size="' + filter.size + '"';
                 h += '>';
                 break;
-
+            case 'date':
+                h += '<input class="form-control" type="date" name="' + name + '"';
+                if (placeholder) h += ' placeholder="' + placeholder + '"';
+                if (filter.type === 'string' && validation.min !== undefined) h += ' minlength="' + validation.min + '"';
+                if (filter.type === 'string' && validation.max !== undefined) h += ' maxlength="' + validation.max + '"';
+                h += '>';
+                break;
             default:
                 h += '<input class="form-control" type="text" name="' + name + '"';
                 if (placeholder) h += ' placeholder="' + placeholder + '"';

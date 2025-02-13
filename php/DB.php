@@ -98,6 +98,14 @@ class DB
         return false;
     }
 
+    public static function getDate($doc)
+    {
+        $date = $doc['year'] ?? '';
+        if (isset($doc['month'])) $date .= '-' . $doc['month'];
+        if (isset($doc['day'])) $date .= '-' . $doc['day'];
+        return $date;
+    }
+
     /**
      * Convert MongoDB document to array.
      *
@@ -123,7 +131,7 @@ class DB
     function printProfilePicture($user, $class = "")
     {
         $img = $this->db->userImages->findOne(['user' => $user]);
-        if (empty($img)) return ' <img src="'.ROOTPATH .'/img/no-photo.png" alt="Profilbild" class="'.$class.'">';
+        if (empty($img)) return ' <img src="' . ROOTPATH . '/img/no-photo.png" alt="Profilbild" class="' . $class . '">';
         if ($img['ext'] == 'svg') {
             $img['ext'] = 'svg+xml';
         }
@@ -152,6 +160,14 @@ class DB
             $con = $this->db->journals->findOne(['_id' => $id]);
         } elseif ($type == 'teaching') {
             $con = $this->db->teaching->findOne(['_id' => $id]);
+        } elseif ($type == 'project') {
+            $con = $this->db->projects->findOne(['_id' => $id]);
+        } elseif ($type == 'person') {
+            $con = $this->db->persons->findOne(['_id' => $id]);
+        } elseif ($type == 'activity') {
+            $con = $this->db->activities->findOne(['_id' => $id]);
+        } elseif ($type == 'conference') {
+            $con = $this->db->conferences->findOne(['_id' => $id]);
         }
         return $this->doc2Arr($con);
     }
@@ -221,9 +237,10 @@ class DB
      * @param string $project Project name or ID.
      * @return array Project array.
      */
-    public function getProject($project){
+    public function getProject($project)
+    {
         if ($this->is_ObjectID($project)) {
-            $project = $this->db->projects->findOne(['$or' => [['name' => $project], ['_id' => $this->to_ObjectID($project)] ]]);
+            $project = $this->db->projects->findOne(['$or' => [['name' => $project], ['_id' => $this->to_ObjectID($project)]]]);
         } else {
             $project = $this->db->projects->findOne(['name' => $project]);
         }
@@ -420,7 +437,7 @@ class DB
      *
      * @param array $doc Activity document.
      * @param int $year Optional. Year. Defaults to document year
-     * @return int is open access.
+     * @return float impact factor.
      */
     public function get_impact($doc, $year = null)
     {
@@ -433,7 +450,30 @@ class DB
         }
         return $this->impact_from_year($journal, $year);
     }
+    /**
+     * Get document quartile
+     *
+     * @param array $doc Activity document.
+     * @param int $year Optional. Year. Defaults to document year
+     * @return int is open access.
+     */
+    public function get_metrics($doc, $year = null, $key = 'quartile')
+    {
+        $metrics = [];
+        $journal = $this->getJournal($doc);
 
+        if (empty($journal) || !isset($journal['metrics'])) return null;
+
+        if ($year == null) {
+            $year = intval($doc['year'] ?? 1);
+        }
+        foreach ($journal['metrics'] as $i) {
+            if ($i['year'] >= $year) break;
+            $metrics = $i;
+        }
+        if (empty($metrics)) return null;
+        return $metrics[$key] ?? $metrics;
+    }
     /**
      * Check if user is author of activity
      *
@@ -654,33 +694,37 @@ class DB
     }
 
 
-    public static function arrayRecursiveDiff($aArray1, $aArray2) {
+    public static function arrayRecursiveDiff($aArray1, $aArray2)
+    {
         $aReturn = array();
-      
+
         foreach ($aArray1 as $mKey => $mValue) {
             if ($aArray2 instanceof BSONArray || $aArray2 instanceof BSONDocument) {
                 $aArray2 = DB::doc2Arr($aArray2);
             }
-          if (array_key_exists($mKey, $aArray2)) {
-            if (is_array($mValue)) {
-              $aRecursiveDiff = DB::arrayRecursiveDiff($mValue, $aArray2[$mKey]);
-              if (count($aRecursiveDiff)) { $aReturn[$mKey] = $aRecursiveDiff; }
+            if (array_key_exists($mKey, $aArray2)) {
+                if (is_array($mValue)) {
+                    $aRecursiveDiff = DB::arrayRecursiveDiff($mValue, $aArray2[$mKey]);
+                    if (count($aRecursiveDiff)) {
+                        $aReturn[$mKey] = $aRecursiveDiff;
+                    }
+                } else {
+                    if ($mValue != $aArray2[$mKey]) {
+                        $aReturn[$mKey] = $mValue;
+                    }
+                }
             } else {
-              if ($mValue != $aArray2[$mKey]) {
                 $aReturn[$mKey] = $mValue;
-              }
             }
-          } else {
-            $aReturn[$mKey] = $mValue;
-          }
         }
         return $aReturn;
-      } 
+    }
 
-      /**
-       * Function to convert array into human readable Module fields
-       */
-      public static function convert4humans($doc){
+    /**
+     * Function to convert array into human readable Module fields
+     */
+    public static function convert4humans($doc)
+    {
 
         $omit_fields = ['_id', 'history', 'rendered', 'comment', 'editor-comment', 'journal_id', 'impact'];
 
@@ -690,7 +734,7 @@ class DB
         $Format->usecase = "list";
         $Format->setDocument($doc);
 
-        foreach ($doc as $key => $val){
+        foreach ($doc as $key => $val) {
             if (in_array($key, $omit_fields)) continue;
             $val = $Format->get_field($key);
             if ($val instanceof BSONArray || $val instanceof BSONDocument) {
@@ -701,14 +745,14 @@ class DB
             $result[$key] = $val;
         }
         return $result;
-      }
+    }
 
 
     /**
      * function to add update history in a document
      */
     public function updateHistory($new_doc, $id)
-    { 
+    {
         $Format = new Document();
         $old_doc = $this->getActivity($id);
         $hist = [
@@ -721,7 +765,7 @@ class DB
         ];
         // unset editor comment
         unset($new_doc['editor-comment']);
-    
+
         $new_ = DB::convert4humans($new_doc);
         $old_ = DB::convert4humans($old_doc);
         $diff = array_diff_assoc($new_, $old_);
@@ -739,6 +783,4 @@ class DB
         $new_doc['history'][] = $hist;
         return $new_doc;
     }
-
-
 }

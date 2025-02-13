@@ -880,6 +880,125 @@ function initActivities(selector, data = {}) {
 
 
 
+function initProjects(selector, data = {}) {
+    data['formatted'] = true;
+    $(selector).DataTable({
+        ajax: {
+            url: ROOTPATH + '/api/projects',
+            data: data
+        },
+        type: 'GET',
+        dom: 'frtipP',
+        columns: [{
+            className: 'dt-control',
+            orderable: false,
+            data: null,
+            defaultContent: ''
+        },
+        {
+            data: 'name',
+            render: function (data, type, row) {
+                return `<a href="${ROOTPATH}/projects/view/${row.id}">${data}</a>`
+            }
+        },
+        {
+            data: 'type',
+            render: function (data) {
+                if (data == 'Eigenfinanziert') {
+                    return `<span class="badge text-signal">
+                    <i class="ph ph-piggy-bank"></i>&nbsp;${lang('Self-funded', 'Eigenfinanziert')}
+                    </span>`
+                }
+                if (data == 'Stipendium') {
+                    return `<span class="badge text-success no-wrap">
+                    <i class="ph ph-tip-jar"></i>&nbsp;${lang('Stipendiate', 'Stipendium')}
+                    </span>`
+                }
+                if (data == 'Drittmittel') {
+                    return `<span class="badge text-danger">
+                    <i class="ph ph-hand-coins"></i>&nbsp;${lang('Third-party funded', 'Drittmittel')}
+                    </span>`
+                }
+                if (data == 'Teilprojekt') {
+                    return `<span class="badge text-danger">
+                    <i class="ph ph-hand-coins"></i>&nbsp;${lang('Subproject', 'Teilprojekt')}
+                    </span>`
+                }
+                else {
+                    return data;
+                }
+            }
+        },
+        {
+            data: 'funder', render: function (data, type, row) {
+                if (!data && row.scholarship) return row.scholarship;
+                return data;
+            }
+        },
+        {
+            data: 'date_range', render: function (data, type, row) {
+                return `<span class="hidden">${row.start}</span>
+                    ${data}`
+
+            }
+        },
+        {
+            data: 'role', render: function (data) {
+                if (data == 'coordinator') {
+                    return `<span class="badge text-signal">
+                    <i class="ph ph-crown-simple"></i>
+                    ${lang('Coordinator', 'Koordinator')}
+                    </span>`
+                }
+                if (data == 'associated') {
+                    return `<span class="badge text-success">
+                    <i class="ph ph-address-book"></i>
+                    ${lang('Associated', 'Beteiligt')}
+                    </span>`
+                }
+                return `<span class="badge text-muted">
+                    <i class="ph ph-handshake"></i>
+                    ${lang('Partner')}
+                    </span>`
+            }
+        },
+        {
+            data: 'applicant',
+            render: function (data, type, row) {
+                if (!row.contact && row.supervisor)
+                    return `<a href="${ROOTPATH}/profile/${row.supervisor}">${data}</a>`;
+                if (!row.contact)
+                    return data;
+                return `<a href="${ROOTPATH}/profile/${row.contact}">${data}</a>`
+            }
+        },
+        {
+            data: 'status',
+            render: function (data) {
+                console.log(data);
+                switch (data) {
+                    case 'approved':
+                        return `<span class='badge success'>${lang('approved', 'bewilligt')}</span>`;
+                    case 'finished':
+                        return `<span class='badge success'>${lang('finished', 'abgeschlossen')}</span>`;
+                    case 'applied':
+                        return `<span class='badge signal'>${lang('applied', 'beantragt')}</span>`;
+                    case 'rejected':
+                        return `<span class='badge danger'>${lang('rejected', 'abgelehnt')}</span>`;
+                    case 'expired':
+                        return `<span class='badge dark'>${lang('expired', 'abgelaufen')}</span>`;
+                }
+            }
+        }
+        ],
+        order: [
+            [4, 'desc']
+        ]
+    });
+}
+
+
+
 function impactfactors(containerID, canvasID, data = {}) {
     $.ajax({
         type: "GET",
@@ -1185,6 +1304,7 @@ function projectTimeline(selector, data = {}) {
                 'applicant': { color: '#B61F29', label: lang('Applicant', 'Antragsteller:in') },
                 'worker': { color: '#008083', label: lang('Worker', 'Projektmitarbeiter:in') },
                 'associate': { color: '#AAAAAA', label: lang('Associate', 'Beteiligte Person') },
+                'coordinator': { color: '#AAAAAA', label: lang('Scientific Coordinator', 'Wiss. Koordinator:in') },
                 'scholar': { color: '#008083', label: lang('Scholar', 'Stipenidat') },
                 'supervisor': { color: '#f78104', label: lang('Supervisor', 'Betreuende Person') },
             }
@@ -1571,6 +1691,18 @@ function userTable(selector, data = {}) {
                 searchable: true,
                 sortable: false,
                 visible: false
+            },
+            {
+                target: 4,
+                data: 'names',
+                searchable: true,
+                visible: false
+            },
+            {
+                target: 5,
+                data: 'topics',
+                searchable: true,
+                visible: false
             }
 
         ],
@@ -1581,5 +1713,77 @@ function userTable(selector, data = {}) {
         paging: true,
         autoWidth: true,
         pageLength: 18,
+    });
+}
+
+function iconTest(icon){
+    $('#test-icon').attr('class', 'ph ph-'+icon);
+}
+
+function spark($selector, $filter){
+    // TODO: unfinished
+    $.ajax({
+        type: "GET",
+        url: ROOTPATH + "/api/activities",
+        data: {
+            filter: $filter,
+            aggregate: 'year'
+        },
+        dataType: "json",
+        success: function (response) {
+            console.log(response);
+            var data = response.data;
+
+            // sort data by key "year" desc
+            data.sort((a, b) => b.activity - a.activity);
+            // transform data
+            var labels = data.map(item => item.activity);
+            // labels are years. fill the gaps
+            labels = Array.from({length: labels[0] - labels[labels.length - 1] + 1}, (_, i) => labels[labels.length - 1] + i);
+
+            var y = data.map(item => item.count);
+
+            console.log(labels);
+            console.log(y);
+
+            var ctx = document.getElementById($selector)
+            var myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Dataset',
+                        data: y,
+                        fill: false,
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false,
+                        },
+                        title: {
+                            display: false,
+                            text: 'Activities'
+                        }
+                    },
+                    scales: {
+                        // x: {
+                        //     display: false,
+                        // },
+                        y: {
+                            display: false,
+                            beginAtZero: true
+                        }
+                    },
+                }
+            });
+        },
+        error: function (response) {
+            console.log(response);
+        }
     });
 }

@@ -94,7 +94,7 @@ if (isset($_GET['type']) && isset($_GET['type']['id'])) {
                 <?php if ($member == 0) { ?>
                     <a class="btn link px-5 ml-20 text-danger " onclick="deleteElement('type-<?= $t ?>')" data-toggle="tooltip" data-title="<?= lang('Delete element.', 'Lösche Element.') ?>"><i class="ph ph-trash"></i></a>
                 <?php } else { ?>
-                    <a class="btn link px-5 ml-20 text-muted " href='<?= ROOTPATH ?>/search/user#{"$and":[{"dept":"<?= $t ?>"}]}' target="_blank" data-toggle="tooltip" data-title="<?= lang("Can\'t delete department: $member users associated.", "Kann Abt. nicht löschen: $member Nutzer zugeordnet.") ?>"><i class="ph ph-trash"></i></a>
+                    <a class="btn link px-5 ml-20 text-muted " href='<?= ROOTPATH ?>/user/search#{"$and":[{"dept":"<?= $t ?>"}]}' target="_blank" data-toggle="tooltip" data-title="<?= lang("Can\'t delete department: $member users associated.", "Kann Abt. nicht löschen: $member Nutzer zugeordnet.") ?>"><i class="ph ph-trash"></i></a>
                 <?php } ?>
             </h2>
 

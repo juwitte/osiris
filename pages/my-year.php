@@ -209,7 +209,7 @@ if (!$Settings->featureEnabled('coins')) {
                     <label for="year">
                         <?= lang('Change year and quarter', 'Ändere Jahr und Quartal') ?>:
                     </label>
-
+                    
 
                     <div class="btn-group">
                         <a href="?year=<?= $YEAR - 1 ?>&quarter=<?= $QUARTER ?>" class="btn primary" data-toggle="tooltip" data-title="<?= lang('Previous year', 'Vorheriges Jahr') ?>">
@@ -391,6 +391,7 @@ if (!$Settings->featureEnabled('coins')) {
                                     if (!empty($q)) echo "$q";
                                     echo "</td>";
                                     echo "<td>";
+                                    echo "<div class='font-size-12 font-weight-bold text-$col'>".$Format->activity_subtype(). "</div>";
                                     // echo $doc['format'];
                                     if ($USER['display_activities'] == 'web') {
                                         echo $Format->formatShort();
@@ -459,7 +460,7 @@ if (!$Settings->featureEnabled('coins')) {
                             </a>
                             <a href="<?= ROOTPATH . "/add-activity?type=" . $t ?>" class="btn"><i class="ph ph-plus"></i></a>
                             <?php if ($col == 'publication') { ?>
-                                <a class="btn mr-20" href="<?= ROOTPATH ?>/activities/pubmed-search?authors=<?= $scientist['last'] ?>&year=<?= $YEAR ?>">
+                                <a class="btn mr-20" href="<?= ROOTPATH ?>/activities/online-search?authors=<?= $scientist['last'] ?>&year=<?= $YEAR ?>">
                                     <i class="ph ph-magnifying-glass-plus mr-5"></i>
                                     <?= lang('Search in Pubmed', 'Suche in Pubmed') ?>
                                 </a>

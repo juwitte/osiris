@@ -92,7 +92,7 @@ class Settings
         // }
     }
 
-    function printProfilePicture($user, $class = "")
+    function printProfilePicture($user, $class = "", $embed = false)
     {
         $root = $_SERVER['REQUEST_SCHEME'] . "://" . $_SERVER['HTTP_HOST'] . ROOTPATH;
         $default = '<img src="' . $root . '/img/no-photo.png" alt="Profilbild" class="' . $class . '">';
@@ -100,20 +100,24 @@ class Settings
         if (empty($user)) return $default;
         if ($this->featureEnabled('db_pictures')) {
             $img = $this->osiris->userImages->findOne(['user' => $user]);
-            
+
             if (empty($img)) {
                 return $default;
             }
             if ($img['ext'] == 'svg') {
                 $img['ext'] = 'svg+xml';
             }
-            return '<img src="data:image/' . $img['ext'] . ';base64,' . base64_encode($img['img']) . ' " class="' . $class . '" />';
+            if ($embed)
+                return '<img src="data:image/' . $img['ext'] . ';base64,' . base64_encode($img['img']) . ' " class="' . $class . '" />';
+            return '<img src="' . $root . '/image/' . $user . '" alt="Profilbild" class="' . $class . '">';
         } else {
             $img_exist = file_exists(BASEPATH . "/img/users/$user.jpg");
             if (!$img_exist) {
                 return $default;
             }
-            $img = "$root/img/users/$user.jpg";
+            // make sure that caching is not an issue
+            $v = filemtime(BASEPATH . "/img/users/$user.jpg");
+            $img = "$root/img/users/$user.jpg?v=$v";
             return ' <img src="' . $img . '" alt="Profilbild" class="' . $class . '">';
         }
     }
@@ -171,6 +175,13 @@ class Settings
             'color' => '#cccccc',
             'icon' => 'placeholder'
         ];
+    }
+
+    function getActivitiesPortfolio($includePublications = false)
+    {
+        $filter = ['portfolio' => 1];
+        if (!$includePublications) $filter['parent'] = ['$ne' => 'publication'];
+        return $this->osiris->adminTypes->distinct('id', $filter);
     }
 
     /**
@@ -261,6 +272,113 @@ class Settings
             ";
         }
         $style = preg_replace('/\s+/', ' ', $style);
+
+        foreach ($this->osiris->topics->find() as $t) {
+            $style .= "
+            .topic-" . $t['id'] . " {
+                --topic-color: " . $t['color'] . ";
+            }
+            ";
+        }
+
+        $colors = $this->get('colors');
+        if (!empty($colors)) {
+            $primary = $colors['primary'] ?? '#008083';
+            $secondary = $colors['secondary'] ?? '#f78104';
+            $primary_hex = sscanf($primary, "#%02x%02x%02x");
+            $secondary_hex = sscanf($secondary, "#%02x%02x%02x");
+
+            $style .= "
+            :root {
+                --primary-color: $primary;
+                --primary-color-light: ".adjustBrightness($primary, 20).";
+                --primary-color-very-light: ".adjustBrightness($primary, 200).";
+                --primary-color-dark: ".adjustBrightness($primary, -20).";
+                --primary-color-very-dark: ".adjustBrightness($primary, -200).";
+                --primary-color-20: rgba($primary_hex[0], $primary_hex[1], $primary_hex[2], 0.2);
+                --primary-color-30: rgba($primary_hex[0], $primary_hex[1], $primary_hex[2], 0.3);
+                --primary-color-60: rgba($primary_hex[0], $primary_hex[1], $primary_hex[2], 0.6);
+
+                --secondary-color: $secondary;
+                --secondary-color-light: ".adjustBrightness($secondary, 20).";
+                --secondary-color-very-light: ".adjustBrightness($secondary, 200).";
+                --secondary-color-dark: ".adjustBrightness($secondary, -20).";
+                --secondary-color-very-dark: ".adjustBrightness($secondary, -200).";
+                --secondary-color-20: rgba($secondary_hex[0], $secondary_hex[1], $secondary_hex[2], 0.2);
+                --secondary-color-30: rgba($secondary_hex[0], $secondary_hex[1], $secondary_hex[2], 0.3);
+                --secondary-color-60: rgba($secondary_hex[0], $secondary_hex[1], $secondary_hex[2], 0.6);
+            }";
+        }
+
         return "<style>$style</style>";
+    }
+
+    private function adjustBrightness($hex, $steps) {
+        // Steps should be between -255 and 255. Negative = darker, positive = lighter
+        $steps = max(-255, min(255, $steps));
+    
+        // Normalize into a six character long hex string
+        $hex = str_replace('#', '', $hex);
+        if (strlen($hex) == 3) {
+            $hex = str_repeat(substr($hex,0,1), 2).str_repeat(substr($hex,1,1), 2).str_repeat(substr($hex,2,1), 2);
+        }
+    
+        // Split into three parts: R, G and B
+        $color_parts = str_split($hex, 2);
+        $return = '#';
+    
+        foreach ($color_parts as $color) {
+            $color   = hexdec($color); // Convert to decimal
+            $color   = max(0,min(255,$color + $steps)); // Adjust color
+            $return .= str_pad(dechex($color), 2, '0', STR_PAD_LEFT); // Make two char hex code
+        }
+    
+        return $return;
+    }
+
+    function topicChooser($selected = [])
+    {
+        if (!$this->featureEnabled('topics')) return '';
+
+        $topics = $this->osiris->topics->find();
+        if (empty($topics)) return '';
+
+        $selected = DB::doc2Arr($selected);
+?>
+        <div class="form-group" id="topic-widget">
+            <h5><?= lang('Research Topics', 'Forschungsbereiche') ?></h5>
+            <!-- make suire that an empty value is submitted in case no checkbox is ticked -->
+            <input type="hidden" name="values[topics]" value="">
+            <div>
+                <?php
+                foreach ($topics as $topic) {
+                    $checked = in_array($topic['id'], $selected);
+                ?>
+                    <div class="pill-checkbox" style="--primary-color:<?= $topic['color'] ?? 'var(--primary-color)' ?>">
+                        <input type="checkbox" id="topic-<?= $topic['id'] ?>" value="<?= $topic['id'] ?>" name="values[topics][]" <?= $checked ? 'checked' : '' ?>>
+                        <label for="topic-<?= $topic['id'] ?>">
+                            <?= lang($topic['name'], $topic['name_de'] ?? null) ?>
+                        </label>
+                    </div>
+                <?php } ?>
+            </div>
+        </div>
+<?php }
+
+    function printTopics($topics, $class = "", $header = false)
+    {
+        if (!$this->featureEnabled('topics')) return '';
+        if (empty($topics) || empty($topics[0])) return '';
+
+        $topics = $this->osiris->topics->find(['id' => ['$in' => $topics]]);
+        $html = '<div class="topics ' . $class . '">';
+        if ($header) {
+            $html .= '<h5 class="m-0">' . lang('Research Topics', 'Forschungsbereiche') . '</h5>';
+        }
+        foreach ($topics as $topic) {
+            $html .= "<a class='topic-pill' href='" . ROOTPATH . "/topics/view/$topic[_id]' style='--primary-color:$topic[color]'>" . lang($topic['name'], $topic['name_de'] ?? null) . "</a>";
+        }
+        $html .= '</div>';
+        return $html;
     }
 }

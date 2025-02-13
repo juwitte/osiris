@@ -27,7 +27,7 @@
 </h1>
 
 <?php
-// $active_users = $osiris->persons->distinct('username', ['is_active' => true]);
+// $active_users = $osiris->persons->distinct('username', ['is_active' => ['$ne'=>false]]);
 // $concepts = $osiris->activities->aggregate(
 //     [
 //         ['$match' => ['concepts.display_name' => $name]],

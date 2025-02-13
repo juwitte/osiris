@@ -45,16 +45,12 @@ for ($i = 0; $i < 4; $i++) {
 }
 asort($quarters);
 
-$stats = array(
-    "publication" => [],
-    "poster" => [],
-    "lecture" => [],
-    "review" => [],
-    "teaching" => [],
-    "students" => [],
-    "software" => [],
-    "misc" => [],
-);
+$stats = [];
+$activities = [];
+foreach ($osiris->adminCategories->find() as $cat) {
+    $activities[$cat['id']] = $cat['color'];
+    $stats[$cat['id']] = [];
+}
 
 
 $impacts = [];
@@ -127,6 +123,7 @@ foreach ($cursor as $doc) {
 // get maximum value for the y axis
 $max = 0;
 foreach ($quarters as $q => $value) {
+    if (empty($value['activities'])) continue;
     $m = max(array_values($value['activities']));
     if ($m > $max) $max = $m;
 }

@@ -238,26 +238,28 @@
             </small>
             <div class="row row-eq-spacing">
 
-                <?php foreach ([
-                    'register' => lang('When a guest is registered by the supervisor', 'Bei Anmeldung eines Gastes durch den Betreuer'),
-                    'completed' => lang('When the guest has completed the online registration', 'Wenn der Gast die Online-Registrierung abgeschlossen hat'),
-                    'expiration' => lang('If the guest\'s stay was longer than 7 days and the time is about to expire', 'Wenn die Laufzeit des Gastes länger als 7 Tage war und die Zeit bald abläuft'),
-                    'adjustment' => lang('If the guest is canceled or the period is adjusted', 'Wenn der Gast abgesagt oder der Zeitraum angepasst wird'),
-                ] as $key => $name) { ?>
+                <?php foreach (
+                    [
+                        'register' => lang('When a guest is registered by the supervisor', 'Bei Anmeldung eines Gastes durch den Betreuer'),
+                        'completed' => lang('When the guest has completed the online registration', 'Wenn der Gast die Online-Registrierung abgeschlossen hat'),
+                        'expiration' => lang('If the guest\'s stay was longer than 7 days and the time is about to expire', 'Wenn die Laufzeit des Gastes länger als 7 Tage war und die Zeit bald abläuft'),
+                        'adjustment' => lang('If the guest is canceled or the period is adjusted', 'Wenn der Gast abgesagt oder der Zeitraum angepasst wird'),
+                    ] as $key => $name
+                ) { ?>
                     <div class="col-md-6">
                         <label for="guest-mails-<?= $key ?>"><?= $name ?></label>
                         <input type="text" class="form-control small" name="general[guest-mails-<?= $key ?>]" id="guest-mails-<?= $key ?>" value="<?= $Settings->get('guest-mails-' . $key) ?>">
                         <small><?= lang('en', 'Nur in Verbindung mit Gästeformularen') ?></small>
                         <div>
                             <?php
-                                $sp = $Settings->get('guest-mails-' . $key. '-supervisor');
+                            $sp = $Settings->get('guest-mails-' . $key . '-supervisor');
                             ?>
                             
                             <?= lang('Include supervisor', 'Betreuende Person einschließen') ?>:
-                            <input type="radio" name="general[guest-mails-<?= $key ?>-supervisor]" value="true" id="guest-mails-<?= $key ?>-supervisor-1" <?=$sp ? 'checked': ''?>>
+                            <input type="radio" name="general[guest-mails-<?= $key ?>-supervisor]" value="true" id="guest-mails-<?= $key ?>-supervisor-1" <?= $sp ? 'checked' : '' ?>>
                             <label for="guest-mails-<?= $key ?>-supervisor-1"><?= lang('Yes', 'Ja') ?></label>
 
-                            <input type="radio" name="general[guest-mails-<?= $key ?>-supervisor]" value="false" id="guest-mails-<?= $key ?>-supervisor-0" <?=!$sp ? 'checked': ''?>>
+                            <input type="radio" name="general[guest-mails-<?= $key ?>-supervisor]" value="false" id="guest-mails-<?= $key ?>-supervisor-0" <?= !$sp ? 'checked' : '' ?>>
                             <label for="guest-mails-<?= $key ?>-supervisor-0"><?= lang('No', 'Nein') ?></label>
 
                         </div>
@@ -322,6 +324,46 @@
         </div>
 
     </div>
+
+
+    <div class="box px-20">
+        <h3>
+            <?= lang('Research Topics', 'Forschungsbereiche') ?>
+        </h3>
+        <div class="form-group">
+            <label for="">
+                <?= lang('Research Topics in OSIRIS', 'Forschungsbereiche in OSIRIS') ?>
+            </label>
+            <?php
+            $topics = $Settings->featureEnabled('topics');
+            ?>
+
+            <div class="custom-radio">
+                <input type="radio" id="topics-true" value="1" name="values[topics]" <?= $topics ? 'checked' : '' ?>>
+                <label for="topics-true"><?= lang('enabled', 'aktiviert') ?></label>
+            </div>
+
+            <div class="custom-radio">
+                <input type="radio" id="topics-false" value="0" name="values[topics]" <?= $topics ? '' : 'checked' ?>>
+                <label for="topics-false"><?= lang('disabled', 'deaktiviert') ?></label>
+            </div>
+
+        </div>
+        <?php
+        $n_topics = $osiris->topics->count();
+        $list_fields = $osiris->adminFields->find(['format' => 'list'])->toArray();
+        if ($n_topics == 0 && count($list_fields) > 0) { ?>
+            <div class="mb-20">
+                <a href="#migrate-topics" class="btn">
+                    <?= lang('Migrate custom fields to topics', 'Custom Fields in Bereiche migrieren') ?>
+                </a>
+            </div>
+        <?php } ?>
+
+    </div>
+
+
+
 
 
     <div class="box px-20">
@@ -403,7 +445,7 @@
         </div>
     </div>
 
-    
+
     <div class="box px-20">
         <h3>
             <?= lang('Nagoya Protocol Compliance') ?>
@@ -437,6 +479,56 @@
 
 </form>
 
+
+
+
+<?php if ($n_topics == 0 && count($list_fields) > 0) { ?>
+
+    <div class="modal" id="migrate-topics" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <a data-dismiss="modal" class="btn float-right" role="button" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </a>
+                <h5 class="modal-title">
+                    <?= lang('Migrate custom fields to research topics', 'Benutzerdefinierte Felder in Forschungsbereiche migrieren') ?>
+                </h5>
+
+                <form action="<?= ROOTPATH ?>/migrate/custom-fields-to-topics" method="post">
+                    <div class="form-group ">
+                        <label for="field"><?= lang('Select a field you want to use', 'Wähle ein Custom Field, dass du migrieren willst') ?></label>
+
+                        <select name="field" id="field" class="form-control">
+                            <?php foreach ($list_fields as $field) { ?>
+                                <option value="<?= $field['id'] ?>"><?= lang($field['name'], $field['name_de'] ?? null) ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
+
+                    <?= lang('The following will happen if you click on migrate:', 'Wenn du auf migrieren klickst, wird das Folgende passieren:') ?>
+
+                    <ul class="list">
+                        <li>
+                            <?=lang('The selected custom field is used to create new research areas on this basis. Don\'t worry, you can still edit them later.', 'Das ausgewählte Custom Field wird genommen, um auf dieser Grundlage neue Forschungsbereiche anzulegen. Keine Sorge, du kannst sie später noch bearbeiten.')?>
+                        </li>
+                        <li>
+                            <?=lang('All activities for which the custom field was completed are assigned to the respective research areas.', 'Alle Aktivitäten, bei denen das Custom Field ausgefüllt war, werden den jeweiligen Forschungsbereichen zugeordnet.')?>
+                        </li>
+                        <li>
+                            <?=lang('The custom field is then deleted, i.e. the field itself, the assignment to forms and the values set for the activities are removed.', 'Das Custom Field wird daraufhin gelöscht, d.h. das Feld selbst, die Zuordnung zu Formularen und die gesetzten Werte bei den Aktivitäten werden entfernt.')?>
+                        </li>
+                    </ul>
+
+                    <button class="btn primary">
+                        <?=lang('Migrate', 'Migrieren')?>
+                    </button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+<?php } ?>
 
 <?php if (strtoupper(USER_MANAGEMENT) !== 'AUTH') { ?>
     <br>

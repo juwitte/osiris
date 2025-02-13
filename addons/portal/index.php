@@ -171,7 +171,7 @@ Route::get('/portal/groups', function () {
 
 Route::get('/portal/persons', function () {
     include BASEPATH . "/php/init.php";
-    $data = $osiris->persons->find(['username' => ['$ne' => null], 'is_active' => true]);
+    $data = $osiris->persons->find(['username' => ['$ne' => null], 'is_active' => ['$ne'=>false]]);
     $data = DB::doc2Arr($data);
     include BASEPATH . "/addons/portal/persons.php";
 });

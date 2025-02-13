@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Page to add or edit journal
  * 
@@ -17,14 +18,14 @@
  */
 ?>
 
-<h1>
-<?php
-    if ($id === null || empty($data)){
+<h1><i class="ph ph-stack-plus text-primary"></i>
+    <?php
+    if ($id === null || empty($data)) {
         echo lang("Add journal", "Journal hinzufügen");
     } else {
         echo $data['journal'];
     }
-?>
+    ?>
 </h1>
 
 <!-- 
@@ -33,14 +34,13 @@ dump($data, true);
 ?> -->
 
 <?php
-    if ($id === null || empty($data)){
-        $formaction = ROOTPATH."/crud/journal/create";
-        $url = ROOTPATH."/journal/view/*";
-    } else {
-        $formaction = ROOTPATH."/crud/journal/update/$id";
-        $url = ROOTPATH."/journal/view/$id";
-    }
-
+if ($id === null || empty($data)) {
+    $formaction = ROOTPATH . "/crud/journal/create";
+    $url = ROOTPATH . "/journal/view/*";
+} else {
+    $formaction = ROOTPATH . "/crud/journal/update/$id";
+    $url = ROOTPATH . "/journal/view/$id";
+}
 ?>
 
 
@@ -81,10 +81,10 @@ dump($data, true);
         <div class="col-sm">
             <label for="open_access">Open access <?= lang('seit', 'since') ?></label>
             <?php
-                $oa = $data['oa'] ?? 'false';
-                if ($oa === false) $oa = 'false';
+            $oa = $data['oa'] ?? 'false';
+            if ($oa === false) $oa = 'false';
             ?>
-            
+
             <input type="text" name="values[oa]" id="oa" class="form-control" value="<?= $oa ?>">
             <small class="text-muted">
                 </code>

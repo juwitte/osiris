@@ -97,6 +97,11 @@
                 "en": "Upload user picture"
             },
             {
+                "id": "user.image-own",
+                "de": "Eigenes Nutzerbild hochladen",
+                "en": "Change own user picture"
+            },
+            {
                 "id": "user.settings",
                 "de": "Nutzereinstellungen bearbeiten",
                 "en": "Edit user settings"
@@ -113,7 +118,7 @@
             },
             {
                 "id": "user.synchronize",
-                "de": "Nutzer synchronisieren",
+                "de": "Nutzer synchronisieren / hinzufügen",
                 "en": "Synchronize users"
             }
         ]
@@ -167,6 +172,22 @@
                 "id": "projects.delete-own",
                 "de": "Eigene Projekte löschen",
                 "en": "Delete own projects"
+            }
+        ]
+    },
+    {
+        "de": "Research Topics",
+        "en": "Forschungsbereiche",
+        "fields": [
+            {
+                "id": "topics.edit",
+                "de": "Forschungsbereiche hinzufügen und bearbeiten",
+                "en": "Add and edit all topics"
+            },
+            {
+                "id": "topics.delete",
+                "de": "Forschungsbereiche löschen",
+                "en": "Delete topics"
             }
         ]
     },

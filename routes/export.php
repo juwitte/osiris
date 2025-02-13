@@ -140,7 +140,7 @@ Route::get('/guest-analysis', function () {
 
 
 Route::post('/download', function () {
-    // error_reporting(E_ERROR | E_PARSE);
+    error_reporting(E_ERROR | E_PARSE);
 
     require_once BASEPATH . '/php/init.php';
     require_once BASEPATH . '/php/Document.php';
@@ -188,14 +188,7 @@ Route::post('/download', function () {
         $filename .= "_" . trim($params['user']);
     }
     if (isset($params['dept']) && !empty($params['dept'])) {
-        $users = [];
-        $cursor = $osiris->persons->find(['dept' => $params['dept']], ['projection' => ['username' => 1]]);
-
-        foreach ($cursor as $u) {
-            if (empty($u['username'] ?? '')) continue;
-            $users[] = strtolower($u['username']);
-        }
-        $filter['$and'][] = array('authors.user'=> ['$in' => $users]); //, ['editors.user' => ['$in'=>$users]]]
+        $filter['$and'][] = array('units' => $params['dept']);
         $filename .= "_" . trim($params['dept']);
     }
     if (isset($params['id']) && !empty($params['id'])) {
@@ -207,6 +200,11 @@ Route::post('/download', function () {
     if (isset($params['project']) && !empty($params['project'])) {
         $filter['$and'][] = array('projects'=> trim($params['project']));
         $filename .= "_" . trim($params['project']);
+    }
+
+    if (isset($params['topic']) && !empty($params['topic'])) {
+        $filter['$and'][] = array('topics'=> trim($params['topic']));
+        $filename .= "_" . trim($params['topic']);
     }
 
     // if (isset($params['year']) && !empty($params['year'])) {

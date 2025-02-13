@@ -50,9 +50,7 @@ function sel($index, $value)
 
 ?>
 
-<style>
-</style>
-<script src="<?= ROOTPATH ?>/js/quill.min.js"></script>
+<script src="<?= ROOTPATH ?>/js/quill.min.js?v=<?=CSS_JS_VERSION?>"></script>
 
 <div class="container w-600">
 
@@ -101,12 +99,7 @@ function sel($index, $value)
         <input type="hidden" class="hidden" name="redirect" value="<?= $url ?>">
         <input type="hidden" class="hidden" name="values[type]" value="<?= $type ?>">
 
-
-
-        <div class="box p-20" id="">
-
-
-
+        <div class="box padded" id="">
             <?php if ($type == 'Teilprojekt') { ?>
                 <!-- add parent project info -->
                 <input type="hidden" class="hidden" name="values[parent]" value="<?= $form['parent'] ?>">
@@ -383,6 +376,8 @@ function sel($index, $value)
                             <select class="form-control" name="values[role]" id="role">
                                 <option value="coordinator" <?= sel('role', 'coordinator') ?>><?= lang('Coordinator', 'Koordinator') ?></option>
                                 <option value="partner" <?= sel('role', 'partner') ?>><?= lang('Partner') ?></option>
+                                <option value="associated" <?= sel('role', 'associated') ?>><?= lang('Associated', 'Beteiligt') ?></option>
+
                             </select>
                             <label for="role">
                                 <?= lang('Role of', 'Rolle von') ?> <?= $Settings->get('affiliation') ?>
@@ -514,7 +509,7 @@ function sel($index, $value)
                         <div class="custom-checkbox">
                             <input type="checkbox" id="public-check" <?= val('public', false) ? 'checked' : '' ?> name="values[public]">
                             <label for="public-check">
-                                Zustimmung zur Internetpräsentation des bewilligten Vorhabens
+                                <?=lang('Approval of the internet presentation of the approved project', 'Zustimmung zur Internetpräsentation des bewilligten Vorhabens')?>
                             </label>
                         </div>
                     </div>
@@ -755,6 +750,9 @@ function sel($index, $value)
                     </div>
                 <?php } ?>
             <?php } ?>
+
+             <!-- if topics are registered, you can choose them here -->
+        <?php $Settings->topicChooser(DB::doc2Arr($form['topics'] ?? [])) ?>
 
             <button class="btn secondary" type="submit" id="submit-btn">
                 <i class="ph ph-check"></i> <?= lang("Save", "Speichern") ?>

@@ -6,15 +6,25 @@ define('ROOTPATH', '');
 // define ADMIN user name
 define('ADMIN', 'juk20');
 
-// if you do not use LDAP, change the following to 'AUTH'
-define('USER_MANAGEMENT', 'LDAP');
-// define LDAP connection
-define("LDAP_IP", "100.10.100.0");
-define("LDAP_PORT", 389);
-define("LDAP_USER", "osiris");
-define("LDAP_DOMAIN", "@domain.local");
-define("LDAP_PASSWORD", "ldap_password");
-define("LDAP_BASEDN", "OU=Users,OU=DSMZ,DC=dsmz,DC=local");
+// possible values are 'AUTH', 'LDAP' or 'OAUTH'
+define('USER_MANAGEMENT', 'AUTH');
+
+// LDAP user management:
+// define("LDAP_IP", "100.10.100.0");
+// define("LDAP_PORT", 389);
+// define("LDAP_USER", "osiris");
+// define("LDAP_DOMAIN", "@domain.local");
+// define("LDAP_PASSWORD", "ldap_password");
+// define("LDAP_BASEDN", "OU=Users,OU=DSMZ,DC=dsmz,DC=local");
+
+// OAUTH user management:
+// define('OAUTH', 'Microsoft');
+// define('CLIENT_ID', 'DEINE_CLIENT_ID');
+// define('CLIENT_SECRET', 'DEIN_CLIENT_SECRET');
+// define('REDIRECT_URI', 'http://localhost/login-callback.php');
+// define('AUTHORITY', 'https://login.microsoftonline.com/common');
+// define('SCOPES', 'openid profile email User.Read');
+
 
 // define DB connection
 define("DB_NAME", "osiris");
