@@ -5,10 +5,10 @@
  * This file is part of the OSIRIS package.
  * Copyright (c) 2024 Julia Koblitz, OSIRIS Solutions GmbH
  * 
- * @link        /concepts
+ * @link        /claim
  *
  * @package     OSIRIS
- * @since       1.3.7
+ * @since       1.4.0
  * 
  * @copyright	Copyright (c) 2024 Julia Koblitz, OSIRIS Solutions GmbH
  * @author		Julia Koblitz <julia.koblitz@osiris-solutions.de>
@@ -29,10 +29,13 @@ foreach ($names as $name) {
 $last = array_values(array_unique($last));
 $first = array_values(array_unique($first));
 
+$last = array_map(fn($n) => normalizer_normalize($n, Normalizer::FORM_C), $last);
+$first = array_map(fn($n) => normalizer_normalize($n, Normalizer::FORM_C), $first);
+
 $filter = ['authors' => ['$elemMatch' => ['user' => null, 'last' => ['$in' => $last], 'first' => ['$in' => $first]]]];
+$options = ['collation' => ['locale' => 'en', 'strength' => 1]]; // case-insensitive
 
-$activities = $osiris->activities->find($filter)->toArray();
-
+$activities = $osiris->activities->find($filter, $options)->toArray();
 ?>
 
 <h1>
