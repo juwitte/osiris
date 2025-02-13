@@ -138,6 +138,11 @@ Die Nutzereinstellungen sind in den letzten Monaten gewachsen und sehr unübersi
 - TODO: Das Interface braucht immer noch ein bisschen Liebe.
 
 
+#### <i class="ph ph-hand ph-fw"></i> Erweitertes Claimen von Aktivitäten
+- Auf der eigenen Profilseite gibt es jetzt einen Knopf über den der "Claim"-Bereich verfügbar ist.
+- Hier können ahand der eigenen Namen alle Aktivitäten, die noch einem nicht zugeordnet sind, zugeordnet werden
+
+
 #### <i class="ph ph-gear"></i> Admin-Bereich
 - Die generellen Einstellungen wurden überarbeitet und sind jetzt übersichtlicher
 - Es ist jetzt möglich, die Farben des UIs anzupassen
@@ -161,6 +166,7 @@ Die Nutzereinstellungen sind in den letzten Monaten gewachsen und sehr unübersi
 - Untereinheiten können jetzt sortiert werden
 - Bei der Eingabe der Google Scholar-ID wird diese jetzt auf Fehler überprüft, da dies immer wieder zu Problemen beim Importieren führte
 - Es wurde ein Fehler behoben, durch den beim Ändern der ID einer Aktivitätskategorie alle Typen verloren gingen
+- Es wurde ein Problem behoben, durch das Autor:innen mit diakritischen Zeichen nicht korrekt verknüpft wurden
 
 
 ----
