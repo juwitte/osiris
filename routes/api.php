@@ -2363,6 +2363,7 @@ Route::get('/api/pivot-data', function () {
         // 'pubmed' => 1,
         // 'pages' => 1,
         // 'volume' => 1,
+        'topics' => 1,
         'created' => 1,
         'imported' => 1,
         'id' => ['$toString' => '$_id']
