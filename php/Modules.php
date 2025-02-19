@@ -732,7 +732,8 @@ class Modules
                 break;
             case 'list':
                 $multiple = $field['multiple'] ?? false;
-                echo '<select class="form-control" name="values[' . $module . ']" id="' . $module . '" ' . $required . ' '.($multiple ? 'multiple': '').'>';
+                $name = 'values[' . $module . ']' . ($multiple ? '[]' : '');
+                echo '<select class="form-control" name="'.$name.'" id="' . $module . '" ' . $required . ' '.($multiple ? 'multiple': '').'>';
                 $val = $this->val($module, $field['default'] ?? '');
                 if (!$req) {
                     '<option value="" ' . (empty($val) ? 'selected' : '') . '>-</option>';

@@ -1022,6 +1022,7 @@ class Document extends Settings
                         if ($val == $field[0] ?? '') return lang(...$field);
                     }
                 }
+                if (is_array($val)) return implode(", ", $val);
                 return $val;
         }
     }

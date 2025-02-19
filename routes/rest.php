@@ -553,12 +553,17 @@ Route::get('/portfolio/unit/([^/]*)/staff', function ($id) {
     $result = [];
 
     foreach ($persons as $person) {
+        $units = $person['units'] ?? [];
+        if (!empty($units)) {
+            $units = array_column(DB::doc2Arr($units), 'unit');
+            $units = $Groups->deptHierarchies($units);
+        }
         $row = [
             'displayname' => ($person['first'] ?? '') . ' ' . $person['last'],
             'academic_title' => $person['academic_title'],
             'position' => $person['position'],
             'position_de' => $person['position_de'],
-            'depts' => $Groups->deptHierarchies($person['units'] ?? []),
+            'depts' => $units,
         ];
         if ($person['public_image'] ?? false) {
             $row['img'] = $Settings->printProfilePicture($person['username'], 'profile-img');
