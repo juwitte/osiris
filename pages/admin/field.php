@@ -132,6 +132,7 @@ if (!empty($form) && isset($form['id'])) {
             <button type="submit" class="btn success" id="submitBtn"><?= $btntext ?></button>
 
         </div>
+    </div>
 
 
 </form>
