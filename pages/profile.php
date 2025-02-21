@@ -239,11 +239,7 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
         }
         ?>
 
-        <?php foreach (($scientist['roles'] ?? []) as $role) { ?>
-            <span class="badge">
-                <?= strtoupper($role) ?>
-            </span>
-        <?php } ?>
+        <?= $Settings->printTopics($scientist['topics'] ?? [], 'mt-10') ?>
 
 
     </div>
@@ -337,11 +333,6 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
     <?php } ?>
 </div>
 
-
-<!-- show research topics -->
-<div class="my-20">
-    <?= $Settings->printTopics($scientist['topics'] ?? []) ?>
-</div>
 
 <?php if ($currentuser) { ?>
 
@@ -1082,6 +1073,17 @@ if ($currentuser) { ?>
                             </tr>
                         <?php } ?>
 
+                        <tr>
+                            <td>
+                                <span class="key"><?= lang('Roles', 'Rollen') ?></span>
+
+                                <?php foreach (($scientist['roles'] ?? []) as $role) { ?>
+                                    <span class="badge">
+                                        <?= strtoupper($role) ?>
+                                    </span>
+                                <?php } ?>
+                            </td>
+                        </tr>
                         <?php if (isset($scientist['mail'])) { ?>
                             <tr>
                                 <td>

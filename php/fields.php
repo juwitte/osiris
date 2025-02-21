@@ -129,7 +129,7 @@ $FIELDS = [
             'filter',
             'columns'
         ],
-        'label' => lang('Department (abbr.)', 'Abteilung (Kürzel)'),
+        'label' => lang('Organizational unit (abbr.)', 'Organisationseinheit (Kürzel)'),
         'type' => 'string'
     ],
     [
@@ -208,7 +208,7 @@ $FIELDS = [
         'type' => 'boolean',
     ],
     [
-        'id' => 'authors.unit',
+        'id' => 'authors.units',
         'module_of' => $typeModules['authors'] ?? [],
         'usage' => [
             'filter', 'columns'
@@ -220,7 +220,7 @@ $FIELDS = [
         'id' => 'authors.sws',
         'module_of' => $typeModules['supervisor'] ?? [],
         'usage' => [
-            'filter'
+            'filter', 'columns'
         ],
         'label' => lang('Author (SWS)', 'Autor (SWS)'),
         'type' => 'integer'
