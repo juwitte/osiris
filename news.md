@@ -1,8 +1,8 @@
 # Neuigkeiten
 
 
-<span class="badge float-right">under development</span>
-<a class="anchor" href="#version-1.4.1" id="version-1.4.1"></a>
+<span class="badge float-right">21.02.2025</span>
+<a class="anchor" href="#version-1.4.1-beta" id="version-1.4.1-beta"></a>
 
 ## Version 1.4.1 (Beta)
 
@@ -10,6 +10,11 @@
 - Es wurde ein neues Modul hinzugefügt, mit dem Pivot-Tabellen und Diagramme erstellt werden können
 - Die Daten können nach verschiedenen Kategorien gruppiert und aggregiert werden, um Trends und Muster zu erkennen
 - Die Daten können in verschiedenen Diagrammen dargestellt werden, z.B. Balken-, Linien- und Tortendiagramme
+
+#### <i class="ph ph-gear"></i> Smaller Improvements
+- In der erweiterten Suche können jetzt auch Spalten angezeigt werden, die eigentlich eine Liste sind, wie zum Beispiel die SWS von Autor:innen
+- Die Darstellung von Forschungsbereichen wurde im Profil und in der Aktivitätsübersicht verbessert
+- Es wurde ein Bug in der Portfolio-API behoben, durch den die Daten nicht korrekt ausgeliefert wurden
 
 ---
 
