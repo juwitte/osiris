@@ -256,7 +256,7 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
 
 
 <!-- show research topics -->
-<?= $Settings->printTopics($doc['topics'] ?? []) ?>
+<?= $Settings->printTopics($doc['topics'] ?? [], 'mb-20') ?>
 
 
 <div class="d-flex">
