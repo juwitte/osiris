@@ -27,7 +27,8 @@ $mode = $_GET['mode'] ?? 'standard';
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pivottable/2.23.0/pivot.min.js" integrity="sha512-XgJh9jgd6gAHu9PcRBBAp0Hda8Tg87zi09Q2639t0tQpFFQhGpeCgaiEFji36Ozijjx9agZxB0w53edOFGCQ0g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <script src="https://cdn.plot.ly/plotly-basic-latest.min.js" charset="utf-8"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pivottable/2.23.0/plotly_renderers.min.js"></script>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pivottable/2.23.0/plotly_renderers.min.js"></script> -->
+<script src="<?= ROOTPATH ?>/js/plotly_renderers.js"></script>
 <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pivottable/2.23.0/pivot.de.min.js" integrity="sha512-/5FfiXxtbetIwiZLE5XG2SxaeF/KG2wgyhWpRnyDLAY0NsnerIqn7ZF0zXiE6Pp6Ov0dc4V4T4ZCquSVRkhT0w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
 
 
@@ -117,8 +118,25 @@ $mode = $_GET['mode'] ?? 'standard';
                 dataType: "json",
                 success: function(data) {
                     var derivers = $.pivotUtilities.derivers;
-                    var renderers = $.extend($.pivotUtilities.renderers,
-                        $.pivotUtilities.plotly_renderers);
+                    var renderers = $.extend({}, $.pivotUtilities.renderers, $.pivotUtilities.plotly_renderers);
+
+                    // let plotlyOptions = {
+                    //     responsive: true
+                    // };
+
+                    // // Renderer-Funktion modifizieren
+                    // Object.keys($.pivotUtilities.plotly_renderers).forEach(function(key) {
+                    //     console.log(key);
+                    //     let originalRenderer = $.pivotUtilities.plotly_renderers[key];
+                    //     renderers[key] = function(pivotData, opts) {
+                    //         opts = opts || {};
+                    //         console.log(opts);
+                    //         opts.plotlyConfig = plotlyOptions; // Hier die responsive-Einstellung setzen
+                    //         return originalRenderer(pivotData, opts);
+                    //     };
+                    // });
+
+
 
 
                     $("#pivot-container").pivotUI(data.data, {
@@ -139,6 +157,7 @@ $mode = $_GET['mode'] ?? 'standard';
                         },
                         // menuLimit: 9999
                         unusedAttrsVertical: false,
+
                     }, false, lang('en', 'de'));
                     $('.loader').hide();
                 },
@@ -150,105 +169,3 @@ $mode = $_GET['mode'] ?? 'standard';
         });
     </script>
 <?php } ?>
-
-
-
-
-
-<!-- 
-<script>
-    function flattenRecords(data) {
-        let result = [];
-
-        data.forEach(record => {
-            let affiliatedPositions = record.affiliated_positions || [null];
-            let units = record.units || [null];
-
-            let numCombinations = affiliatedPositions.length * units.length; // Anzahl der Duplikate
-
-            affiliatedPositions.forEach(position => {
-                units.forEach(unit => {
-                    let newRecord = {
-                        ...record
-                    };
-                    newRecord.affiliated_positions = position;
-                    newRecord.units = unit;
-                    newRecord.weight = 1 / numCombinations; // Korrektur-Faktor
-                    result.push(newRecord);
-                });
-            });
-        });
-
-        return result;
-    }
-
-    // Eigene Aggregator-Funktion, die "Count" ersetzt
-function weightedCountAggregator() {
-    return function () {
-        let count = 0;
-        return {
-            push: function (record) {
-                count += record.weight ? record.weight : 1;  // Gewichtung oder normale Zählung
-            },
-            value: function () {
-                return Math.round(count);  // Werte auf Int runden
-            },
-            format: function (x) {
-                return Math.round(x);  // Ausgabe runden
-            }
-        };
-    };
-}
-
-    $(document).ready(function() {
-        $('.loader').show();
-        $.ajax({
-            url: ROOTPATH + '/api/pivot-data', // Deine API, die Daten aus MongoDB liefert
-            type: "GET",
-            dataType: "json",
-            success: function(data) {
-                let transformedData = flattenRecords(data.data);
-
-                console.log(transformedData);
-                // var derivers = $.pivotUtilities.derivers;
-                var renderers = $.extend(
-                    $.pivotUtilities.renderers,
-                    $.pivotUtilities.plotly_renderers
-                );
-
-                $("#pivot-container").pivotUI(transformedData, {
-                    rows: ["type", "year"], // Standardmäßig nach Kategorie & Jahr gruppieren
-                    cols: ["quartile"], // Quartile in Spalten anzeigen
-                    vals: ["impact"], // Impact Factor aggregieren
-                    // aggregatorName: "Sum", // Summieren (alternativ: Durchschnitt)
-                    rendererName: "Heatmap", // Standarddarstellung als Tabelle
-                    renderers: renderers, // Unterstützt Diagramme via Plotly
-                    hiddenAttributes: ["created", "imported"], // Diese Daten nicht in UI anzeigen
-                    derivedAttributes: {
-                        "Publication Period": function(record) {
-                            return record["start_date"] + " - " + record["end_date"];
-                        }
-                    },
-                    // aggregator: function() {
-                    //     return $.pivotUtilities.aggregatorTemplates.sum()(["weight"]);
-                    // },
-                    aggregator: function () {
-        let activeFields = $("#pivot-container").data("pivotUIOptions").rows.concat(
-            $("#pivot-container").data("pivotUIOptions").cols
-        );
-
-        return (activeFields.includes("units") || activeFields.includes("affiliated_positions")) 
-            ? weightedCountAggregator()
-            : $.pivotUtilities.aggregators["Count"]();
-    },
-                    vals: ["weight"],
-                });
-                $('.loader').hide();
-            },
-            error: function(xhr, status, error) {
-                console.error("Fehler beim Laden der Daten:", error);
-                $('.loader').hide();
-            }
-        });
-    });
-</script> -->
