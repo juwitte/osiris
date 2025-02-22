@@ -71,10 +71,10 @@ function renderActivities($filter = [])
     return $rendered;
 }
 
-function renderAuthorUnits($doc, $old_doc = [])
+function renderAuthorUnits($doc, $old_doc = [], $author_key = 'authors')
 {
     global $Groups;
-    if (!isset($doc['authors'])) return $doc;
+    if (!isset($doc[$author_key])) return $doc;
 
     $DB = new DB;
     $osiris = $DB->db;
@@ -82,8 +82,8 @@ function renderAuthorUnits($doc, $old_doc = [])
     $units = [];
     $startdate = strtotime($doc['start_date']);
 
-    $authors = $doc['authors'] ?? [];
-    $old = $old_doc['authors'] ?? [];
+    $authors = $doc[$author_key] ?? [];
+    $old = $old_doc[$author_key] ?? [];
 
     // check if old authors are equal to new authors
     if (count($authors) == count($old) && $authors == $old) {
@@ -94,7 +94,7 @@ function renderAuthorUnits($doc, $old_doc = [])
     $old = array_column($old, 'units', 'user');
 
     foreach ($authors as $i => $author) {
-        if (!($author['aoi'] ?? false) || !isset($author['user'])) continue;
+        if ($author_key == 'authors' && (!($author['aoi'] ?? false) || !isset($author['user']))) continue;
         $user = $author['user'];
 
         // check if author has been manually set, if so, do not update units
@@ -124,7 +124,7 @@ function renderAuthorUnits($doc, $old_doc = [])
     }
     $units = array_unique($units);
     $doc['units'] = array_values($units);
-    $doc['authors'] = $authors;
+    $doc[$author_key] = $authors;
     return $doc;
 }
 
@@ -135,6 +135,17 @@ function renderAuthorUnitsMany($filter = []){
     foreach ($cursor as $doc) {
         $doc = renderAuthorUnits($doc);
         $DB->db->activities->updateOne(
+            ['_id' => $doc['_id']],
+            ['$set' => $doc]
+        );
+    }
+}
+function renderAuthorUnitsProjects($filter = []){
+    $DB = new DB;
+    $cursor = $DB->db->projects->find($filter, ['projection' => ['persons' => 1, 'units' => 1, 'start_date' => 1]]);
+    foreach ($cursor as $doc) {
+        $doc = renderAuthorUnits($doc, [], 'persons');
+        $DB->db->projects->updateOne(
             ['_id' => $doc['_id']],
             ['$set' => $doc]
         );

@@ -247,6 +247,9 @@ Route::get('/migrate', function () {
     include_once BASEPATH . "/php/Render.php";
     renderActivities();
 
+    echo '<p>Rerender projects</p>';
+    renderAuthorUnitsProjects();
+
     echo "<p>Done.</p>";
     $osiris->system->updateOne(
         ['key' => 'version'],

@@ -561,7 +561,7 @@ class Project
 
         $start = $this->project['start_date'];
         foreach ($this->project['persons'] as $person) {
-            $u = $person['units'] ?? null;
+            $u = DB::doc2Arr($person['units'] ?? []);
             if (empty($u)) {
                $u = $Groups->getPersonUnit($person['user'], $start);
                if (empty($u)) continue;

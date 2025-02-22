@@ -642,7 +642,7 @@ $institute = $Settings->get('affiliation_details');
                 <table class="table">
                     <tbody>
                         <?php
-                        $units = $Project->getUnits();
+                        $units = $project['units'] ?? [];
                         // $tree =  $Groups->getPersonHierarchyTree($units);
                         if (!empty($units)) {
                             $hierarchy = $Groups->getPersonHierarchyTree($units);

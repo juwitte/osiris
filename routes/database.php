@@ -20,6 +20,14 @@ Route::get('/rerender', function () {
     renderActivities();
     echo "Done.";
 });
+
+Route::get('/rerender-projects', function () {
+    set_time_limit(6000);
+    include_once BASEPATH . "/php/Render.php";
+    renderAuthorUnitsProjects();
+    echo "Done.";
+});
+
 Route::get('/rerender-units/?(.*)', function ($username) {
     set_time_limit(6000);
     include_once BASEPATH . "/php/Render.php";
