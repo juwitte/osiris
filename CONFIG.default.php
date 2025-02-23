@@ -28,7 +28,8 @@ define('USER_MANAGEMENT', 'AUTH');
 
 // define DB connection
 define("DB_NAME", "osiris");
-define("DB_STRING", "mongodb://localhost:27017/" . DB_NAME . "?retryWrites=true&w=majority");
+define("DB_STRING", "mongodb://mongo:27017/" . DB_NAME . "?retryWrites=true&w=majority");
+//define("DB_STRING", "mongodb://localhost:27017/" . DB_NAME . "?retryWrites=true&w=majority");
 
 // define API keys
 define("WOS_STARTER_KEY", "wos starter key");
@@ -38,3 +39,5 @@ define("WOS_JOURNAL_INFO", 2021);
 // not needed right now, but planned in the future
 define("ORCID_APP_ID", null);
 define("ORCID_SECRET_KEY", null);
+
+define('LIVE', true);
