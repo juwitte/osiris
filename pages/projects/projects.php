@@ -77,6 +77,12 @@ if (!$Settings->hasPermission('projects.view')) {
         border-bottom: 5px solid transparent;
         border-right: 0px solid transparent;
     }
+    
+    .dropdown-menu .item.active {
+        background-color: var(--primary-color-20);
+        color: var(--primary-color);
+        font-weight: bold;
+    }
 </style>
 
 <div class="btn-toolbar float-right">
@@ -105,11 +111,27 @@ if (!$Settings->hasPermission('projects.view')) {
 
 <!-- TODO: advanced search? -->
 
+
 <button class="btn primary float-right" onclick="$('.filter-wrapper').slideToggle()">Filter <i class="ph ph-caret-down"></i></button>
 
 
 <div class="row row-eq-spacing">
     <div class="col order-last order-sm-first">
+
+        <div class="dropdown float-right">
+            <button class="btn small" data-toggle="dropdown" type="button" id="dropdown-1" aria-haspopup="true" aria-expanded="false">
+               <i class="ph ph-sort-ascending"></i>  
+               Sort <i class="ph ph-caret-down ml-5" aria-hidden="true"></i>
+            </button>
+            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown-1">
+                <a class="item" onclick="sortTable(this, 3, 'asc')">Start date (ASC)</a>
+                <a class="item active" onclick="sortTable(this, 3, 'desc')">Start date (DESC)</a>
+                <a class="item" onclick="sortTable(this, 4, 'asc')">End date (ASC)</a>
+                <a class="item" onclick="sortTable(this, 4, 'desc')">End date (DESC)</a>
+                <a class="item" onclick="sortTable(this, 0, 'asc')">Name (ASC)</a>
+                <a class="item" onclick="sortTable(this, 0, 'desc')">Name (DESC)</a>
+            </div>
+        </div>
 
         <table class="table cards w-full" id="project-table">
             <thead>
@@ -486,7 +508,6 @@ if (!$Settings->hasPermission('projects.view')) {
                     },
                     text: '<i class="ph ph-file-xls"></i> Export'
                 },
-                // custom link button
             ],
             dom: 'fBrtip',
             columnDefs: [{
@@ -620,7 +641,7 @@ if (!$Settings->hasPermission('projects.view')) {
                 }
             ],
             order: [
-                [12, 'desc']
+                [3, 'desc']
             ],
             paging: true,
             autoWidth: true,
@@ -703,5 +724,13 @@ if (!$Settings->hasPermission('projects.view')) {
         }
         writeHash(hash)
 
+    }
+
+    function sortTable(el, column, direction='asc'){
+        $(el).closest('.dropdown-menu').find('.active').removeClass('active');
+        $(el).addClass('active');
+
+        dataTable.order([column, direction]).draw(); 
+        return false;
     }
 </script>
