@@ -90,7 +90,7 @@ if ($Settings->hasPermission('journals.edit')) { ?>
         //         [0, 'asc'],
         //     ]
         // });
-        $('#result-table').DataTable({
+        dataTable = ('#result-table').DataTable({
             ajax: ROOTPATH + '/api/journals',
             columnDefs: [{
                     "targets": 0,
@@ -106,6 +106,7 @@ if ($Settings->hasPermission('journals.edit')) { ?>
                 {
                     targets: 1,
                     data: 'publisher',
+                    defaultContent: '',
                     render: function(data, type, full, meta) {
                         return `${data}<br><small class="text-muted">${full.country ?? ''}</small>`;
                     }
@@ -113,18 +114,26 @@ if ($Settings->hasPermission('journals.edit')) { ?>
                 {
                     targets: 2,
                     data: 'issn',
+                    defaultContent: '',
                     render: function(data, type, full, meta) {
-                        return data.join('<br>');
+                        if (!data) return '';
+                        if (Array.isArray(data)) {
+                            return data.join('<br>');
+                        }
+                        return data;
                     },
                     className: 'unbreakable'
                 },
                 {
                     targets: 3,
                     data: 'open_access',
+                    defaultContent: '-',
                     render: function(data, type, full, meta) {
                         if (data === 'Nein' || data == 'No') 
                             return `<span class="text-danger">${data}</span>`;
-                        return `<span class="text-success">${data}</span>`;
+                        if (data === 'Ja' || data == 'Yes')
+                            return `<span class="text-success">${data}</span>`;
+                        return data;
                     },
                     className: 'unbreakable'
                 },
@@ -132,6 +141,7 @@ if ($Settings->hasPermission('journals.edit')) { ?>
                     type: 'natural',
                     targets: 4,
                     data: 'if',
+                    defaultContent: null,
                     render: function(data, type, full, meta) {
                         if (!data) return '';
                         var impact = data.impact ?? 0;
@@ -144,7 +154,8 @@ if ($Settings->hasPermission('journals.edit')) { ?>
                 {
                     type: 'natural',
                     targets: 5,
-                    data: 'count'
+                    data: 'count',
+                    defaultContent: 0
                 },
             ],
             "order": [
