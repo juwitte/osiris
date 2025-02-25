@@ -77,7 +77,7 @@ if (!$Settings->hasPermission('projects.view')) {
         border-bottom: 5px solid transparent;
         border-right: 0px solid transparent;
     }
-    
+
     .dropdown-menu .item.active {
         background-color: var(--primary-color-20);
         color: var(--primary-color);
@@ -121,7 +121,7 @@ if (!$Settings->hasPermission('projects.view')) {
         <div class="dropdown float-right">
             <button class="btn small" data-toggle="dropdown" type="button" id="dropdown-1" aria-haspopup="true" aria-expanded="false">
                <i class="ph ph-sort-ascending"></i>  
-               Sort <i class="ph ph-caret-down ml-5" aria-hidden="true"></i>
+               <?=lang('Sort', 'Sortieren')?> <i class="ph ph-caret-down ml-5" aria-hidden="true"></i>
             </button>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown-1">
                 <a class="item" onclick="sortTable(this, 3, 'asc')">Start date (ASC)</a>
