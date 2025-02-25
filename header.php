@@ -96,9 +96,9 @@ $pageactive = function ($p) use ($page) {
         const AFFILIATION = "<?= $Settings->get('affiliation') ?>";
     </script>
 
-    <script src="<?= ROOTPATH ?>/js/jquery-3.3.1.min.js"></script>
-    <script src="<?= ROOTPATH ?>/js/datatables/jquery.dataTables.min.js"></script>
-    <script src="<?= ROOTPATH ?>/js/datatables/dataTables.responsive.min.js"></script>
+    <script src="<?= ROOTPATH ?>/js/jquery-3.3.1.min.js?v=<?= CSS_JS_VERSION ?>"></script>
+    <script src="<?= ROOTPATH ?>/js/datatables/jquery.dataTables.min.js?v=<?= CSS_JS_VERSION ?>"></script>
+    <script src="<?= ROOTPATH ?>/js/datatables/dataTables.responsive.min.js?v=<?= CSS_JS_VERSION ?>"></script>
     <script>
         $.extend($.fn.DataTable.ext.classes, {
             sPaging: "pagination mt-10 ",

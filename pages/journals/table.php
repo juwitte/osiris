@@ -85,11 +85,6 @@ if ($Settings->hasPermission('journals.edit')) { ?>
 <script>
     var dataTable;
     $(document).ready(function() {
-        // dataTable = $('#result-table').DataTable({
-        //     "order": [
-        //         [0, 'asc'],
-        //     ]
-        // });
         dataTable = ('#result-table').DataTable({
             ajax: ROOTPATH + '/api/journals',
             columnDefs: [{
