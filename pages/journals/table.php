@@ -85,7 +85,7 @@ if ($Settings->hasPermission('journals.edit')) { ?>
 <script>
     var dataTable;
     $(document).ready(function() {
-        dataTable = ('#result-table').DataTable({
+        dataTable = $('#result-table').DataTable({
             ajax: ROOTPATH + '/api/journals',
             columnDefs: [{
                     "targets": 0,
