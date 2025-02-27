@@ -37,6 +37,13 @@ $N = $osiris->activities->count(['projects' => $project['name']]);
 
 $institute = $Settings->get('affiliation_details');
 
+if (empty($institute) || !isset($institute['lat']) || !isset($institute['lng'])) {
+    $institute = [
+        'lat' => 52,
+        'lng' => 10
+    ];
+}
+
 ?>
 <?php if (isset($_GET['msg']) && $_GET['msg'] === 'success') { ?>
 
