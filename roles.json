@@ -211,6 +211,11 @@
                 "en": "Edit all infrastructures"
             },
             {
+                "id": "infrastructures.statistics",
+                "de": "Infrastrukturstatistiken ergänzen",
+                "en": "Add infrastructure statistics"
+            },
+            {
                 "id": "infrastructures.delete",
                 "de": "Infrastrukturen löschen",
                 "en": "Delete infrastructures"

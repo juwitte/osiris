@@ -17,11 +17,13 @@
 
 $user_infrastructure = false;
 $user_role = null;
+$reporter = false;
 $persons = DB::doc2Arr($infrastructure['persons'] ?? array());
 foreach ($persons as $p) {
     if (strval($p['user']) == $_SESSION['username']) {
         $user_infrastructure = True;
         $user_role = $p['role'];
+        $reporter = $p['reporter'] ?? false;
         break;
     }
 }
@@ -93,13 +95,13 @@ $edit_perm = ($infrastructure['created_by'] == $_SESSION['username'] || $Setting
             <br />
             <span class="badge"><?= $infrastructure['access'] ?? '-' ?></span>
         </div>
-    <?php if ($Settings->hasPermission('infrastructures.edit')) { ?>
-        <a href="<?= ROOTPATH ?>/infrastructures/edit/<?= $infrastructure['_id'] ?>" class="btn h-full">
-            <i class="ph ph-edit"></i>
-            <span class="sr-only"><?= lang('Edit', 'Bearbeiten') ?></span>
-        </a>
-    <?php } ?>
-    
+        <?php if ($Settings->hasPermission('infrastructures.edit')) { ?>
+            <a href="<?= ROOTPATH ?>/infrastructures/edit/<?= $infrastructure['_id'] ?>" class="btn h-full">
+                <i class="ph ph-edit"></i>
+                <span class="sr-only"><?= lang('Edit', 'Bearbeiten') ?></span>
+            </a>
+        <?php } ?>
+
     </div>
 
 </div>
@@ -257,18 +259,20 @@ if (!empty($statistics)) {
 }
 ?>
 
-
-<form action="<?= ROOTPATH ?>/infrastructures/year/<?= $infrastructure['_id'] ?>" method="get" class="d-inline">
-    <div class="input-group w-auto d-inline-flex">
-        <input type="number" class="form-control w-100" placeholder="Year" name="year" required step="1" min="1900" max="<?= CURRENTYEAR + 1 ?>" value="<?= CURRENTYEAR - 1 ?>">
-        <div class="input-group-append">
-            <button class="btn">
-                <i class="ph ph-calendar-plus"></i>
-                <?= lang('Edit year statistics', 'Jahresstatistik bearbeiten') ?>
-            </button>
+<?php if ($reporter || $Settings->hasPermission('infrastructures.statistics')) { ?>
+    <form action="<?= ROOTPATH ?>/infrastructures/year/<?= $infrastructure['_id'] ?>" method="get" class="d-inline">
+        <div class="input-group w-auto d-inline-flex">
+            <input type="number" class="form-control w-100" placeholder="Year" name="year" required step="1" min="1900" max="<?= CURRENTYEAR + 1 ?>" value="<?= CURRENTYEAR - 1 ?>">
+            <div class="input-group-append">
+                <button class="btn">
+                    <i class="ph ph-calendar-plus"></i>
+                    <?= lang('Edit year statistics', 'Jahresstatistik bearbeiten') ?>
+                </button>
+            </div>
         </div>
-    </div>
-</form>
+    </form>
+<?php } ?>
+
 
 <?php if (empty($statistics)) { ?>
     <div class="alert secondary my-20 w-md-half">
@@ -471,12 +475,12 @@ if (!empty($statistics)) {
 
 <?php if ($Settings->hasPermission('infrastructures.delete')) { ?>
 
-    <button class="btn danger" type="button" id="dropdown-1" aria-haspopup="true" aria-expanded="false" onclick="$(this).next().slideToggle()">
+    <button class="btn danger" type="button" id="delete-infrastructure" aria-haspopup="true" aria-expanded="false" onclick="$(this).next().slideToggle()">
         <i class="ph ph-trash"></i>
         <?= lang('Delete', 'Löschen') ?>
         <i class="ph ph-caret-down ml-5" aria-hidden="true"></i>
     </button>
-    <div aria-labelledby="dropdown-1" style="display: none;">
+    <div aria-labelledby="delete-infrastructure" style="display: none;">
         <div class="my-20">
             <b class="text-danger"><?= lang('Attention', 'Achtung') ?>!</b><br>
             <small>

@@ -1,17 +1,25 @@
 # Neuigkeiten
 
 
-<span class="badge float-right">21.02.2025</span>
+<span class="badge float-right">05.03.2025</span>
 <a class="anchor" href="#version-1.4.1-beta" id="version-1.4.1-beta"></a>
 
 ## Version 1.4.1 (Beta)
 
-#### <i class="ph ph-table"></i> Pivot-Tabellen und Diagramme
+#### <i class="ph ph"></i> Forschungsinfrastrukturen als neue Entität (05.03.2025)
+- Es können nun Forschungsinfrastrukturen angelegt und bearbeitet werden
+- Datenfelder basieren auf dem brandneuen KDSF 2.0
+- Aktivitäten und Personen lassen sich verknüpfen
+- Statistiken können pro Jahr angelegt werden
+- Eine Übersichtsseite mit allen Statistiken der Infrastrukturen wurde hinzugefügt. Damit lassen sich alle Beispielabfragen des KDSF durchführen.
+- Als "Reporter" markierte Personen werden auf ihrer Profilseite darauf hingewiesen, die Daten einmal jährlich zu aktualisieren
+
+#### <i class="ph ph-table"></i> Pivot-Tabellen und Diagramme (21.02.2025)
 - Es wurde ein neues Modul hinzugefügt, mit dem Pivot-Tabellen und Diagramme erstellt werden können
 - Die Daten können nach verschiedenen Kategorien gruppiert und aggregiert werden, um Trends und Muster zu erkennen
 - Die Daten können in verschiedenen Diagrammen dargestellt werden, z.B. Balken-, Linien- und Tortendiagramme
 
-#### <i class="ph ph-gear"></i> Smaller Improvements
+#### <i class="ph ph-gear"></i> Verbesserungen und Bug Fixes (21.02.2025)
 - In der erweiterten Suche können jetzt auch Spalten angezeigt werden, die eigentlich eine Liste sind, wie zum Beispiel die SWS von Autor:innen
 - Die Darstellung von Forschungsbereichen wurde im Profil und in der Aktivitätsübersicht verbessert
 - Es wurde ein Bug in der Portfolio-API behoben, durch den die Daten nicht korrekt ausgeliefert wurden
