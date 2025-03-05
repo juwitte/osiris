@@ -771,6 +771,7 @@ if ($currentuser) { ?>
                                 'openend' => lang('Ongoing activities', 'Laufende Aktivitäten'),
                                 'project-open' => lang('Open project applications', 'Offene Projektanträge'),
                                 'project-end' => lang('Expired publications', 'Abgelaufene Projekte'),
+                                'infrastructure' => lang('Updating Infrastructures', 'Infrastrukturen aktualisieren'),
                             ];
                         ?>
                             <a class="alert danger mt-10 d-block colorless" href='<?= ROOTPATH ?>/issues'>

@@ -198,7 +198,7 @@ class DB
             $user = $this->db->persons->findOne([
                 '$or' => [
                     // if user has not set alternative names yet, 'names'=>['$exist'=>false]
-                    ['last' => $last, 'first' => $first, 'names'=>['$exist'=>false]],
+                    ['last' => $last, 'first' => $first, 'names' => ['$exist' => false]],
                     // otherwise, we respect the names that have been set
                     ['names' => "$last, $first"],
                     ['names' => "$last, $abbr"],
@@ -690,6 +690,21 @@ class DB
         foreach ($projects as $project) {
             if ($now < getDateTime($project['end'])) continue;
             $issues['project-end'][] = strval($project['_id']);
+        }
+
+        $y = CURRENTYEAR - 1;
+        $infrastructures = $this->db->infrastructures->find([
+            'persons' => ['$elemMatch' => ['user' => $user, 'reporter' => true]],
+            'start_date' => ['$lte' => $y . '-12-31'],
+            '$or' => [
+                ['end_date' => null],
+                ['end_date' => ['$gte' => $y . '-01-01']]
+            ],
+            'statistics.year' => ['$ne' => $y]
+        ], ['projection' => ['id' => ['$toString' => '$_id']]]);
+
+        foreach ($infrastructures as $infra) {
+            $issues['infrastructure'][] = $infra['id'];
         }
 
         return $issues;
