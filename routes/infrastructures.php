@@ -26,6 +26,19 @@ Route::get('/infrastructures', function () {
     include BASEPATH . "/footer.php";
 }, 'login');
 
+
+Route::get('/infrastructures/statistics', function () {
+    include_once BASEPATH . "/php/init.php";
+    $user = $_SESSION['username'];
+    $breadcrumb = [
+        ['name' => lang('Infrastructures', 'Infrastrukturen'), 'path' => "/infrastructures"],
+        ['name' => lang("Statistics", "Statistiken")]
+    ];
+    include BASEPATH . "/header.php";
+    include BASEPATH . "/pages/infrastructures/statistics.php";
+    include BASEPATH . "/footer.php";
+}, 'login');
+
 Route::get('/infrastructures/new', function () {
     include_once BASEPATH . "/php/init.php";
     $user = $_SESSION['username'];
@@ -104,6 +117,42 @@ Route::get('/infrastructures/edit/(.*)', function ($id) {
 
     include BASEPATH . "/header.php";
     include BASEPATH . "/pages/infrastructures/edit.php";
+    include BASEPATH . "/footer.php";
+}, 'login');
+
+
+Route::get('/infrastructures/persons/(.*)', function ($id) {
+    include_once BASEPATH . "/php/init.php";
+    $user = $_SESSION['username'];
+
+    if (!$Settings->hasPermission('infrastructures.edit')) {
+        header("Location: " . ROOTPATH . "/infrastructures/view/$id?msg=no-permission");
+        die;
+    }
+
+    global $form;
+    if (DB::is_ObjectID($id)) {
+        $mongo_id = $DB->to_ObjectID($id);
+        $form = $osiris->infrastructures->findOne(['_id' => $mongo_id]);
+    } else {
+        $form = $osiris->infrastructures->findOne(['name' => $id]);
+        $id = strval($infrastructure['_id'] ?? '');
+    }
+    if (empty($form)) {
+        header("Location: " . ROOTPATH . "/infrastructures?msg=not-found");
+        die;
+    }
+    $breadcrumb = [
+        ['name' => lang('Infrastructures', 'Infrastrukturen'), 'path' => "/infrastructures"],
+        ['name' => $form['name'], 'path' => "/infrastructures/view/$id"],
+        ['name' => lang("Persons", "Personen")]
+    ];
+
+    include_once BASEPATH . "/php/Infrastructure.php";
+    $Infra = new Infrastructure();
+
+    include BASEPATH . "/header.php";
+    include BASEPATH . "/pages/infrastructures/persons.php";
     include BASEPATH . "/footer.php";
 }, 'login');
 
@@ -351,12 +400,22 @@ Route::post('/crud/infrastructures/update-persons/([A-Za-z0-9]*)', function ($id
         $users[] = $p['user'];
         $values[$i]['name'] =  $DB->getNameFromId($p['user']);
         $values[$i]['reporter'] = boolval($p['reporter'] ?? false);
+        $values[$i]['fte'] = floatval($p['fte'] ?? 0);
+        if (empty($p['start'])) {
+            $values[$i]['start'] = null;
+        }
+        if (empty($p['end'])) {
+            $values[$i]['end'] = null;
+        }
     }
 
-    $roles = $Infra->getRoles();
-    // sort persons by role
+    $roles = array_keys($Infra->getRoles());
+    // sort persons by role and end time (desc)
     usort($values, function ($a, $b) use ($roles) {
-        return array_search($a['role'], array_keys($roles)) - array_search($b['role'], array_keys($roles));
+        if ($a['end'] == $b['end']) {
+            return array_search($a['role'], $roles) - array_search($b['role'], $roles);
+        }
+        return $a['end'] <=> $b['end'];
     });
 
     // avoid object transformation

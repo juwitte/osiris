@@ -23,13 +23,18 @@ $infrastructures  = $osiris->infrastructures->find();
     <i class="ph ph-shipping-container" aria-hidden="true"></i>
     <?= lang('Infrastructures', 'Infrastrukturen') ?>
 </h1>
-
+<div class="btn-toolbar">
+<a href="<?= ROOTPATH ?>/infrastructures/statistics" class="btn">
+    <i class="ph ph-chart-bar"></i>
+    <?= lang('Statistics', 'Statistiken') ?>
+</a>
 <?php if ($Settings->hasPermission('infrastructures.edit')) { ?>
     <a href="<?= ROOTPATH ?>/infrastructures/new">
         <i class="ph ph-plus"></i>
-        <?= lang('Add new infrastructure', 'Neuen Bereich hinzufügen') ?>
+        <?= lang('Add new infrastructure', 'Neue Infrastruktur anlegen') ?>
     </a>
 <?php } ?>
+</div>
 
 <div id="infrastructures">
     <?php foreach ($infrastructures as $infrastructure) { ?>
