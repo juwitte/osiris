@@ -47,22 +47,28 @@ $all = $osiris->infrastructures->count();
     </a>
 </div>
 
-<h6><?= lang('Change Reporting Date', 'Stichtag ändern') ?>:</h6>
-<form action="<?= ROOTPATH ?>/infrastructures/statistics" method="get">
-    <input type="date" name="reportdate" value="<?= $reportdate ?>" class="form-control w-auto d-inline-block" />
-    <button class="btn primary" type="submit">Ändern</button>
-</form>
 
+<div class="alert signal">
+    <i class="ph ph-warning text-signal"></i>
+    <?= lang('All of the following statistics are based on the reporting date.', 'Alle unten aufgeführten Statistiken basieren auf dem angegebenen Stichtag.') ?>
 
+    <form action="<?= ROOTPATH ?>/infrastructures/statistics" method="get" class="d-flex align-items-baseline mt-10" style="grid-gap: 1rem;">
+        <h6 class="mb-0 mt-5"><?= lang('Change Reporting Date', 'Stichtag ändern') ?>:</h6>
+        <input type="date" name="reportdate" value="<?= $reportdate ?>" class="form-control w-auto d-inline-block" />
+        <button class="btn signal filled" type="submit"><?=lang('Update', 'Ändern')?></button>
+    </form>
+</div>
+
+<br>
 <div id="statistics">
     <p class="lead">
         <?= lang('Number of infrastructures on the reporting date', 'Anzahl der Infrastrukturen zum Stichtag') ?>:
-        <b class="badge primary"><?= count($infrastructures) ?></b>
+        <b class="badge signal"><?= count($infrastructures) ?></b>
         <span class="text-muted">(<?= $all ?> <?= lang('total', 'gesamt') ?>)</span>
     </p>
 
     <h3>
-        <?= lang('List of research infrastructures existing on the reporting date', 'Liste zum Stichtag bestehender Forschungsinfrastrukturen') ?>
+        <?= lang('List of research infrastructures', 'Liste bestehender Forschungsinfrastrukturen') ?>
     </h3>
     <table class="table" id="infrastructures">
         <thead>
@@ -100,7 +106,7 @@ $all = $osiris->infrastructures->count();
     </table>
 
     <h3>
-        <?= lang('Research infrastructures with name, type and number of users by year', 'Forschungsinfrastrukturen mit Bezeichnung, Typ und Anzahl der Nutzer/-innen nach Jahr') ?>
+        <?= lang('Users by year', 'Anzahl der Nutzer:innen nach Jahr') ?>
     </h3>
 
 
@@ -166,7 +172,7 @@ $all = $osiris->infrastructures->count();
 
 
     <h3>
-        Forschungsinfrastrukturen mit Bezeichnung, Typ und genutzten Stunden nach Jahr
+        <?= lang('Usage statistics by year', 'Nutzungsstatistiken nach Jahr') ?>
     </h3>
 
     <!-- Filter by Year -->
@@ -218,6 +224,64 @@ $all = $osiris->infrastructures->count();
             <?php
                 }
             } ?>
+        </tbody>
+    </table>
+
+
+    <h3>
+        <?= lang('Personnel statistics', 'Personalstatistiken') ?>
+    </h3>
+
+    <table class="table" id="person-stats">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Typ</th>
+                <th>Umfang (VZÄ)</th>
+                <th>
+                    <?= lang('Contact person', 'Ansprechpartner') ?>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($infrastructures as $infrastructure) {
+                $persons = DB::doc2Arr($infrastructure['persons'] ?? []);
+                $fte = 0;
+                $head = [];
+                foreach ($persons as $person) {
+                    // check first if person is active at the reporting date
+                    if (!empty($person['start']) && $person['start'] > $reportdate) {
+                        continue;
+                    }
+                    if (!empty($person['end']) && $person['end'] < $reportdate) {
+                        continue;
+                    }
+                    $fte += $person['fte'];
+                    if ($person['role'] == 'head') {
+                        $head[] = $person['name'];
+                    }
+                }
+                $fte = number_format($fte, 2);
+            ?>
+                <tr>
+                    <td>
+                        <a href="<?= ROOTPATH ?>/infrastructures/view/<?= $infrastructure['_id'] ?>">
+                            <?= lang($infrastructure['name'], $infrastructure['name_de'] ?? null) ?>
+                        </a>
+                    </td>
+                    <td>
+                        <?= $infrastructure['type'] ?? '-' ?>
+                    </td>
+                    <td>
+                        <?= $fte ?>
+                    </td>
+                    <td>
+                        <?= implode(', ', $head) ?>
+                    </td>
+                </tr>
+            <?php
+            }
+            ?>
         </tbody>
     </table>
 </div>
