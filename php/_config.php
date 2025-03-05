@@ -445,6 +445,8 @@ function print_list($list)
 
 function getDateTime($date)
 {
+    if (empty($date)) return null;
+    if ($date instanceof DateTime) return $date;
     if ($date instanceof MongoDB\BSON\UTCDateTime) {
         // MongoDB\BSON\UTCDateTime 
         $d = $date->toDateTime();
@@ -538,6 +540,7 @@ function getQuarter($time)
 
     try {
         $date = getDateTime($time);
+        if ($date === null) return 0;
         $month = date_format($date, 'n');
     } catch (TypeError $th) {
         $month = 1;
@@ -585,6 +588,7 @@ function format_date($date, $format = "d.m.Y")
 {
     // dump($date);
     $d = getDateTime($date);
+    if ($d === null) return '';
     return date_format($d, $format);
 }
 
