@@ -15,7 +15,10 @@
  * @license     MIT
  */
 
-$infrastructures  = $osiris->infrastructures->find();
+$infrastructures  = $osiris->infrastructures->find(
+    [],
+    ['sort' => ['end_date' => -1, 'start_date' => 1]]
+)->toArray();
 ?>
 
 
@@ -24,39 +27,46 @@ $infrastructures  = $osiris->infrastructures->find();
     <?= lang('Infrastructures', 'Infrastrukturen') ?>
 </h1>
 <div class="btn-toolbar">
-<a href="<?= ROOTPATH ?>/infrastructures/statistics" class="btn">
-    <i class="ph ph-chart-bar"></i>
-    <?= lang('Statistics', 'Statistiken') ?>
-</a>
-<?php if ($Settings->hasPermission('infrastructures.edit')) { ?>
-    <a href="<?= ROOTPATH ?>/infrastructures/new">
-        <i class="ph ph-plus"></i>
-        <?= lang('Add new infrastructure', 'Neue Infrastruktur anlegen') ?>
+    <a href="<?= ROOTPATH ?>/infrastructures/statistics" class="btn">
+        <i class="ph ph-chart-bar"></i>
+        <?= lang('Statistics', 'Statistiken') ?>
     </a>
-<?php } ?>
-</div>
-
-<div id="infrastructures">
-    <?php foreach ($infrastructures as $infrastructure) { ?>
-        <div class="box padded infrastructure">
-            <h4 class="title">
-                <a href="<?= ROOTPATH ?>/infrastructures/view/<?= $infrastructure['_id'] ?>" class="link">
-                    <?= lang($infrastructure['name'], $infrastructure['name_de'] ?? null) ?>
-                </a>
-            </h4>
-            <p class="text-muted">
-                <?php if (!empty($infrastructure['subtitle'])) { ?>
-                    <?= lang($infrastructure['subtitle'], $infrastructure['subtitle_de'] ?? null) ?>
-                <?php } else { ?>
-                    <?= get_preview(lang($infrastructure['description'], $infrastructure['description_de'] ?? null), 300) ?>
-                <?php } ?>
-            </p>
-            <?php if ($Settings->hasPermission('infrastructures.edit')) { ?>
-                <a class="btn" href="<?= ROOTPATH ?>/infrastructures/edit/<?= $infrastructure['_id'] ?>">
-                    <i class="ph ph-edit"></i>
-                    <?= lang('Edit', 'Bearbeiten') ?>
-                </a>
-            <?php } ?>
-        </div>
+    <?php if ($Settings->hasPermission('infrastructures.edit')) { ?>
+        <a href="<?= ROOTPATH ?>/infrastructures/new">
+            <i class="ph ph-plus"></i>
+            <?= lang('Add new infrastructure', 'Neue Infrastruktur anlegen') ?>
+        </a>
     <?php } ?>
 </div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th><?= lang('Name', 'Name') ?></th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($infrastructures as $infra) { ?>
+            <tr>
+                <td>
+                    <h6 class="m-0">
+                        <a href="<?= ROOTPATH ?>/infrastructures/view/<?= $infra['_id'] ?>" class="link">
+                            <?= lang($infra['name'], $infra['name_de'] ?? null) ?>
+                        </a>
+                        <br>
+                    </h6>
+
+                    <div class="text-muted mb-5">
+                        <?php if (!empty($infra['subtitle'])) { ?>
+                            <?= lang($infra['subtitle'], $infra['subtitle_de'] ?? null) ?>
+                        <?php } else { ?>
+                            <?= get_preview(lang($infra['description'], $infra['description_de'] ?? null), 300) ?>
+                        <?php } ?>
+                    </div>
+                    <div>
+                        <?= fromToYear($infra['start_date'], $infra['end_date'] ?? null, true) ?>
+                    </div>
+                </td>
+            </tr>
+        <?php } ?>
+</table>

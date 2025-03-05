@@ -631,11 +631,31 @@ Route::post('/crud/activities/update-project-data/(.*)', function ($id) {
         );
     } else {
         $values = $_POST['projects'];
-        $values = validateValues($values, $DB);
+        $values = array_values($values);
 
         $osiris->activities->updateOne(
             ['_id' => $DB::to_ObjectID($id)],
             ['$set' => ["projects" => $values]]
+        );
+    }
+    header("Location: " . ROOTPATH . "/activities/view/$id?msg=update-success");
+});
+
+
+Route::post('/crud/activities/update-infrastructure-data/(.*)', function ($id) {
+    include_once BASEPATH . "/php/init.php";
+    if (!isset($_POST['infrastructures'])) {
+        $osiris->activities->updateOne(
+            ['_id' => $DB::to_ObjectID($id)],
+            ['$unset' => ["infrastructures" => '']]
+        );
+    } else {
+        $values = $_POST['infrastructures'];
+        $values = array_values($values);
+
+        $osiris->activities->updateOne(
+            ['_id' => $DB::to_ObjectID($id)],
+            ['$set' => ["infrastructures" => $values]]
         );
     }
     header("Location: " . ROOTPATH . "/activities/view/$id?msg=update-success");

@@ -37,6 +37,7 @@ $edit_perm = ($infrastructure['created_by'] == $_SESSION['username'] || $Setting
         transition: opacity 0.3s, color 0.3s;
 
     }
+
     .inactive:hover {
         opacity: 1;
         color: var(--text-color);
@@ -44,14 +45,6 @@ $edit_perm = ($infrastructure['created_by'] == $_SESSION['username'] || $Setting
 </style>
 
 <div class="infrastructure">
-
-    <?php if ($Settings->hasPermission('infrastructures.edit')) { ?>
-        <a href="<?= ROOTPATH ?>/infrastructures/edit/<?= $infrastructure['_id'] ?>" class="btn">
-            <i class="ph ph-edit"></i>
-            <?= lang('Edit', 'Bearbeiten') ?>
-        </a>
-    <?php } ?>
-
 
     <h1 class="title">
         <?= lang($infrastructure['name'], $infrastructure['name_de'] ?? null) ?>
@@ -65,7 +58,7 @@ $edit_perm = ($infrastructure['created_by'] == $_SESSION['username'] || $Setting
         <?= get_preview($infrastructure['description'], 400) ?>
     </p>
 
-    <div class="d-flex mb-20">
+    <div class="d-flex mb-20 align-items-center">
         <div class="mr-10 badge bg-white">
             <small>ID: </small>
             <br />
@@ -100,7 +93,14 @@ $edit_perm = ($infrastructure['created_by'] == $_SESSION['username'] || $Setting
             <br />
             <span class="badge"><?= $infrastructure['access'] ?? '-' ?></span>
         </div>
+    <?php if ($Settings->hasPermission('infrastructures.edit')) { ?>
+        <a href="<?= ROOTPATH ?>/infrastructures/edit/<?= $infrastructure['_id'] ?>" class="btn h-full">
+            <i class="ph ph-edit"></i>
+            <span class="sr-only"><?= lang('Edit', 'Bearbeiten') ?></span>
+        </a>
+    <?php } ?>
     </div>
+
 </div>
 
 <hr>
@@ -108,16 +108,14 @@ $edit_perm = ($infrastructure['created_by'] == $_SESSION['username'] || $Setting
 
 <h2>
     <?= lang('Operating personnel', 'Betriebspersonal') ?>
-</h2>
-
-<div class="btn-toolbar">
     <?php if ($edit_perm) { ?>
-        <a href="<?=ROOTPATH?>/infrastructures/persons/<?=$id?>" class="btn primary">
+        <a href="<?= ROOTPATH ?>/infrastructures/persons/<?= $id ?>" class="font-size-16">
             <i class="ph ph-edit"></i>
-            <?= lang('Edit', 'Bearbeiten') ?>
+            <span class="sr-only"><?= lang('Edit', 'Bearbeiten') ?></span>
         </a>
     <?php } ?>
-</div>
+</h2>
+
 
 <div class="row row-eq-spacing mb-0">
 
@@ -141,7 +139,7 @@ $edit_perm = ($infrastructure['created_by'] == $_SESSION['username'] || $Setting
         }
     ?>
         <div class="col-sm-6 col-md-4 col-lg-3">
-            <div class="d-flex align-items-center box p-10 mt-0 <?=$past?>">
+            <div class="d-flex align-items-center box p-10 mt-0 <?= $past ?>">
 
                 <?= $Settings->printProfilePicture($username, 'profile-img small mr-20') ?>
                 <div>
@@ -157,7 +155,7 @@ $edit_perm = ($infrastructure['created_by'] == $_SESSION['username'] || $Setting
                         </span>
                     <?php } ?>
                     <br>
-                    
+
                     <?= fromToYear($person['start'], $person['end'] ?? null, true) ?>
 
                 </div>
@@ -168,8 +166,81 @@ $edit_perm = ($infrastructure['created_by'] == $_SESSION['username'] || $Setting
 
 </div>
 
+<hr>
+
+<h2>
+    <?= lang('Connected activities', 'Verknüpfte Aktivitäten') ?>
+</h2>
+
+<small>
+    <?= lang('You can connect an activity to an infrastructure on the activity page itself.', 'Du kannst eine Aktivität auf der Aktivitätsseite mit einer Infrastruktur verbinden.') ?>
+</small>
+
+<div class="mt-20 w-full">
+    <table class="table dataTable responsive" id="activities-table">
+        <thead>
+            <tr>
+                <th><?= lang('Type', 'Typ') ?></th>
+                <th><?= lang('Activity', 'Aktivität') ?></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+<script>
+    $('#activities-table').DataTable({
+        "ajax": {
+            "url": ROOTPATH + '/api/all-activities',
+            "data": {
+                page: 'activities',
+                display_activities: 'web',
+                filter: {
+                    'infrastructures': '<?= $infrastructure['id'] ?>'
+                }
+            },
+            dataSrc: 'data'
+        },
+        deferRender: true,
+        pageLength: 5,
+        columnDefs: [{
+                targets: 0,
+                data: 'icon',
+                // className: 'w-50'
+            },
+            {
+                targets: 1,
+                data: 'activity'
+            },
+            {
+                targets: 2,
+                data: 'links',
+                className: 'unbreakable'
+            },
+            {
+                targets: 3,
+                data: 'search-text',
+                searchable: true,
+                visible: false,
+            },
+            {
+                targets: 4,
+                data: 'start',
+                searchable: true,
+                visible: false,
+            },
+        ],
+        "order": [
+            [4, 'desc'],
+            // [0, 'asc']
+        ]
+    });
+</script>
+
 
 <hr>
+
 <h2>
     <?= lang('Statistics', 'Statistiken') ?>
 </h2>
@@ -397,6 +468,6 @@ if (!empty($statistics)) {
 ?>
 
 
-<?php if (isset($_GET['verbose'])) { 
+<?php if (isset($_GET['verbose'])) {
     dump($infrastructure, true);
- } ?>
+} ?>
