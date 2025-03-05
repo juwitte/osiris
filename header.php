@@ -472,7 +472,7 @@ $pageactive = function ($p) use ($page) {
                         
                         <?php if ($Settings->featureEnabled('infrastructures')) { ?>
                             <a href="<?= ROOTPATH ?>/infrastructures" class="with-icon <?= $pageactive('infrastructures') ?>">
-                                <i class="ph ph-shipping-container" aria-hidden="true"></i>
+                                <i class="ph ph-cube-transparent" aria-hidden="true"></i>
                                 <?=lang('Infrastructures', 'Infrastrukturen')?>
                             </a>
                         <?php } ?>

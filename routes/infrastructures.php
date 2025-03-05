@@ -446,31 +446,22 @@ Route::post('/crud/infrastructures/delete/([A-Za-z0-9]*)', function ($id) {
         ['$pull' => ['infrastructures' => $infrastructure['id']]]
     );
     // remove infrastructure name from persons
-    $osiris->persons->updateMany(
-        ['infrastructures' => $infrastructure['id']],
-        ['$pull' => ['infrastructures' => $infrastructure['id']]]
-    );
-    // remove infrastructure name from projects
-    $osiris->projects->updateMany(
-        ['infrastructures' => $infrastructure['id']],
-        ['$pull' => ['infrastructures' => $infrastructure['id']]]
-    );
-
-    // delete files if exist
-    if (isset($infrastructure['image'])) {
-        $target_dir = BASEPATH . "/uploads/";
-        $filename = $infrastructure['image'];
-        if (file_exists($target_dir . $filename)) {
-            unlink($target_dir . $filename);
-        }
-    }
+    // $osiris->persons->updateMany(
+    //     ['infrastructures' => $infrastructure['id']],
+    //     ['$pull' => ['infrastructures' => $infrastructure['id']]]
+    // );
+    // // remove infrastructure name from projects
+    // $osiris->projects->updateMany(
+    //     ['infrastructures' => $infrastructure['id']],
+    //     ['$pull' => ['infrastructures' => $infrastructure['id']]]
+    // );
 
     // remove infrastructure
     $osiris->infrastructures->deleteOne(
         ['_id' => $DB::to_ObjectID($id)]
     );
 
-    $_SESSION['msg'] = lang("Research infrastructure has been deleted successfully.", "Forschungsbereich wurde erfolgreich gelöscht.");
+    $_SESSION['msg'] = lang("Infrastructure has been deleted successfully.", "Infrastruktur wurde erfolgreich gelöscht.");
     header("Location: " . ROOTPATH . "/infrastructures");
 });
 

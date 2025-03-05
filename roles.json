@@ -211,11 +211,6 @@
                 "en": "Edit all infrastructures"
             },
             {
-                "id": "infrastructures.edit-own",
-                "de": "Eigene Infrastrukturen bearbeiten",
-                "en": "Edit own infrastructures"
-            },
-            {
                 "id": "infrastructures.delete",
                 "de": "Infrastrukturen löschen",
                 "en": "Delete infrastructures"

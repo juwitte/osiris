@@ -99,6 +99,7 @@ $edit_perm = ($infrastructure['created_by'] == $_SESSION['username'] || $Setting
             <span class="sr-only"><?= lang('Edit', 'Bearbeiten') ?></span>
         </a>
     <?php } ?>
+    
     </div>
 
 </div>
@@ -466,6 +467,30 @@ if (!empty($statistics)) {
 <?php
 }
 ?>
+
+
+<?php if ($Settings->hasPermission('infrastructures.delete')) { ?>
+
+    <button class="btn danger" type="button" id="dropdown-1" aria-haspopup="true" aria-expanded="false" onclick="$(this).next().slideToggle()">
+        <i class="ph ph-trash"></i>
+        <?= lang('Delete', 'Löschen') ?>
+        <i class="ph ph-caret-down ml-5" aria-hidden="true"></i>
+    </button>
+    <div aria-labelledby="dropdown-1" style="display: none;">
+        <div class="my-20">
+            <b class="text-danger"><?= lang('Attention', 'Achtung') ?>!</b><br>
+            <small>
+                <?= lang(
+                    'The infrastructure is permanently deleted and the connection to all associated persons and activities is also removed. This cannot be undone.',
+                    'Die Infrastruktur wird permanent gelöscht und auch die Verbindung zu allen zugehörigen Personen und Aktivitäten entfernt. Dies kann nicht rückgängig gemacht werden.'
+                ) ?>
+            </small>
+            <form action="<?= ROOTPATH ?>/crud/infrastructures/delete/<?= $infrastructure['_id'] ?>" method="post">
+                <button class="btn btn-block danger" type="submit"><?= lang('Delete permanently', 'Permanent löschen') ?></button>
+            </form>
+        </div>
+    </div>
+<?php } ?>
 
 
 <?php if (isset($_GET['verbose'])) {

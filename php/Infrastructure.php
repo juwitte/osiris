@@ -38,7 +38,6 @@ class Infrastructure extends DB
             'researcher' => lang('Researcher', 'Forscher:in'),
             'security' => lang('Security Officer', 'Sicherheitsbeauftragte:r '),
             'user' => lang('User', 'Nutzer:in'),
-            'reporter' => lang('Reporter', 'Reporter:in'),
             'other' => lang('Other', 'Sonstige')
         ];
     }

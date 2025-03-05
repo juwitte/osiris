@@ -23,7 +23,7 @@ $infrastructures  = $osiris->infrastructures->find(
 
 
 <h1>
-    <i class="ph ph-shipping-container" aria-hidden="true"></i>
+    <i class="ph ph-cube-transparent" aria-hidden="true"></i>
     <?= lang('Infrastructures', 'Infrastrukturen') ?>
 </h1>
 <div class="btn-toolbar">

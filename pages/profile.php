@@ -578,7 +578,7 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
         $count_infrastructures = $osiris->infrastructures->count($infrastructure_filter);
         if ($count_infrastructures > 0) { ?>
             <a onclick="navigate('infrastructures')" id="btn-infrastructures" class="btn">
-                <i class="ph ph-shipping-container" aria-hidden="true"></i>
+                <i class="ph ph-cube-transparent" aria-hidden="true"></i>
                 <?= lang('Infrastructures', 'Infrastrukturen')  ?>
                 <span class="index"><?= $count_infrastructures ?></span>
             </a>
