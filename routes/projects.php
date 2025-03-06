@@ -400,6 +400,7 @@ Route::post('/crud/projects/create', function () {
         }
     }
 
+    include_once BASEPATH . "/php/Render.php";
     $values = renderAuthorUnits($values, [], 'persons');
 
     $insertOneResult  = $collection->insertOne($values);
