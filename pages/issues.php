@@ -180,12 +180,12 @@ if (array_sum($a) === 0) {
 
 
 <?php if (!empty($issues['approval'])) { ?>
-    <h2 class="mb-0">
+    <h4 class="mb-0">
         <?= lang(
             'Please review the following authorships:',
             'Bitte überprüfe die folgenden Autorenschaften:'
         ) ?>
-    </h2>
+    </h4>
     <p class="mt-0">
         <a href="<?= ROOTPATH ?>/docs/warnings#Überprüfung-der-autorenschaft-nötig"><?= lang('What does it mean?', 'Was bedeutet das?') ?></a>
     </p>
@@ -354,12 +354,12 @@ if (array_sum($a) === 0) {
 <?php } ?>
 
 <?php if (!empty($issues['epub'])) { ?>
-    <h2 class="mb-0">
+    <h4 class="mb-0">
         <?= lang(
             'Please review the following <q>Online ahead of print</q> articles:',
             'Bitte überprüfe die folgenden <q>Online ahead of print</q>-Artikel:'
         ) ?>
-    </h2>
+    </h4>
     <p class="mt-0">
         <a href="<?= ROOTPATH ?>/docs/warnings#online-ahead-of-print"><?= lang('What does it mean?', 'Was bedeutet das?') ?></a>
     </p>
@@ -412,12 +412,12 @@ if (array_sum($a) === 0) {
 <?php } ?>
 
 <?php if (!empty($issues['students'])) { ?>
-    <h2 class="mb-0">
+    <h4 class="mb-0">
         <?= lang(
             'Please review the following theses:',
             'Bitte überprüfe die folgenden Abschlussarbeiten:'
         ) ?>
-    </h2>
+    </h4>
     <p class="mt-0">
         <a href="<?= ROOTPATH ?>/docs/warnings#studenten-abschluss"><?= lang('What does it mean?', 'Was bedeutet das?') ?></a>
     </p>
@@ -473,12 +473,12 @@ if (array_sum($a) === 0) {
 
 
 <?php if (!empty($issues['openend'])) { ?>
-    <h2 class="mb-0">
+    <h4 class="mb-0">
         <?= lang(
             'Do you still work on the following activities?',
             'Arbeitest du noch immer an den folgenden Aktivitäten?'
         ) ?>
-    </h2>
+    </h4>
     <p class="mt-0">
         <a href="<?= ROOTPATH ?>/docs/warnings#open-end"><?= lang('What does it mean?', 'Was bedeutet das?') ?></a>
     </p>
@@ -523,12 +523,12 @@ if (array_sum($a) === 0) {
     <?php if (!empty($issues['project-open']) || !empty($issues['project-end'])) {
         $projects = array_merge($issues['project-open'] ?? [], $issues['project-end'] ?? [])
     ?>
-        <h2 class="mb-0">
+        <h4 class="">
             <?= lang(
                 'Please have a look at the following projects:',
                 'Bitte schau dir die folgenden Projekte an:'
             ) ?>
-        </h2>
+        </h4>
 
         <table class="table">
             <?php
@@ -596,6 +596,42 @@ if (array_sum($a) === 0) {
                 </tr>
             <?php } ?>
         </table>
+
     <?php } ?>
 
+
+
+    <?php
+    if (isset($issues['infrastructure'])) { ?>
+
+        <h4 class="">
+            <?= lang(
+                'Please have a look at the following infrastructures:',
+                'Bitte schau dir die folgenden Infrastrukturen an:'
+            ) ?>
+        </h4>
+
+        <table class="table">
+            <?php
+
+            foreach ($issues['infrastructure'] as $id) {
+                $doc = $osiris->infrastructures->findOne(['_id' => DB::to_ObjectID($id)]);
+            ?>
+                <tr id="tr-<?= $id ?>">
+                    <td>
+                        <?= lang('Please update the statistics of ', 'Bitte aktualisiere die Statistiken von ') ?>
+                        <b><?= $doc['name'] ?></b>
+                        <?= lang('from ', 'von ') ?>
+                        <b><?= CURRENTYEAR - 1 ?></b>
+                        <br>
+                        <a href="<?= ROOTPATH ?>/infrastructures/year/<?= $id ?>?year=<?= CURRENTYEAR - 1 ?>" target="_blank" rel="noopener noreferrer" class="btn small primary">
+                            <i class="ph ph-calendar-plus"></i>
+                            <?= lang('Update now', 'Jetzt aktualisieren') ?>
+                        </a>
+                    </td>
+                </tr>
+            <?php } ?>
+        </table>
+
+    <?php } ?>
 <?php } ?>

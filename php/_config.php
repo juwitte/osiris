@@ -445,6 +445,8 @@ function print_list($list)
 
 function getDateTime($date)
 {
+    if (empty($date)) return null;
+    if ($date instanceof DateTime) return $date;
     if ($date instanceof MongoDB\BSON\UTCDateTime) {
         // MongoDB\BSON\UTCDateTime 
         $d = $date->toDateTime();
@@ -482,13 +484,21 @@ function valueFromDateArray($date)
     return date_format($d, "Y-m-d");
 }
 
-function fromToDate($from, $to)
+function fromToDate($from, $to, $continuous = false)
 {
-    if (empty($to) || $from == $to) {
+    if ($from == $to) {
         return format_date($from);
+    }
+    if (empty($to)) {
+        if (!$continuous) {
+            return format_date($from);
+        } else {
+            return format_date($from) . ' - ' . lang('today', 'heute');
+        }
     }
     // $to = date_create($to);
     $from = format_date($from);
+
     $to = format_date($to);
 
     $f = explode('.', $from, 3);
@@ -503,6 +513,26 @@ function fromToDate($from, $to)
     }
 
     return $from . '-' . $to;
+}
+
+function fromToYear($from, $to, $continuous = false)
+{
+    $from = format_date($from, "Y");
+    if (!empty($to))
+        $to = format_date($to, "Y");
+    
+    if ($from == $to) {
+        return $from;
+    }
+    if (empty($to)) {
+        if (!$continuous) {
+            return $from;
+        } else {
+            return $from . ' - ' . lang('today', 'heute');
+        }
+    }
+
+    return $from . ' - ' . $to;
 }
 
 function getYear($doc)
@@ -538,6 +568,7 @@ function getQuarter($time)
 
     try {
         $date = getDateTime($time);
+        if ($date === null) return 0;
         $month = date_format($date, 'n');
     } catch (TypeError $th) {
         $month = 1;
@@ -585,6 +616,7 @@ function format_date($date, $format = "d.m.Y")
 {
     // dump($date);
     $d = getDateTime($date);
+    if ($d === null) return '';
     return date_format($d, $format);
 }
 

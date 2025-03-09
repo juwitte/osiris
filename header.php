@@ -469,6 +469,13 @@ $pageactive = function ($p) use ($page) {
                                 <?= $Settings->topicLabel() ?>
                             </a>
                         <?php } ?>
+                        
+                        <?php if ($Settings->featureEnabled('infrastructures')) { ?>
+                            <a href="<?= ROOTPATH ?>/infrastructures" class="with-icon <?= $pageactive('infrastructures') ?>">
+                                <i class="ph ph-cube-transparent" aria-hidden="true"></i>
+                                <?=lang('Infrastructures', 'Infrastrukturen')?>
+                            </a>
+                        <?php } ?>
 
                         <!-- <a href="<?= ROOTPATH ?>/tags" class="with-icon <?= $pageactive('tags') ?>">
                             <i class="ph ph-circles-three-plus" aria-hidden="true"></i>
