@@ -54,7 +54,19 @@ function login($username, $password)
         return $return;
     }
 
-    $fields = "(|(samaccountname=$username))";
+    if (!defined('OPEN_LDAP') || !OPEN_LDAP) {
+        $user_filter = "(|(samaccountname=$username))";
+    } else {
+        $user_filter = "(|(uid=$username))";
+    }
+    
+    // Falls LDAP_FILTER definiert ist, kombiniere es mit dem User-Filter
+    if (defined('LDAP_FILTER')) {
+        $fields = "(&" . LDAP_FILTER . $user_filter . ")";
+    } else {
+        $fields = $user_filter;
+    }
+
     $base_dn = LDAP_BASEDN;
     $search = ldap_search($connect, $base_dn, $fields);
     if ($search === false) {
@@ -62,15 +74,19 @@ function login($username, $password)
     } else {
         $result = ldap_get_entries($connect, $search);
 
-        $ldap_username = $result[0]['samaccountname'][0];
-        $ldap_first_name = $result[0]['givenname'][0];
-        $ldap_last_name = $result[0]['sn'][0];
+        if ($result['count'] > 0) {
+            $ldap_username = $result[0]['samaccountname'][0];
+            $ldap_first_name = $result[0]['givenname'][0];
+            $ldap_last_name = $result[0]['sn'][0];
 
-        $_SESSION['username'] = $ldap_username;
-        $_SESSION['name'] = $ldap_first_name . " " . $ldap_last_name;
-        $_SESSION['loggedin'] = true;
+            $_SESSION['username'] = $ldap_username;
+            $_SESSION['name'] = $ldap_first_name . " " . $ldap_last_name;
+            $_SESSION['loggedin'] = true;
 
-        $return["status"] = true;
+            $return["status"] = true;
+        } else {
+            $return['msg'] = "User not found in the allowed group.";
+        }
 
         ldap_close($connect);
     }
@@ -86,24 +102,28 @@ function getUser($name)
 
     $connect = LDAPconnect($username, $password);
     if (is_string($connect)) {
-        $return['msg'] = $connect;
-        return $return;
+        return array("msg" => $connect);
     }
 
     if (!defined('OPEN_LDAP') || !OPEN_LDAP) {
-        $fields = "(|(samaccountname=$name))";
+        $user_filter = "(|(samaccountname=$name))";
     } else {
-        $fields = "(|(uid=$name))";
+        $user_filter = "(|(uid=$name))";
+    }
+
+    // Falls LDAP_FILTER definiert ist, kombiniere es mit dem User-Filter
+    if (defined('LDAP_FILTER')) {
+        $fields = "(&" . LDAP_FILTER . $user_filter . ")";
+    } else {
+        $fields = $user_filter;
     }
 
     $search = ldap_search($connect, $base_dn, $fields);
     if ($search === false) {
-        return "Login fehlgeschlagen / Benutzer nicht vorhanden";
+        return "Fehler bei der LDAP-Suche.";
     }
+    
     $result = ldap_get_entries($connect, $search);
-    // dump(ldap_get_dn($connect, ldap_first_entry($connect, $search)));
-    // dump(ldap_first_entry($connect, $search))['uid'];
-
     ldap_close($connect);
     return $result;
 }
