@@ -225,7 +225,7 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
             </span>
         <?php } ?>
 
-        <!-- <span class="badge">Last login: <?= $scientist['lastlogin'] ?></span> -->
+        <!-- <span class="badge">Last login: <?= $scientist['lastlogin'] ?? 'Never' ?></span> -->
         <?php
         // show current guest state
         if ($Settings->featureEnabled('guests')) {

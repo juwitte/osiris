@@ -737,13 +737,6 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                             'Diese Aktivität wurde gesperrt, da sie bereits von den Berichterstattenden in einem Report verwendet wurde. Wegen der Dokumentations- und Nachweispflicht dürfen Aktivitäten nach dem Report nicht mehr so einfach verändert oder gelöscht werden. Sollte dennoch eine Änderung notwenig sein, meldet euch bitte bei den Verantwortlichen.'
                         ) ?>
                     </p>
-                    <?php
-                    // $body = $USER['displayname'] . " möchte folgenden OSIRIS-Eintrag bearbeiten/löschen: $name%0D%0A%0D%0ABegründung/Reason:%0D%0A%0D%0Ahttp://osiris.int.dsmz.de/activities/view/$id";
-                    ?>
-                    <!-- <a class="btn danger" href="mailto:someone&subject=[OSIRIS] Antrag auf Änderung&body=<?= $body ?>">
-                    <i class="ph ph-envelope" aria-hidden="true"></i>
-                    <?= lang('Contact editors', 'Editoren kontaktieren') ?>
-                </a> -->
                 <?php
                 elseif ($Settings->hasPermission('activities.delete')) :
                 ?>

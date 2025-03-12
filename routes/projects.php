@@ -230,6 +230,7 @@ function getTemplatePlaceholders($templatePath)
 
         // Alle Platzhalter zurückgeben
         return $matches[1]; // Gibt eine Liste von Platzhaltern zurück
+
     } else {
         return [];
     }
@@ -311,7 +312,7 @@ Route::post('/projects/download/(.*)', function ($id) {
 
     $templateProcessor->setValues($projectValues);
     // die;
-    $tempFilePath = 'output.docx';
+    $tempFilePath = BASEPATH . '/uploads/output.docx';
     $templateProcessor->saveAs($tempFilePath);
 
     header("Content-Description: File Transfer");

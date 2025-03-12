@@ -218,7 +218,7 @@ Route::pathNotFound(function ($path) {
         // Send plain text response for scripts expecting text
         header('Content-Type: text/plain');
         echo "404 Not Found";
-    } elseif (!$_SESSION['loggedin']) {
+    } elseif (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] === false) {
         header("Location: " . ROOTPATH . "/user/login?redirect=" . urlencode($_SERVER['REQUEST_URI']));
     } else {
         // Send HTML response for users

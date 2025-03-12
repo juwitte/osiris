@@ -217,11 +217,6 @@ if (empty($categories)) {
     foreach ($categories as $cat) { ?>
         <li>
             <?= $cat['name'] ?>
-            <!-- 
-            Nicht aussagekräftig, da die Quartile nicht immer aktuell sind
-            <?php if ($cat['quartile']) { ?>
-                <span class="quartile Q<?= $cat['quartile'] ?>">Q<?= $cat['quartile'] ?></span>
-            <?php } ?> -->
         </li>
 <?php
     }
