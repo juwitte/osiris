@@ -12,6 +12,7 @@ services:
       - mongo
     environment:
       - COMPOSER_ALLOW_SUPERUSER=1
+      - OSIRIS_DB_HOST=mongo
     command: >
       sh -c "composer install --ignore-platform-reqs && php -S 0.0.0.0:80 -t /var/www/html"
 
