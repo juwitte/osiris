@@ -61,7 +61,7 @@ function login($username, $password)
     }
     
     // Falls LDAP_FILTER definiert ist, kombiniere es mit dem User-Filter
-    if (defined('LDAP_FILTER')) {
+    if (defined('LDAP_FILTER') && isset(LDAP_FILTER) ) {
         $fields = "(&" . LDAP_FILTER . $user_filter . ")";
     } else {
         $fields = $user_filter;
@@ -112,7 +112,7 @@ function getUser($name)
     }
 
     // Falls LDAP_FILTER definiert ist, kombiniere es mit dem User-Filter
-    if (defined('LDAP_FILTER')) {
+    if (defined('LDAP_FILTER') && isset(LDAP_FILTER) ) {
         $fields = "(&" . LDAP_FILTER . $user_filter . ")";
     } else {
         $fields = $user_filter;
@@ -145,7 +145,7 @@ function getUsers()
     $cookie = '';
 
     do {
-        $filter = '(cn=*)';
+        $filter = '(objectClass=user)';
         // overwrite filter if set in CONFIG
         if (defined('LDAP_FILTER') && !empty(LDAP_FILTER)) $filter = LDAP_FILTER;
         $attributes = ['samaccountname', 'useraccountcontrol', 'accountexpires'];
