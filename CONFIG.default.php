@@ -28,7 +28,15 @@ define('USER_MANAGEMENT', 'AUTH');
 
 // define DB connection
 define("DB_NAME", "osiris");
-define("DB_STRING", "mongodb://localhost:27017/" . DB_NAME . "?retryWrites=true&w=majority");
+
+// check if OSIRIS_DB_HOST (Docker) is defined, else opt out to localhost
+$host_db = getenv('OSIRIS_DB_HOST') ?? "localhost";
+if (empty($host_db)) {
+    $host_db = "localhost";
+}
+define("DB_HOST", $host_db);
+
+define("DB_STRING", "mongodb://" . DB_HOST . ":27017/" . DB_NAME . "?retryWrites=true&w=majority");
 
 // define API keys
 define("WOS_STARTER_KEY", "wos starter key");
@@ -38,3 +46,5 @@ define("WOS_JOURNAL_INFO", 2021);
 // not needed right now, but planned in the future
 define("ORCID_APP_ID", null);
 define("ORCID_SECRET_KEY", null);
+
+define('LIVE', true);

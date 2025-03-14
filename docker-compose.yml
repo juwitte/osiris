@@ -1,0 +1,30 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: osiris
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "8080:80"
+    depends_on:
+      - mongo
+    environment:
+      - COMPOSER_ALLOW_SUPERUSER=1
+      - OSIRIS_DB_HOST=mongo
+    command: >
+      sh -c "composer install --ignore-platform-reqs && php -S 0.0.0.0:80 -t /var/www/html"
+
+  mongo:
+    image: mongo:6.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+      - ./dump:/dump
+    command: mongod --bind_ip_all
+
+volumes:
+  mongo-data:
