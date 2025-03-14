@@ -1,5 +1,5 @@
 # Use php:8.0-cli as base image
-FROM php:8.0-cli
+FROM php:8.1-cli
 
 # Author label (optional)
 LABEL authors="Paul C. Gaida"
