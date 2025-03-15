@@ -44,6 +44,11 @@ RUN composer install --ignore-platform-reqs --no-interaction
 # Copy project files
 COPY . .
 
+# Berechtigungen für das img-Verzeichnis setzen
+RUN mkdir -p /var/www/html/img && \
+    chown -R www-data:www-data /var/www/html/img && \
+    chmod -R 775 /var/www/html/img
+
 # Expose XDebug port
 EXPOSE 9003
 
