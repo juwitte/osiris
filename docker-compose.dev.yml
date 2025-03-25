@@ -16,7 +16,7 @@ services:
       - COMPOSER_ALLOW_SUPERUSER=1
       - OSIRIS_DB_HOST=mongo
     command: >
-      sh -c "composer install --ignore-platform-reqs && php -S 0.0.0.0:80 -t /var/www/html"
+      sh -c "php -S 0.0.0.0:80 -t /var/www/html"
 
   mongo:
     image: mongo:6.0
@@ -24,9 +24,9 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - mongo-data:/data/db
+      - mongo-data-dev:/data/db
       - ./dump:/dump
     command: mongod --bind_ip_all
 
 volumes:
-  mongo-data:
+  mongo-data-dev:
