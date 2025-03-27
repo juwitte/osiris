@@ -413,7 +413,7 @@ Route::get('/api/all-activities', function () {
             'topics' => $doc['topics'] ?? [],
             'raw_type' => $doc['type'],
             'raw_subtype' => $doc['subtype'],
-
+            'affiliated' => $doc['affiliated'] ?? false,
         ];
 
         if ($active) {
