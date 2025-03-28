@@ -572,11 +572,12 @@ Route::get('/api/users', function () {
             } else {
                 $subtitle = $user[$_GET['subtitle']] ?? '';
             }
-        } else foreach (($user['depts'] ?? []) as $i => $d) {
-            $dept = implode('/', $Groups->getParents($d));
-            $subtitle .= '<a href="' . $path . '/groups/view/' . $d . '">
-                    ' . $dept . '
-                </a>';
+        } else foreach (($user['units'] ?? []) as $i => $d) {
+            // dump($d);
+            // $dept = implode('/', $Groups->getParents($d['unit'], 1));
+            // $subtitle .= '<a href="' . $path . '/groups/view/' . $d . '">
+            //         ' . $dept . '
+            //     </a>';
         }
         $topics = '';
         if ($user['topics'] ?? false) {
@@ -586,6 +587,8 @@ Route::get('/api/users', function () {
             }
             $topics .= '</span>';
         }
+        $units = DB::doc2Arr($user['units'] ?? []);
+        $units = array_column($units, 'unit');
         $table[] = [
             'id' => strval($user['_id']),
             'username' => $user['username'],
@@ -612,7 +615,7 @@ Route::get('/api/users', function () {
             'telephone' => $user['telephone'] ?? '',
             'orcid' => $user['orcid'] ?? '',
             'academic_title' => $user['academic_title'],
-            'dept' => $Groups->deptHierarchy($user['depts'] ?? [], 1)['id'],
+            'dept' => $Groups->deptHierarchy($units, 1)['id'],
             'active' => ($user['is_active'] ?? true) ? 'yes' : 'no',
             'public_image' => $user['public_image'] ?? true,
             'topics' => $user['topics'] ?? array()
