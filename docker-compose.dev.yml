@@ -1,3 +1,4 @@
+name: osiris-dev
 services:
   app:
     build:
