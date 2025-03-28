@@ -21,7 +21,7 @@ FROM php:8.1-fpm-alpine
 LABEL authors="Paul C. Gaida"
 
 # Install mandatory packages und PHP-Extensions to run OSIRIS
-RUN apk add --no-cache \
+RUN apk update && apk add --no-cache \
     openldap-dev \
     libzip-dev \
     openssl-dev \
