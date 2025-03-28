@@ -312,9 +312,10 @@ Route::get('/activities/edit/([a-zA-Z0-9]*)/(authors|editors)', function ($id, $
         header("Location: " . ROOTPATH . "/activities/view/$id?msg=locked");
     }
 
+    $name = $form['title'] ?? $id;
     $breadcrumb = [
         ['name' => lang('Activities', "Aktivitäten"), 'path' => "/activities"],
-        ['name' => lang("Edit", "Bearbeiten"), 'path' => "/activities/edit/$id"]
+        ['name' => $name, 'path' => "/activities/view/$id"]
     ];
     if ($role == "authors") {
         $breadcrumb[] = ['name' => lang("Authors", "Autoren")];
@@ -790,10 +791,10 @@ Route::post('/crud/activities/claim/([A-Za-z0-9]*)', function ($id) {
         $filter,
         [
             '$set' => [
-                "$role.$index.user" => $_SESSION['username'], 
+                "$role.$index.user" => $_SESSION['username'],
                 "$role.$index.approved" => true,
                 "$role.$index.aoi" => true,
-                ]
+            ]
         ]
     );
 
