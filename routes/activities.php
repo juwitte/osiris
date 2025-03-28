@@ -144,9 +144,9 @@ Route::get('/activities/view/([a-zA-Z0-9]*)', function ($id) {
         $Format->setDocument($doc);
 
         $name = $activity['title'] ?? $id;
-        if (strlen($name) > 20)
-            $name = mb_substr(strip_tags($name), 0, 20) . "&hellip;";
-        $name = ucfirst($activity['type']) . ": " . $name;
+        // if (strlen($name) > 20)
+        //     $name = mb_substr(strip_tags($name), 0, 20) . "&hellip;";
+        // $name = ucfirst($activity['type']) . ": " . $name;
         $breadcrumb = [
             ['name' => lang('Activities', "Aktivitäten"), 'path' => "/activities"],
             ['name' => $name]

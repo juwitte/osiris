@@ -182,6 +182,9 @@ function validateValues($values, $DB)
     return $values;
 }
 
+function shortenName($name, $maxLength = 30) {
+    return get_preview($name, $maxLength);
+}
 
 function get_preview($html, $length = 150)
 {
@@ -192,10 +195,10 @@ function get_preview($html, $length = 150)
     if (empty($text)) return '';
 
     // 2. Kürze den Text auf die gewünschte Länge
-    if (strlen($text) > $length) {
-        $preview = substr($text, 0, $length);
+    if (mb_strlen($text) > $length) {
+        $preview = mb_substr($text, 0, $length);
         // 3. Stelle sicher, dass das letzte Wort nicht abgeschnitten wird
-        $preview = substr($preview, 0, strrpos($preview, ' ')) . '...';
+        $preview = mb_substr($preview, 0, strrpos($preview, ' ')) . '...';
     } else {
         $preview = $text;
     }

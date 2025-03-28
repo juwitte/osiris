@@ -182,10 +182,11 @@ $pageactive = function ($p) use ($page) {
                             if (!empty($breadcrumb)) {
                                 echo '<li class=""><a href="' . ROOTPATH . '/"><i class="ph ph-house" aria-label="Home"></i></a></li>';
                                 foreach ($breadcrumb as $crumb) {
+                                    $displayName = shortenName($crumb['name'] ?? '');
                                     if (!isset($crumb['path'])) {
-                                        echo '<li class="active" aria-current="page"><a href="#">' . $crumb['name'] . '</a></li>';
+                                        echo '<li class="active" aria-current="page"><a href="#">' . $displayName . '</a></li>';
                                     } else {
-                                        echo '<li class=""><a href="' . ROOTPATH . $crumb['path'] . '">' . $crumb['name'] . '</a></li>';
+                                        echo '<li class=""><a href="' . ROOTPATH . $crumb['path'] . '">' . $displayName . '</a></li>';
                                     }
                                 }
                             }
