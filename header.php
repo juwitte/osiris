@@ -155,10 +155,9 @@ $pageactive = function ($p) use ($page) {
         <div class="navbar navbar-top">
             <a href="<?= ROOTPATH ?>/" class="navbar-brand ml-20">
                 <img src="<?= ROOTPATH ?>/img/logo.svg" alt="OSIRIS">
-                <?php if (!LIVE) { ?>
+                <?php if (defined('LIVE') && LIVE === false) { ?>
                     <span class=" position-absolute bottom-0 left-0 secondary" style="font-size: 1rem;z-index:1">TESTSYSTEM</span>
                 <?php } ?>
-
             </a>
 
             <a href="<?= $Settings->get('affiliation_details')['link'] ?? '#' ?>" class="navbar-brand ml-auto" target="_blank">
@@ -169,7 +168,7 @@ $pageactive = function ($p) use ($page) {
             <!-- Button to toggle sidebar -->
             <button class="btn btn-action active" type="button" onclick="osirisJS.toggleSidebar(this);" aria-label="Toggle sidebar"></button>
             <ul class="navbar-nav">
-                <?php if (false) { ?>
+                <?php if (defined('MAINTENANCE') && MAINTENANCE) { ?>
                     <!-- set to true during maintenance -->
                     <div class="alert danger">
                         <b><?= lang('System maintenance', 'Wartungsarbeiten') ?>.</b>
@@ -420,7 +419,7 @@ $pageactive = function ($p) use ($page) {
                             }
                         </style>
 
-                        <a href="<?= ROOTPATH ?>/activities/search" class="inline-btn <?= $pageactive('activities') ?>" title="<?=lang('Advanced Search', 'Erweiterte Suche')?>">
+                        <a href="<?= ROOTPATH ?>/activities/search" class="inline-btn <?= $pageactive('activities') ?>" title="<?= lang('Advanced Search', 'Erweiterte Suche') ?>">
                             <i class="ph ph-magnifying-glass-plus"></i>
                         </a>
                         <a href="<?= ROOTPATH ?>/activities" class="with-icon <?= $pageactive('activities') ?>">
@@ -430,7 +429,7 @@ $pageactive = function ($p) use ($page) {
 
                         <?php if ($Settings->featureEnabled('projects')) { ?>
 
-                            <a href="<?= ROOTPATH ?>/projects/search" class="inline-btn mt-10 <?= $pageactive('projects') ?>" title="<?=lang('Advanced Search', 'Erweiterte Suche')?>">
+                            <a href="<?= ROOTPATH ?>/projects/search" class="inline-btn mt-10 <?= $pageactive('projects') ?>" title="<?= lang('Advanced Search', 'Erweiterte Suche') ?>">
                                 <i class="ph ph-magnifying-glass-plus"></i>
                             </a>
                             <a href="<?= ROOTPATH ?>/projects" class="with-icon <?= $pageactive('projects') ?>">
@@ -469,11 +468,11 @@ $pageactive = function ($p) use ($page) {
                                 <?= $Settings->topicLabel() ?>
                             </a>
                         <?php } ?>
-                        
+
                         <?php if ($Settings->featureEnabled('infrastructures')) { ?>
                             <a href="<?= ROOTPATH ?>/infrastructures" class="with-icon <?= $pageactive('infrastructures') ?>">
                                 <i class="ph ph-cube-transparent" aria-hidden="true"></i>
-                                <?=lang('Infrastructures', 'Infrastrukturen')?>
+                                <?= lang('Infrastructures', 'Infrastrukturen') ?>
                             </a>
                         <?php } ?>
 
