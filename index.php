@@ -93,14 +93,13 @@ include_once BASEPATH . "/routes/login.php";
 
 Route::get('/test', function () {
     include_once BASEPATH . "/php/init.php";
-    include_once BASEPATH . "/php/Render.php";
+    include_once BASEPATH . "/php/LDAPInterface.php";
+
     include BASEPATH . "/header.php";
-    $project_name = "Bioindustry 4.0";
-    $project_old = $osiris->projects->findOne(['name' => $project_name]);
-    dump($project_old);
-    echo '<hr>';
-    $project_new = renderAuthorUnits($project_old, [], 'persons');
-    dump($project_new);
+
+    $LDAP = new LDAPInterface();
+    $user = $LDAP->fetchUsers();
+    dump($user, true);
 
     include BASEPATH . "/footer.php";
 });

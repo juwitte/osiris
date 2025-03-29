@@ -403,7 +403,7 @@ Route::post('/synchronize-users', function () {
                 continue;
             }
             $osiris->persons->insertOne($new_user);
-            echo "<p><i class='ph ph-user-plus text-success'></i> New user created: $new_user[displayname] ($new_user[username])</p>";
+            echo "<p><i class='ph ph-user-plus text-success'></i> New user created: <a href='".ROOTPATH."/profile/$new_user[username]' target='_blank'> $new_user[displayname]</a> ($new_user[username])</p>";
         }
     }
     if (isset($_POST['blacklist'])) {
