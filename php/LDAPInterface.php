@@ -314,16 +314,41 @@ class LDAPInterface
         return $person;
     }
 
-    private function cleanLdapEntry(array $entry): array
+    public function synchronizeAttributes(array $ldapMappings, $osiris)
     {
-        $clean = [];
-        foreach ($entry as $key => $value) {
-            if (is_string($key)) {
-                // Einzelwert oder Array mit count
-                $clean[$key] = $value['count'] === 1 ? $value[0] : array_slice($value, 0, $value['count']);
-            }
+        $users = $this->fetchUsers();
+
+        if (!is_array($users)) {
+            echo "Fehler beim Abrufen der Benutzer aus LDAP.";
+            return false;
         }
-        return $clean;
+
+        foreach ($users as $entry) {
+            $username = $entry[$this->userkey][0] ?? null;
+            if (!$username) continue;
+
+            $userData = [];
+
+            foreach ($ldapMappings as $osirisKey => $ldapKey) {
+                if (empty($ldapKey)) {
+                    $userData[$osirisKey] = null;
+                } else {
+                    $userData[$osirisKey] = $entry[$ldapKey][0] ?? null;
+                }
+            }
+
+            $userData['username'] = $username;
+
+            // Update in der Datenbank speichern
+            // Beispiel mit MongoDB:
+            $osiris->persons->updateOne(
+                ['username' => $username],
+                ['$set' => $userData],
+                ['upsert' => true]
+            );
+        }
+
+        return true;
     }
 
     public function close()
