@@ -22,5 +22,11 @@ if (php_sapi_name() === 'cli' && basename(__FILE__) === basename($_SERVER['SCRIP
     $LDAP->synchronizeAttributes($ldapMappings, $osiris);
 
     echo "LDAP-Synchronisation abgeschlossen.\n";
+
+    $osiris->system->updateOne(
+        ['key' => 'ldap-sync'],
+        ['$set' => ['value' => date('Y-m-d H:i:s')]],
+        ['upsert' => true]
+    );
 }
 ?>
