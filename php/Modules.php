@@ -1355,6 +1355,11 @@ class Modules
                     <label for="status" class="<?= $required ?> floating-title">Status</label>
                     <div id="end-question">
                         <div class="custom-radio d-inline-block">
+                            <input type="radio" name="values[status]" id="status-preparation" value="preparation" checked="checked" value="1">
+                            <label for="status-preparation"><?= lang('In preparation', 'In Vorbereitung') ?></label>
+                        </div>
+
+                        <div class="custom-radio d-inline-block">
                             <input type="radio" name="values[status]" id="status-in-progress" value="in progress" checked="checked" value="1">
                             <label for="status-in-progress"><?= lang('In progress', 'In Progress') ?></label>
                         </div>

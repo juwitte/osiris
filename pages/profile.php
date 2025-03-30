@@ -767,7 +767,7 @@ if ($currentuser) { ?>
                             $approvalDict = [
                                 'approval' => lang('Approval of activities', 'Freigabe von Aktivitäten'),
                                 'epub' => '<em>Online ahead of print</em>-' . lang('Publications', 'Publikationen'),
-                                'students' => lang('Expired theses', 'Abgelaufene Abschlussarbeiten'),
+                                'status' => lang('Expired status', 'Abgelaufener Status'),
                                 'openend' => lang('Ongoing activities', 'Laufende Aktivitäten'),
                                 'project-open' => lang('Open project applications', 'Offene Projektanträge'),
                                 'project-end' => lang('Expired publications', 'Abgelaufene Projekte'),
