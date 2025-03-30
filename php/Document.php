@@ -697,8 +697,13 @@ class Document extends Settings
         }
         if ($epub) $issues[] = "epub";
 
-        // CHECK student status issue
-        if (in_array('status', $this->modules) && isset($this->doc['status']) && $this->doc['status'] == 'in progress' && new DateTime() > getDateTime($this->doc['end'])) $issues[] = "students";
+        // CHECK status issue
+        if (in_array('status', $this->modules)) {
+            $status = $this->doc['status'] ?? '';
+            $today = date('Y-m-d');
+            if ($status == 'in progress' && $this->doc['end_date'] < $today) $issues[] = "status";
+            if ($status == 'preparation' && $this->doc['start_date'] < $today) $issues[] = "status";
+        }
 
         // check ongoing reminder
         if (in_array('date-range-ongoing', $this->modules) && is_null($this->doc['end'])) {
