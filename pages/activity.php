@@ -628,7 +628,7 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
 
                 foreach ($selected as $module) {
                     if (str_ends_with($module, '*')) $module = str_replace('*', '', $module);
-                    if (in_array($module, ["semester-select"])) continue;
+                    if (in_array($module, ["semester-select", "event-select"])) continue;
                 ?>
                     <?php if ($module == 'teaching-course' && isset($doc['module_id'])) :
                         $module = $DB->getConnected('teaching', $doc['module_id']);
