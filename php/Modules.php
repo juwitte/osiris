@@ -1170,15 +1170,15 @@ class Modules
 
                     <div id="event-select-container w-full">
                         <div class="btn-group d-flex" id="event-select-btns">
+                            <a class="btn" href="#add-event">
+                                <i class="ph ph-plus"></i>
+                            </a>
                             <?php foreach ($events as $event) { ?>
                                 <button class="btn primary" type="button" onclick="selectEvent('<?= $event['_id'] ?>', '<?= addslashes($event['title']) ?>', '<?= $event['start'] ?>', '<?= $event['end'] ?>', '<?= $event['location'] ?>')">
                                     <?= $event['title'] ?>
                                     <small><?= fromToDate($event['start'], $event['end']) ?></small>
                                 </button>
                             <?php } ?>
-                            <a class="btn" href="#add-event">
-                                <i class="ph ph-plus"></i>
-                            </a>
                         </div>
                     </div>
                     <style>

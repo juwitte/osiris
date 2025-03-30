@@ -215,7 +215,7 @@ if (!$Settings->hasPermission('projects.view')) {
                     <?php foreach ($Project::FUNDER as $funder) { ?>
                         <tr>
                             <td>
-                                <a data-type="<?= $funder ?>" onclick="filterProjects(this, '<?= $funder ?>', 2)" class="item" id="<?= $id ?>-btn" style="color:inherit;">
+                                <a data-type="<?= $funder ?>" onclick="filterProjects(this, '<?= $funder ?>', 2)" class="item" id="<?= $funder ?>-btn" style="color:inherit;">
                                     <span>
                                         <?= $funder ?>
                                     </span>
@@ -232,10 +232,10 @@ if (!$Settings->hasPermission('projects.view')) {
             </h6>
             <div class="filter">
                 <table id="filter-units" class="table small simple">
-                    <?php foreach ($Departments as $id => $dept) { ?>
-                        <tr <?= $Groups->cssVar($id) ?>>
+                    <?php foreach ($Departments as $dept_id => $dept) { ?>
+                        <tr <?= $Groups->cssVar($dept_id) ?>>
                             <td>
-                                <a data-type="<?= $id ?>" onclick="filterProjects(this, '<?= $id ?>', 8)" class="item d-block colorless" id="<?= $id ?>-btn">
+                                <a data-type="<?= $dept_id ?>" onclick="filterProjects(this, '<?= $dept_id ?>', 8)" class="item d-block colorless" id="<?= $dept_id ?>-btn">
                                     <span><?= $dept ?></span>
                                 </a>
                             </td>
@@ -271,11 +271,11 @@ if (!$Settings->hasPermission('projects.view')) {
                 <div class="filter">
                     <table id="filter-topics" class="table small simple">
                         <?php foreach ($osiris->topics->find([], ['sort' => ['order' => 1]]) as $a) {
-                            $id = $a['id'];
+                            $topic_id = $a['id'];
                         ?>
                             <tr style="--highlight-color:  <?= $a['color'] ?>;">
                                 <td>
-                                    <a data-type="<?= $id ?>" onclick="filterProjects(this, '<?= $id ?>', 9)" class="item" id="<?= $id ?>-btn">
+                                    <a data-type="<?= $topic_id ?>" onclick="filterProjects(this, '<?= $topic_id ?>', 9)" class="item" id="<?= $topic_id ?>-btn">
                                         <span style="color: var(--highlight-color)">
                                             <?= lang($a['name'], $a['name_en'] ?? null) ?>
                                         </span>

@@ -30,7 +30,7 @@ if (USER_MANAGEMENT == 'LDAP') {
         die("Error in your CONFIG: USER_MANAGEMENT is set to LDAP, but LDAP_BASEDN is not set.");
     if (!defined('LDAP_FILTER'))
         // z.B. for filtering by group: (&(memberOf=CN=GroupName,OU=Groups,DC=example,DC=com)(objectClass=user))
-        define('LDAP_FILTER', null);
+        define('LDAP_FILTER', '(objectClass=user)');
 }
 
 // define DB connection

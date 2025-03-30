@@ -258,7 +258,7 @@ $pageactive = function ($p) use ($page) {
                 </a>
                 <?php } else {
                 $realusername = $_SESSION['realuser'] ?? $_SESSION['username'];
-                $maintain = $osiris->persons->find(['maintenance' => $realusername], ['projection' => ['displayname' => 1, 'username' => 1]])->toArray();
+                $maintain = $osiris->persons->find(['maintenance' => $realusername, 'username' => ['$exists'=>true]], ['projection' => ['displayname' => 1, 'username' => 1]])->toArray();
                 if (!empty($maintain)) { ?>
                     <form action="" class="nav-search" id="navbar-search">
                         <div class="input-group">
