@@ -677,7 +677,7 @@ $FIELDS = [
         'type' => 'string'
     ],
     [
-        'id' => 'openaccess',
+        'id' => 'open_access',
         'module_of' => $typeModules['openaccess'] ?? [],
         'usage' => [
             'filter',
@@ -687,7 +687,7 @@ $FIELDS = [
         'type' => 'boolean',
     ],
     [
-        'id' => 'openaccess-status',
+        'id' => 'oa-status',
         'module_of' => $typeModules['openaccess-status'] ?? [],
         'usage' => [
             'filter',
