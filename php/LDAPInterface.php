@@ -327,7 +327,7 @@ class LDAPInterface
         $person['formalname'] = $person['last'] . ', ' . $person['first'];
         $person['academic_title'] = null;
         $accountControl = isset($user['useraccountcontrol'][0]) ? (int)$user['useraccountcontrol'][0] : 0;
-        $person['is_active'] = !($accountControl & 2); // 2 entspricht ACCOUNTDISABLE
+        $person['is_active'] = boolval(!($accountControl & 2)); // 2 entspricht ACCOUNTDISABLE
 
         $person['created'] = date('Y-m-d');
         $person['roles'] = [];
@@ -353,6 +353,32 @@ class LDAPInterface
         foreach ($users as $entry) {
             $username = $entry[$this->userkey][0] ?? null;
             if (!$username) continue;
+
+            // check if user already exists
+            $user = $osiris->persons->findOne(['username' => $username], ['projection' => ['_id' => 1]]);
+            if (empty($user)){
+                // check if user already exists by uniqueid
+                $uniqueid = $entry[$this->uniqueid][0] ?? null;
+                if ($this->uniqueid == 'objectguid') {
+                    $uniqueid = $this->convertObjectGUID($uniqueid);
+                }
+                $user = $osiris->persons->findOne(['uniqueid' => $uniqueid], ['projection' => ['_id' => 1, 'username' => 1]]);
+                if (!empty($user)) {
+                    // user exists, but username is different
+                    $username = $user['username'];
+                }
+            }
+            if (empty($user)) {
+                continue;
+            //     // user does not exist, create new user
+            //     $userData = $this->newUser($username);
+            //     if (empty($userData)) {
+            //         echo "Fehler beim Erstellen des Benutzers: " . $username . "\n";
+            //         continue;
+            //     }
+            //     $osiris->persons->insertOne($userData);
+            }
+            
             echo $username . "\n";
 
             $userData = [];
@@ -365,92 +391,113 @@ class LDAPInterface
                 }
             }
 
-            $userData['username'] = $username;
+            // $userData['username'] = $username;
             $userData['uniqueid'] = $entry[$this->uniqueid][0] ?? null;
             $userData['updated'] = date('Y-m-d');
 
-            // TODO: update units
+            // update units
             if (isset($ldapMappings['department']) && !empty($ldapMappings['department'] ?? null)) {
+                $updatedUnits = [];
                 // first get the current units
-                    $currentUnits = [];
+                $currentUnits = [];
                 $currentUser = $osiris->persons->findOne(['username' => $username], ['projection' => ['units' => 1]]);
                 if (!empty($currentUser)) {
                     foreach ($currentUser['units'] as $unit) {
                         $group = $Groups->getGroup($unit['unit']);
                         if (!empty($group)) {
-                            $currentUnits[] = [
+                            $u = [
                                 'id' => $unit['id'],
                                 'unit' => $group['id'],
-                                'name' => $group['name'],
-                                'name_de' => $group['name_de'] ?? null,
                                 'start' => $unit['start'],
+                                'end' => $unit['end'] ?? null,
+                                'scientific' => $unit['scientific'] ?? null,
+                            ];
+                            $currentUnits[] = $u;
+                            $updatedUnits[$group['id']] = $u;
+                        }
+                    }
+                }
+
+                // then get the new units
+                $ldapUnits = $entry[$ldapMappings['department']];
+                $newUnits = [];
+                if (!empty($ldapUnits)) {
+                    unset($ldapUnits['count']);
+                    foreach ($ldapUnits as $unit) {
+                        $unit = $Groups->findGroup($unit);
+                        if (!empty($unit) && !empty($unit['id'])) {
+                            $newUnits[] = [
+                                'id' => uniqid(),
+                                'unit' => $unit['id'],
+                                'start' => $unit['start'] ?? null,
+                                'end' => $unit['end'] ?? null,
+                                'scientific' => $unit['scientific'] ?? null,
                             ];
                         }
                     }
                 }
-                var_dump($currentUnits, true);
-                // then get the new units
-                $newUnits = $entry[$ldapMappings['department']];
-                if (empty($newUnits)) {
-                    $newUnits = [];
-                } else {
-                    unset($newUnits['count']);
-                    foreach ($newUnits as $unit) {
-                        $unit = $Groups->findGroup($unit);
-                        if (!empty($unit) && !empty($unit['id'])) {
-                            // unit is a group
 
-                            // next: check if unit is already in the current units
-                            $found = false;
-                            foreach ($currentUnits as $currentUnit) {
-                                if ($currentUnit['unit'] == $unit['id']) {
-                                    $found = true;
-                                    break;
-                                }
-                            }
-                            if (!$found) {
-                                $newUnits[] = [
+                /**
+                 * if a new unit is found: add new unit with todays time stamp as start
+                 * if unit is not found anymore: end unit with todays time stamp
+                 * if everything is the same: do not touch it
+                 */
+
+                $new = array_column($newUnits, 'unit');
+                $old = array_column($currentUnits, 'unit');
+
+                // 1. check if something changed at all
+                if (array_diff($new, $old) || array_diff($old, $new)) {
+                    // 2. check if a new unit is found
+                    if (!empty($new)) {
+                        // check if the unit is already in the current units
+                        foreach ($new as $newUnit) {
+                            if (!in_array($newUnit, $old)) {
+                                // unit is new
+                                $updatedUnits[$newUnit] = [
                                     'id' => uniqid(),
-                                    'unit' => $unit['id'],
-                                    'name' => $unit['name'],
-                                    'name_de' => $unit['name_de'] ?? null,
-                                    'start' => null,
+                                    'unit' => $newUnit,
+                                    'start' => date('Y-m-d'),
+                                    'end' => null,
+                                    'scientific' => true
                                 ];
                             }
                         }
                     }
+                    // 3. check if a unit is not found anymore
+                    if (!empty($old)) {
+                        // check if the unit is not in the new units
+                        foreach ($old as $oldUnit) {
+                            if (!in_array($oldUnit, $new)) {
+                                // unit is not found anymore
+                                if (isset($updatedUnits[$oldUnit])) {
+                                    $updatedUnits[$oldUnit]['end'] = date('Y-m-d');
+                                }
+                            }
+                        }
+                    }
+
+                    if (!empty($updatedUnits)) {
+                        $userData['units'] = array_values($updatedUnits);
+                        // var_dump($userData['units']);
+                    }
                 }
-
-                var_dump($newUnits, true);
-                // then compare the new units with the current units
-                // if they are different, update the units
-
             }
-            return true;
-        //     $person['units'] = [];
-        // if (!empty($units)) {
-        //     unset($units['count']);
-        //     foreach ($units as $unit) {
-        //         $unit = $Groups->findGroup($unit);
-        //         if (!empty($unit) && !empty($unit['id'])) {
-        //             $person['units'][] = [
-        //                 'id' => uniqid(),
-        //                 'unit' => $unit['id'],
-        //                 'start' => null,
-        //                 'end' => null,
-        //                 'scientific' => true
-        //             ];
-        //         }
-        //     }
-        // }
 
+            if (isset($ldapMappings['is_active'])){
+                $accountControl = isset($entry[$ldapMappings['is_active']][0]) ? (int)$entry[$ldapMappings['is_active']][0] : 0;
+                $userData['is_active'] = boolval(!($accountControl & 2)); // 2 entspricht ACCOUNTDISABLE
+                var_dump($userData['is_active']);
+            } else {
+                $userData['is_active'] = true;
+            }
 
             // Update in der Datenbank speichern
             // Beispiel mit MongoDB:
             $osiris->persons->updateOne(
                 ['username' => $username],
                 ['$set' => $userData],
-                ['upsert' => true]
+                // ['upsert' => true]
             );
         }
 

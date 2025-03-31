@@ -269,7 +269,7 @@ $affiliation = $Settings->get('affiliation_details');
                 ],
                 'internal_id' => [
                     'name' => lang('Internal ID', 'Interne ID'),
-                    'example' => 'objectsid', // Beispiel: "12345"
+                    'example' => '', // Beispiel: "12345"
                 ],
             ];
 
