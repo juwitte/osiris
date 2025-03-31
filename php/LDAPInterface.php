@@ -20,7 +20,7 @@ class LDAPInterface
         "unit" => "description",
         "telephone" => "telephonenumber",
         "mail" => "mail",
-        // "uniqueid" => "objectguid",
+        "uniqueid" => "objectguid",
         // "academic_title" => "title",
         "room" => "physicaldeliveryofficename",
     ];
@@ -30,7 +30,6 @@ class LDAPInterface
         $this->openldap = defined('OPEN_LDAP') && OPEN_LDAP;
         if ($this->openldap) {
             $this->userkey = 'uid';
-            $this->attributes = ['cn', 'mail', 'uid', 'givenName', 'sn', 'ou', 'employeetype'];
             $this->keys = [
                 "username" => "uid",
                 "first" => "givenname",
@@ -39,7 +38,7 @@ class LDAPInterface
                 "unit" => "ou",
                 "telephone" => "telephonenumber",
                 "mail" => "mail",
-                // "uniqueid" => "entryuuid",
+                "uniqueid" => "entryuuid",
                 "position" => "title",
                 "room" => "roomnumber",
             ];
@@ -139,7 +138,7 @@ class LDAPInterface
                 $this->connection,
                 LDAP_BASEDN,
                 $filter,
-                [],
+                $this->attributes,
                 0,
                 0,
                 0,
@@ -228,11 +227,19 @@ class LDAPInterface
 
     function login($username, $password)
     {
-        $return = array("msg" => '', "success" => false);
+        $return = array("msg" => '', "success" => false, 'uniqueid' => null);
+        if (empty($username) || empty($password)) {
+            $return['msg'] = lang("Please enter your username and password.", "Bitte geben Sie Ihren Benutzernamen und Ihr Passwort ein.");
+            return $return;
+        }
+        if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
+            $return['msg'] = lang("You are already logged in.", "Sie sind bereits angemeldet.");
+            return $return;
+        }
 
         // Step 1: User-Bind (zum Prüfen der Credentials)
         if (!$this->bind($username, $password)) {
-            $return['msg'] = "Login failed or user not found.";
+            $return['msg'] = lang("Login failed. Please check your username and password.", "Anmeldung fehlgeschlagen. Bitte überprüfen Sie Ihren Benutzernamen und Ihr Passwort.");
             return $return;
         }
 
@@ -244,23 +251,36 @@ class LDAPInterface
 
         // Step 3: Suche nach dem Benutzer (um Daten zu holen)
         $filter = "(" . $this->userkey . "=" . ldap_escape($username, "", LDAP_ESCAPE_FILTER) . ")";
-        $search = ldap_search($this->connection, LDAP_BASEDN, $filter);
+        $search = ldap_search($this->connection, LDAP_BASEDN, $filter, $this->attributes);
         if ($search === false) {
-            $return['msg'] = "Login failed or user not found.";
+            $return['msg'] = lang("Error while searching for the user in LDAP.", "Fehler bei der Suche nach dem Benutzer in LDAP.");
             return $return;
         }
 
         $result = ldap_get_entries($this->connection, $search);
-
-        $ldap_username = $result[0][$this->userkey][0];
-        $ldap_first_name = $result[0]['givenName'][0] ?? '';
-        $ldap_last_name = $result[0]['sn'][0] ?? '';
+        if ($result === false || $result['count'] == 0) {
+            $return['msg'] = lang("User not found in LDAP.", "Benutzer nicht in LDAP gefunden.");
+            return $return;
+        }
+        $result = $result[0];
+        if (empty($result[$this->userkey][0])) {
+            $return['msg'] = lang("User not found in LDAP or LDAP misconfigured.", "Benutzer nicht in LDAP gefunden oder LDAP falsch konfiguriert.");
+            return $return;
+        }
+        $ldap_username = $result[$this->userkey][0];
+        $ldap_first_name = $result['givenName'][0] ?? '';
+        $ldap_last_name = $result['sn'][0] ?? '';
+        $ldap_uniqueid = $result[$this->uniqueid][0] ?? null;
+        if ($this->uniqueid == 'objectguid') {
+            $ldap_uniqueid = $this->convertObjectGUID($ldap_uniqueid);
+        }
+        $return['uniqueid'] = $ldap_uniqueid;
 
         $_SESSION['username'] = $ldap_username;
         $_SESSION['name'] = $ldap_first_name . " " . $ldap_last_name;
         $_SESSION['loggedin'] = true;
 
-        $return["status"] = true;
+        $return["success"] = true;
 
         return $return;
     }
@@ -312,11 +332,17 @@ class LDAPInterface
         $person['created'] = date('Y-m-d');
         $person['roles'] = [];
 
+        $person['uniqueid'] = $user[$this->uniqueid][0] ?? null;
+        if ($this->uniqueid == 'objectguid') {
+            $person['uniqueid'] = $this->convertObjectGUID($person['uniqueid']);
+        }
+
         return $person;
     }
 
     public function synchronizeAttributes(array $ldapMappings, $osiris)
     {
+        $Groups = new Groups();
         $users = $this->fetchUsers();
 
         if (!is_array($users)) {
@@ -327,6 +353,7 @@ class LDAPInterface
         foreach ($users as $entry) {
             $username = $entry[$this->userkey][0] ?? null;
             if (!$username) continue;
+            echo $username . "\n";
 
             $userData = [];
 
@@ -339,6 +366,84 @@ class LDAPInterface
             }
 
             $userData['username'] = $username;
+            $userData['uniqueid'] = $entry[$this->uniqueid][0] ?? null;
+            $userData['updated'] = date('Y-m-d');
+
+            // TODO: update units
+            if (isset($ldapMappings['department']) && !empty($ldapMappings['department'] ?? null)) {
+                // first get the current units
+                    $currentUnits = [];
+                $currentUser = $osiris->persons->findOne(['username' => $username], ['projection' => ['units' => 1]]);
+                if (!empty($currentUser)) {
+                    foreach ($currentUser['units'] as $unit) {
+                        $group = $Groups->getGroup($unit['unit']);
+                        if (!empty($group)) {
+                            $currentUnits[] = [
+                                'id' => $unit['id'],
+                                'unit' => $group['id'],
+                                'name' => $group['name'],
+                                'name_de' => $group['name_de'] ?? null,
+                                'start' => $unit['start'],
+                            ];
+                        }
+                    }
+                }
+                var_dump($currentUnits, true);
+                // then get the new units
+                $newUnits = $entry[$ldapMappings['department']];
+                if (empty($newUnits)) {
+                    $newUnits = [];
+                } else {
+                    unset($newUnits['count']);
+                    foreach ($newUnits as $unit) {
+                        $unit = $Groups->findGroup($unit);
+                        if (!empty($unit) && !empty($unit['id'])) {
+                            // unit is a group
+
+                            // next: check if unit is already in the current units
+                            $found = false;
+                            foreach ($currentUnits as $currentUnit) {
+                                if ($currentUnit['unit'] == $unit['id']) {
+                                    $found = true;
+                                    break;
+                                }
+                            }
+                            if (!$found) {
+                                $newUnits[] = [
+                                    'id' => uniqid(),
+                                    'unit' => $unit['id'],
+                                    'name' => $unit['name'],
+                                    'name_de' => $unit['name_de'] ?? null,
+                                    'start' => null,
+                                ];
+                            }
+                        }
+                    }
+                }
+
+                var_dump($newUnits, true);
+                // then compare the new units with the current units
+                // if they are different, update the units
+
+            }
+            return true;
+        //     $person['units'] = [];
+        // if (!empty($units)) {
+        //     unset($units['count']);
+        //     foreach ($units as $unit) {
+        //         $unit = $Groups->findGroup($unit);
+        //         if (!empty($unit) && !empty($unit['id'])) {
+        //             $person['units'][] = [
+        //                 'id' => uniqid(),
+        //                 'unit' => $unit['id'],
+        //                 'start' => null,
+        //                 'end' => null,
+        //                 'scientific' => true
+        //             ];
+        //         }
+        //     }
+        // }
+
 
             // Update in der Datenbank speichern
             // Beispiel mit MongoDB:
@@ -354,6 +459,13 @@ class LDAPInterface
 
     public function convertObjectGUID($bin)
     {
+        if (empty($bin)) {
+            return null;
+        }
+        if (strlen($bin) != 16) {
+            return $bin;
+        }
+        // Convert binary GUID to hex string
         $hex = bin2hex($bin);
         return vsprintf('%s%s%s%s-%s%s-%s%s-%s%s-%s%s%s%s%s%s', str_split($hex, 2));
     }

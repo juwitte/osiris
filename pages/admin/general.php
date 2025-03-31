@@ -189,7 +189,7 @@ $affiliation = $Settings->get('affiliation_details');
                     </div>
                 </div>
 
-                <button class="btn signal">
+                <button class="btn primary">
                     <i class="ph ph-floppy-disk"></i>
                     Save
                 </button>
@@ -286,7 +286,7 @@ $affiliation = $Settings->get('affiliation_details');
             </p>
 
             <form action="<?= ROOTPATH ?>/synchronize-attributes" method="post" class="box primary padded">
-                
+
                 <h2 class="title">
                     <?= lang('LDAP Settings', 'LDAP-Einstellungen') ?>
                 </h2>
@@ -450,7 +450,7 @@ $affiliation = $Settings->get('affiliation_details');
             </table>
 
 
-            <button class="btn signal">
+            <button class="btn primary">
                 <i class="ph ph-floppy-disk"></i>
                 Save
             </button>
@@ -481,7 +481,7 @@ $affiliation = $Settings->get('affiliation_details');
                 </div>
 
 
-                <button class="btn signal">
+                <button class="btn primary">
                     <i class="ph ph-floppy-disk"></i>
                     Save
                 </button>

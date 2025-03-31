@@ -5,6 +5,13 @@ if (php_sapi_name() === 'cli' && basename(__FILE__) === basename($_SERVER['SCRIP
     include_once BASEPATH . '/CONFIG.php';
     include_once BASEPATH . '/php/LDAPInterface.php';
 
+    if (!function_exists('lang')) {
+        function lang($text, $translation = null)
+        {
+            return $text;
+        }
+    }
+
     global $DB;
     $DB = new DB;
 
@@ -19,14 +26,17 @@ if (php_sapi_name() === 'cli' && basename(__FILE__) === basename($_SERVER['SCRIP
         exit;
     }
     $LDAP = new LDAPInterface();
-    $LDAP->synchronizeAttributes($ldapMappings, $osiris);
+    $success = $LDAP->synchronizeAttributes($ldapMappings, $osiris);
+    if ($success) {
+        echo "User attributes synchronized successfully.\n";
 
-    echo "LDAP-Synchronisation abgeschlossen.\n";
-
-    $osiris->system->updateOne(
-        ['key' => 'ldap-sync'],
-        ['$set' => ['value' => date('Y-m-d H:i:s')]],
-        ['upsert' => true]
-    );
+        $osiris->system->updateOne(
+            ['key' => 'ldap-sync'],
+            ['$set' => ['value' => date('Y-m-d H:i:s')]],
+            ['upsert' => true]
+        );
+    } else {
+        echo "Failed to synchronize user attributes.\n";
+    }
 }
 ?>

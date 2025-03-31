@@ -98,9 +98,10 @@ Route::get('/test', function () {
     include BASEPATH . "/header.php";
 
     $LDAP = new LDAPInterface();
-    $LDAP->attributes = [];
-    $user = $LDAP->fetchUser('juk20');
-    echo $LDAP->convertObjectGUID($user['objectguid'][0]);
+    // $LDAP->attributes = [];
+    // $user = $LDAP->fetchUser('juk20');
+    // echo $LDAP->convertObjectGUID($user['objectguid'][0]);
+    $user = $LDAP->newUser('tstark');
     dump($user, true);
 
     include BASEPATH . "/footer.php";

@@ -234,6 +234,22 @@ class DB
     }
 
     /**
+     * Get all personal information from username
+     *
+     * @param string $user Username.
+     * @return array Person array.
+     */
+    public function getPersonByUniqueID($uniqueid = null)
+    {
+        if ($uniqueid === null) return array();
+        $person = $this->db->persons->findOne(['uniqueid' => $uniqueid]);
+        if (empty($person)) return array();
+        $person['name'] = $person['first'] . " " . $person['last'];
+        $person['first_abbr'] = $this->abbreviateName($person['first']);
+        return $this->doc2Arr($person);
+    }
+
+    /**
      * Get project
      *
      * @param string $project Project name or ID.
