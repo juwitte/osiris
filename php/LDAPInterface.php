@@ -10,7 +10,7 @@ class LDAPInterface
     private $bind;
     private $openldap = false;
     private $userkey = 'samaccountname';
-    private $uniqueid = 'entryUUID';
+    private $uniqueid = 'objectguid';
 
     private $keys = [
         "username" => "samaccountname",
@@ -20,7 +20,7 @@ class LDAPInterface
         "unit" => "description",
         "telephone" => "telephonenumber",
         "mail" => "mail",
-        "uniqueid" => "entryUUID",
+        // "uniqueid" => "objectguid",
         // "academic_title" => "title",
         "room" => "physicaldeliveryofficename",
     ];
@@ -39,10 +39,11 @@ class LDAPInterface
                 "unit" => "ou",
                 "telephone" => "telephonenumber",
                 "mail" => "mail",
-                "uniqueid" => "entryuuid",
+                // "uniqueid" => "entryuuid",
                 "position" => "title",
                 "room" => "roomnumber",
             ];
+            $this->uniqueid = 'entryuuid';
         }
 
         $this->attributes = array_values($this->keys);
@@ -349,6 +350,12 @@ class LDAPInterface
         }
 
         return true;
+    }
+
+    public function convertObjectGUID($bin)
+    {
+        $hex = bin2hex($bin);
+        return vsprintf('%s%s%s%s-%s%s-%s%s-%s%s-%s%s%s%s%s%s', str_split($hex, 2));
     }
 
     public function close()
