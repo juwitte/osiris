@@ -9,7 +9,7 @@ class LDAPInterface
     private $connection;
     private $bind;
     private $openldap = false;
-    private $userkey = 'sAMAccountName';
+    private $userkey = 'samaccountname';
     private $uniqueid = 'entryUUID';
 
     private $keys = [
@@ -53,8 +53,8 @@ class LDAPInterface
     {
         $server = LDAP_IP;
         $port = LDAP_PORT;
-        $useSSL = LDAP_USE_SSL;
-        $useTLS = LDAP_USE_TLS;
+        $useSSL = defined('LDAP_USE_SSL') ? LDAP_USE_SSL : false;
+        $useTLS = defined('LDAP_USE_TLS') ? LDAP_USE_TLS : false;
 
         $protocol = $useSSL ? "ldaps://" : "ldap://";
         $this->connection = ldap_connect($protocol . $server . ':' . $port);
