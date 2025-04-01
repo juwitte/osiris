@@ -903,3 +903,25 @@ Route::get('/api/levenshtein', function () {
 
     echo json_encode($result);
 });
+
+
+// Infrastructures
+Route::get('/api/infrastructures', function () {
+    error_reporting(E_ERROR | E_PARSE);
+    include_once BASEPATH . "/php/init.php";
+
+    if (!apikey_check($_GET['apikey'] ?? null)) {
+        echo return_permission_denied();
+        die;
+    }
+
+    $filter = [];
+    if (isset($_GET['filter'])) {
+        $filter = $_GET['filter'];
+    } elseif (isset($_GET['json'])) {
+        $filter = json_decode($_GET['json'], true);
+    }
+    $result = $osiris->infrastructures->find($filter)->toArray();
+    echo return_rest($result, count($result));
+});
+
