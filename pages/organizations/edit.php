@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Edit details of a infrastructure
+ * Edit details of a organization
  * Created in cooperation with DSMZ
  * 
  * This file is part of the OSIRIS package.
@@ -36,11 +36,11 @@ function sel($index, $value)
 $form = $GLOBALS['form'] ?? [];
 
 if (empty($form) || !isset($form['_id'])) {
-    $formaction = ROOTPATH . "/crud/infrastructures/create";
-    $url = ROOTPATH . "/infrastructures/view/*";
+    $formaction = ROOTPATH . "/crud/organizations/create";
+    $url = ROOTPATH . "/organizations/view/*";
 } else {
-    $formaction = ROOTPATH . "/crud/infrastructures/update/" . $form['_id'];
-    $url = ROOTPATH . "/infrastructures/view/" . $form['_id'];
+    $formaction = ROOTPATH . "/crud/organizations/update/" . $form['_id'];
+    $url = ROOTPATH . "/organizations/view/" . $form['_id'];
 }
 
 ?>
@@ -51,9 +51,9 @@ if (empty($form) || !isset($form['_id'])) {
 <h3 class="title">
     <?php
     if (empty($form) || !isset($form['_id'])) {
-        echo lang('New Infrastructure', 'Neue Infrastruktur');
+        echo lang('New Organization', 'Neue Infrastruktur');
     } else {
-        echo lang('Edit Infrastructure', 'Infrastruktur bearbeiten');
+        echo lang('Edit Organization', 'Infrastruktur bearbeiten');
     }
     ?>
 </h3>
@@ -152,20 +152,20 @@ if (empty($form) || !isset($form['_id'])) {
             <select name="values[type]" id="type" class="form-control">
                 <option value="Großgeräte und Instrumente" <?= sel('type', 'Großgeräte und Instrumente') ?>><?= lang('Equipment and Instruments', 'Großgeräte und Instrumente') ?></option>
                 <option value="Wissensressourcen" <?= sel('type', 'Wissensressourcen') ?>><?= lang('Knowledge Resources', 'Wissensressourcen') ?></option>
-                <option value="Informations- und Kommunikationsinfrastrukturen" <?= sel('type', 'Informations- und Kommunikationsinfrastrukturen') ?>><?= lang('Information and Communication Infrastructures', 'Informations- und Kommunikationsinfrastrukturen') ?></option>
+                <option value="Informations- und Kommunikationsinfrastrukturen" <?= sel('type', 'Informations- und Kommunikationsinfrastrukturen') ?>><?= lang('Information and Communication Organizations', 'Informations- und Kommunikationsinfrastrukturen') ?></option>
                 <option value="Sonstiges" <?= sel('type', 'Sonstiges') ?>><?= lang('Other', 'Sonstiges') ?></option>
             </select>
         </div>
 
         <div class="col-md-6">
-            <label for="infrastructure_type">
-                <?= lang('Type of infrastructure', 'Art der Infrastruktur') ?>
+            <label for="organization_type">
+                <?= lang('Type of organization', 'Art der Infrastruktur') ?>
                 <span class="badge kdsf">KDSF-B-13-6</span>
             </label>
-            <select name="values[infrastructure_type]" id="infrastructure_type" class="form-control">
-                <option value="Lokal" <?= sel('infrastructure_type', 'Lokal') ?>><?= lang('Local', 'Lokal') ?></option>
-                <option value="Verteilt" <?= sel('infrastructure_type', 'Verteilt') ?>><?= lang('Distributed', 'Verteilt') ?></option>
-                <option value="Virtuell" <?= sel('infrastructure_type', 'Virtuell') ?>><?= lang('Virtual', 'Virtuell') ?></option>
+            <select name="values[organization_type]" id="organization_type" class="form-control">
+                <option value="Lokal" <?= sel('organization_type', 'Lokal') ?>><?= lang('Local', 'Lokal') ?></option>
+                <option value="Verteilt" <?= sel('organization_type', 'Verteilt') ?>><?= lang('Distributed', 'Verteilt') ?></option>
+                <option value="Virtuell" <?= sel('organization_type', 'Virtuell') ?>><?= lang('Virtual', 'Virtuell') ?></option>
             </select>
         </div>
     </div>
@@ -187,7 +187,7 @@ if (empty($form) || !isset($form['_id'])) {
     </div>
 
     <h6>
-        <?= lang('Collaborative research infrastructure', 'Verbundforschungsinfrastruktur') ?>
+        <?= lang('Collaborative research organization', 'Verbundforschungsinfrastruktur') ?>
     </h6>
 
     <?php
@@ -197,7 +197,7 @@ if (empty($form) || !isset($form['_id'])) {
 
     <div class="form-group">
         <label for="collaborative">
-            <?= lang('Is this a collaborative research infrastructure?', 'Ist dies eine Verbundforschungsinfrastruktur?') ?>
+            <?= lang('Is this a collaborative research organization?', 'Ist dies eine Verbundforschungsinfrastruktur?') ?>
             <span class="badge kdsf">KDSF-B-13-12</span>
         </label>
         <div>
@@ -211,7 +211,7 @@ if (empty($form) || !isset($form['_id'])) {
 
             <div class="form-group">
                 <label for="coordinator">
-                    <?= lang('Does your institution coordinate the collaborative infrastructure?', 'Koordiniert deine Einrichtung die Verbundinfrastruktur?') ?>
+                    <?= lang('Does your institution coordinate the collaborative organization?', 'Koordiniert deine Einrichtung die Verbundinfrastruktur?') ?>
                     <span class="badge kdsf">KDSF-B-13-13</span>
                 </label>
                 <select name="values[coordinator]" id="coordinator" class="form-control">
@@ -230,11 +230,11 @@ if (empty($form) || !isset($form['_id'])) {
             </div>
 
             <div class="form-group mb-10">
-                <label for="collaborators">
+                <label for="cooperation_partners">
                     <?= lang('Cooperation Partners', 'Ko-Betreiber:innen') ?>
                     <span class="badge kdsf">KDSF-B-13-15</span>
                 </label>
-                <input type="text" class="form-control" name="values[collaborators]" id="collaborators" value="<?= $form['collaborators'] ?? '' ?>">
+                <input type="text" class="form-control" name="values[cooperation_partners]" id="cooperation_partners" value="<?= $form['cooperation_partners'] ?? '' ?>">
             </div>
         </div>
 

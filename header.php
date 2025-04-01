@@ -512,6 +512,11 @@ $pageactive = function ($p) use ($page) {
                             <i class="ph ph-users-three" aria-hidden="true"></i>
                             <?= lang('Organisational Units', 'Einheiten') ?>
                         </a>
+                        
+                        <a href="<?= ROOTPATH ?>/organizations" class="with-icon <?= $pageactive('organizations') ?>">
+                            <i class="ph ph-building-office" aria-hidden="true"></i>
+                            <?= lang('Organizations', 'Organisationen') ?>
+                        </a>
 
                         <!-- <a href="<?= ROOTPATH ?>/expertise" class="with-icon <?= $pageactive('expertise') ?>">
                             <i class="ph ph-barbell" aria-hidden="true"></i>
