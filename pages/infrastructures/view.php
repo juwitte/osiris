@@ -27,7 +27,7 @@ foreach ($persons as $p) {
         break;
     }
 }
-$edit_perm = ($infrastructure['created_by'] == $_SESSION['username'] || $Settings->hasPermission('infrastructures.edit') || $user_project);
+$edit_perm = ($infrastructure['created_by'] == $_SESSION['username'] || $Settings->hasPermission('infrastructures.edit') || $reporter);
 
 ?>
 <script src="<?= ROOTPATH ?>/js/chart.min.js"></script>
