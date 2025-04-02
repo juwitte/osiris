@@ -106,63 +106,51 @@ Route::get('/organizations/edit/(.*)', function ($id) {
     include BASEPATH . "/footer.php";
 }, 'login');
 
-Route::get('/organizations/year/(.*)', function ($id) {
-    include_once BASEPATH . "/php/init.php";
-    $user = $_SESSION['username'];
-
-    if (!$Settings->hasPermission('organizations.edit')) {
-        header("Location: " . ROOTPATH . "/organizations/view/$id?msg=no-permission");
-        die;
-    }
-
-    global $form;
-
-    if (DB::is_ObjectID($id)) {
-        $mongo_id = $DB->to_ObjectID($id);
-        $form = $osiris->organizations->findOne(['_id' => $mongo_id]);
-    } else {
-        $form = $osiris->organizations->findOne(['name' => $id]);
-        $id = strval($organization['_id'] ?? '');
-    }
-    if (empty($form)) {
-        header("Location: " . ROOTPATH . "/organizations?msg=not-found");
-        die;
-    }
-    $breadcrumb = [
-        ['name' => lang('Organizations', 'Organisationen'), 'path' => "/organizations"],
-        ['name' => $form['name'], 'path' => "/organizations/view/$id"],
-        ['name' => lang("Year Statistics", "Jahresstatistik")]
-    ];
-
-    include BASEPATH . "/header.php";
-    include BASEPATH . "/pages/organizations/year.php";
-    include BASEPATH . "/footer.php";
-}, 'login');
-
 
 /**
  * CRUD routes
  */
 
-Route::post('/crud/organizations/create', function () {
+Route::post('/crud/organization/create', function () {
     include_once BASEPATH . "/php/init.php";
-
-    if (!$Settings->hasPermission('organizations.edit')) {
-        header("Location: " . ROOTPATH . "/organizations?msg=no-permission");
-        die;
-    }
 
     if (!isset($_POST['values'])) die("no values given");
     $collection = $osiris->organizations;
 
     $values = validateValues($_POST['values'], $DB);
 
-    $id = $values['id'] ?? uniqid();
+    $filter = [
+        'name' => $values['name'],
+        'country' => $values['country'] ?? ''
+    ];
+    $ror = $values['ror'] ?? $values['ror_id'] ?? '';
+    if (!empty($ror)) {
+        // make sure ror is a valid URL
+        $values['ror'] = str_replace("https://ror.org/", "", $ror);
+        $values['ror'] =  "https://ror.org/" . $values['ror'];
+        $filter = [
+            '$or' => [
+                $filter,
+                ['ror' => $values['ror']]
+            ]
+        ];
+    }
 
     // check if organization id already exists:
-    $organization_exist = $collection->findOne(['id' => $id]);
-    if (!empty($organization_exist)) {
-        header("Location: " . $red . "?msg=organization ID does already exist.");
+    $exist = $collection->findOne($filter);
+    if (!empty($exist)) {
+        if (isset($_POST['redirect']) && !str_contains($_POST['redirect'], "//")) {
+            $red = str_replace("*", $id, $_POST['redirect']);
+            header("Location: " . $red . "?msg=organization does already exist.");
+        } else {
+            echo json_encode([
+                'msg' => "Organization ID already exists.",
+                'id' => strval($exist['_id']),
+                'ror' => $exist['ror'] ?? '',
+                'name' => $exist['name'],
+                'location' => $exist['location'],
+            ]);
+        }
         die();
     }
 
@@ -357,4 +345,3 @@ Route::post('/crud/organizations/year/([A-Za-z0-9]*)', function ($id) {
 //     $_SESSION['msg'] = lang("Organization has been deleted successfully.", "Infrastruktur wurde erfolgreich gelöscht.");
 //     header("Location: " . ROOTPATH . "/organizations");
 // });
-

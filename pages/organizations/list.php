@@ -45,7 +45,7 @@ $organizations  = $osiris->organizations->find(
     </thead>
     <tbody>
         <?php foreach ($organizations as $org) { ?>
-            <tr data-row="<?= $org['country'] ?>">
+            <tr data-row="">
                 <td>
                     <div class="d-flex align-items-center">
                         <span data-toggle="tooltip" data-title="<?= $org['type'] ?>" class="badge mr-10">
@@ -56,7 +56,10 @@ $organizations  = $osiris->organizations->find(
                                 <?= $org['name'] ?>
                             </a><br>
                             <?= $org['location'] ?>
-                            <a href="<?= $org['ror'] ?>" class="ml-10" target="_blank" rel="noopener noreferrer">ROR <i class="ph ph-arrow-square-out"></i></a>
+                            <?php if (isset($org['ror'])) { ?>
+                                <a href="<?= $org['ror'] ?>" class="ml-10" target="_blank" rel="noopener noreferrer">ROR <i class="ph ph-arrow-square-out"></i></a>
+                            <?php } ?> 
+                                                
                         </div>
                     </div>
                 </td>

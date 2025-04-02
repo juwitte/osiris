@@ -15,6 +15,7 @@
  * @license     MIT
  */
 
+include_once BASEPATH . "/php/Organization.php";
 
 function val($index, $default = '')
 {
@@ -46,7 +47,7 @@ if (empty($form) || !isset($form['_id'])) {
 ?>
 
 <script src="<?= ROOTPATH ?>/js/quill.min.js?v=<?= CSS_JS_VERSION ?>"></script>
-
+<script src="<?= ROOTPATH ?>/js/organizations.js?v=<?= CSS_JS_VERSION ?>"></script>
 
 <h3 class="title">
     <?php
@@ -191,7 +192,7 @@ if (empty($form) || !isset($form['_id'])) {
     </h6>
 
     <?php
-    $collaborative = $form['collaborative'] ?? 'no';
+    $collaborative = $form['collaborative'] ?? false;
     ?>
 
 
@@ -201,40 +202,96 @@ if (empty($form) || !isset($form['_id'])) {
             <span class="badge kdsf">KDSF-B-13-12</span>
         </label>
         <div>
-            <input type="radio" name="values[collaborative]" id="collaborative-yes" value="yes" <?= ($collaborative == 'yes') ? 'checked' : '' ?>>
+            <input type="radio" name="values[collaborative]" id="collaborative-yes" value="yes" <?= ($collaborative) ? 'checked' : '' ?>>
             <label for="collaborative-yes">Yes</label>
-            <input type="radio" name="values[collaborative]" id="collaborative-no" value="no" <?= ($collaborative == 'no') ? 'checked' : '' ?>>
+            <input type="radio" name="values[collaborative]" id="collaborative-no" value="no" <?= (!$collaborative) ? 'checked' : '' ?>>
             <label for="collaborative-no">No</label>
         </div>
 
-        <div id="form-collaborative" style="display: <?= ($collaborative == 'yes') ? 'block' : 'none' ?>;" class="box padded">
+        <div id="form-collaborative" style="display: <?= ($collaborative) ? 'block' : 'none' ?>;" class="box padded">
 
-            <div class="form-group">
-                <label for="coordinator">
-                    <?= lang('Does your institution coordinate the collaborative infrastructure?', 'Koordiniert deine Einrichtung die Verbundinfrastruktur?') ?>
-                    <span class="badge kdsf">KDSF-B-13-13</span>
-                </label>
-                <select name="values[coordinator]" id="coordinator" class="form-control">
-                    <option value="yes" <?= sel('coordinator', 'yes') ?>><?= lang('Yes', 'Ja') ?></option>
-                    <option value="no" <?= sel('coordinator', 'no') ?>><?= lang('No', 'Nein') ?></option>
-                </select>
-
-            </div>
-            <div class="form-group">
-                <label for="external_coordinator">
-                    <?= lang('If not, who is the coordinator?', 'Falls nein, wer ist die Koordinatoreinrichtung?') ?>
-                    <span class="badge kdsf">KDSF-B-13-14</span>
-                </label>
-                <input type="text" class="form-control" name="values[external_coordinator]" id="external_coordinator" value="<?= $form['external_coordinator'] ?? '' ?>">
-
-            </div>
-
-            <div class="form-group mb-10">
+            <?php
+            $collab = $form['collaborators'] ?? [];
+            $institute = $Settings->get('affiliation_details');
+            $institute_name = $institute['name'] ?? $institute['id'] ?? 'Your Institute';
+            $coordinator_institute = $form['coordinator_institute'] ?? false;
+            $coordinator_organization = $form['coordinator_organization'] ?? null;
+            ?>
+            <div class="form-group my-10">
                 <label for="collaborators">
                     <?= lang('Cooperation Partners', 'Ko-Betreiber:innen') ?>
                     <span class="badge kdsf">KDSF-B-13-15</span>
                 </label>
-                <input type="text" class="form-control" name="values[collaborators]" id="collaborators" value="<?= $form['collaborators'] ?? '' ?>">
+                <table class="table simple">
+                    <thead>
+                        <tr>
+                            <th><?= lang('Name', 'Name') ?></th>
+                            <th><?= lang('Coordinator', 'Koordinator') ?></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="collaborators">
+                        <tr>
+                            <td>
+                                <b><?= $institute_name ?></b><br>
+                                <small class="text-muted"><?= lang('This is your institute', 'Dies ist dein Institut') ?></small>
+                            </td>
+                            <td>
+                                <div class="custom-radio">
+                                    <input type="radio" name="values[coordinator]" id="coordinator" value="0" <?= ($coordinator_institute) ? 'checked' : '' ?> required>
+                                    <label for="coordinator" class="empty"></label>
+                                </div>
+                            </td>
+                            <td></td>
+                        </tr>
+                        <?php
+                        $collaborators = $form['collaborators'] ?? [];
+                        foreach ($collaborators as $org_id) {
+                            $collab = $osiris->organizations->findOne(['_id' => $org_id]);
+                            if (empty($collab)) continue;
+                            $is_coord = ($coordinator_organization == $collab['_id']);
+                        ?>
+                            <tr data-row="<?= $org_id ?>">
+                                <td>
+                                    <?= $collab['name'] ?>
+                                    <input type="hidden" name="values[collaborators][]" value="<?= $org_id ?>" class="form-control">
+                                </td>
+                                <td>
+                                    <div class="custom-radio">
+                                        <input type="radio" name="values[coordinator]" id="coordinator-<?= $org_id ?>" value="<?= $org_id ?>" <?= ($is_coord) ? 'checked' : '' ?> required>
+                                        <label for="coordinator-<?= $org_id ?>" class="empty"></label>
+                                    </div>
+                                </td>
+                                <td><button type="button" class="btn danger remove-collab" onclick="$(this).closest('tr').remove()"><i class="ph ph-trash"></i></button></td>
+                            </tr>
+                        <?php } ?>
+                    </tbody>
+                </table>
+
+                <div class="form-group mt-20 box padded bg-light">
+                    <label for="organization-search"><?= lang('Add Cooperation Partner', 'Ko-Betreiber:innen hinzufügen') ?></label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="organization-search" onkeydown="handleKeyDown(event)" placeholder="<?= lang('Search for an organization', 'Suche nach einer Organisation') ?>" autocomplete="off">
+                        <div class="input-group-append">
+                            <button class="btn" type="button" onclick="getOrganization($('#organization-search').val())"><i class="ph ph-magnifying-glass"></i></button>
+                        </div>
+                    </div>
+                    <p id="search-comment"></p>
+                    <table class="table simple">
+                        <tbody id="organization-suggest">
+                        </tbody>
+                    </table>
+                    <small class="text-muted">Powered by <a href="https://ror.org/" target="_blank" rel="noopener noreferrer">ROR</a></small>
+                    <script>
+                        function handleKeyDown(event) {
+                            if (event.key === 'Enter') {
+                                event.preventDefault();
+                                getOrganization($('#organization-search').val());
+                            }
+                        }
+                    </script>
+                </div>
+
             </div>
         </div>
 

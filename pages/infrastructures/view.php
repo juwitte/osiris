@@ -104,10 +104,45 @@ $edit_perm = ($infrastructure['created_by'] == $_SESSION['username'] || $Setting
 
     </div>
 
+    <?php if ($infrastructure['collaborative'] ?? false) { ?>
+        <div class="p-10 rounded" style="background-color: var(--success-color-20); border: 1px solid var(--success-color);">
+            <h5 class="m-0 text-success">
+                <i class="ph ph-handshake"></i>
+                <?= lang('Collaborative research infrastructure', 'Verbundforschungsinfrastruktur') ?>
+            </h5>
+
+            <p>
+                <b><?= lang('Coordinator', 'Koordinator-Einrichtung') ?>:</b><br>
+                <?php if ($infrastructure['coordinator_institute']) { ?>
+                    <b class="badge success filled"><?= $Settings->get('affiliation') ?></b>
+                <?php } else {
+                    $org = $osiris->organizations->findOne(['_id' => $infrastructure['coordinator_organization']]);
+                ?>
+                    <a class="badge success" href="<?= ROOTPATH ?>/organizations/view/<?= $org['_id'] ?>">
+                        <b><?= $org['name'] ?? '-' ?></b>
+                        (<?= $org['location'] ?>)
+                    </a>
+                <?php } ?>
+            </p>
+
+            <p class="mb-10">
+                <b><?= lang('Partner organizations', 'Partnerorganisationen') ?>:</b><br>
+                <?php if (!empty($infrastructure['collaborators'])) {
+                    foreach ($infrastructure['collaborators'] as $org) {
+                        $org = $osiris->organizations->findOne(['_id' => $org]);
+                        if ($org) {
+                            echo '<a class="badge mr-10" href="'.ROOTPATH.'/organizations/view/' . $org['_id'] . '"><b>' . $org['name'] . '</b> (' . $org['location'] . ')</a>';
+                        }
+                    }
+                } else { ?>
+                    <span class="badge secondary"><?= lang('No partner organizations', 'Keine Partnerorganisationen') ?></span>
+                <?php } ?>
+            </p>
+        </div>
+    <?php } ?>
 </div>
 
 <hr>
-
 
 <h2>
     <?= lang('Operating personnel', 'Betriebspersonal') ?>

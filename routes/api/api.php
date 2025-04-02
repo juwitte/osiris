@@ -815,7 +815,7 @@ Route::get('/api/journals', function () {
             ]
         ]
 
-       
+
     ];
 
     $journals = $osiris->journals->aggregate($pipeline)->toArray();
@@ -925,3 +925,52 @@ Route::get('/api/infrastructures', function () {
     echo return_rest($result, count($result));
 });
 
+// Organizations
+Route::get('/api/organizations', function () {
+    error_reporting(E_ERROR | E_PARSE);
+    include_once BASEPATH . "/php/init.php";
+
+    if (!apikey_check($_GET['apikey'] ?? null)) {
+        echo return_permission_denied();
+        die;
+    }
+
+    $options = [
+        'projection' => [
+            '_id' => 0,
+            'id' => ['$toString' => '$_id'],
+            'name' => 1,
+            'ror' => 1,
+            'location' => 1,
+        ]
+    ];
+
+    $filter = [];
+    if (isset($_GET['filter'])) {
+        $filter = $_GET['filter'];
+    } elseif (isset($_GET['json'])) {
+        $filter = json_decode($_GET['json'], true);
+    } elseif (isset($_GET['search'])) {
+        $search = trim($_GET['search']);
+        $ror = null;
+        if (str_starts_with('https://ror.org/', $search)) {
+            $ror = $search;
+        } else if (preg_match('/^0[a-z|0-9]{6}[0-9]{2}$/', $search)) {
+            $ror = 'https://ror.org/' . $search;
+        }
+        if ($ror) {
+            // try finding the organization by ROR first
+            $filter = ['ror' => $ror];
+            $result = $osiris->organizations->find($filter, $options)->toArray();
+            if (count($result) > 0) {
+                echo return_rest($result, count($result));
+                die;
+            }
+        }
+
+        $j = new \MongoDB\BSON\Regex(trim($_GET['search']), 'i');
+        $filter = ['name' => ['$regex' => $j]];
+    }
+    $result = $osiris->organizations->find($filter, $options)->toArray();
+    echo return_rest($result, count($result));
+});

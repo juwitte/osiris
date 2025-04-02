@@ -216,6 +216,25 @@ Route::post('/crud/infrastructures/create', function () {
         header("Location: " . $red . "?msg=infrastructure ID does already exist.");
         die();
     }
+    // dump($values, true);
+
+    // format collaborators
+    if (isset($values['collaborative'])) {
+        $values['collaborative'] = $values['collaborative'] == 'yes' ? true : false;
+        if (isset($values['collaborators'])) {
+
+            $values['coordinator_organization'] = null;
+            if (DB::is_ObjectID($values['coordinator'] ?? null)) {
+                $values['coordinator_organization'] = DB::to_ObjectID($values['coordinator']);
+                $values['coordinator_institute'] = false;
+            } else {
+                $values['coordinator_institute'] = true;
+            }
+        }
+        $values['collaborators'] = array_map('DB::to_ObjectID', $values['collaborators'] ?? []);
+    }
+    // dump($values, true);
+    // die;
 
     // add information on creating process
     $values['created'] = date('Y-m-d');
@@ -237,67 +256,67 @@ Route::post('/crud/infrastructures/create', function () {
 });
 
 
-Route::post('/crud/infrastructures/upload/([A-Za-z0-9]*)', function ($id) {
-    include_once BASEPATH . "/php/init.php";
+// Route::post('/crud/infrastructures/upload/([A-Za-z0-9]*)', function ($id) {
+//     include_once BASEPATH . "/php/init.php";
 
-    if (!$Settings->hasPermission('infrastructures.edit')) {
-        header("Location: " . ROOTPATH . "/infrastructures?msg=no-permission");
-        die;
-    }
+//     if (!$Settings->hasPermission('infrastructures.edit')) {
+//         header("Location: " . ROOTPATH . "/infrastructures?msg=no-permission");
+//         die;
+//     }
 
-    $target_dir = BASEPATH . "/uploads/";
-    if (!is_writable($target_dir)) {
-        die("Upload directory $target_dir is unwritable. Please contact admin.");
-    }
-    $target_dir .= "infrastructures/";
+//     $target_dir = BASEPATH . "/uploads/";
+//     if (!is_writable($target_dir)) {
+//         die("Upload directory $target_dir is unwritable. Please contact admin.");
+//     }
+//     $target_dir .= "infrastructures/";
 
-    if (isset($_FILES["file"]) && $_FILES["file"]["size"] > 0) {
+//     if (isset($_FILES["file"]) && $_FILES["file"]["size"] > 0) {
 
-        if (!file_exists($target_dir) || !is_dir($target_dir)) {
-            mkdir($target_dir, 0777);
-        }
-        // random filename
-        $filename = $id . "." . pathinfo($_FILES["file"]["name"], PATHINFO_EXTENSION);
-        // $filetype = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-        $filesize = $_FILES["file"]["size"];
-        $values['image'] = "infrastructures/" . $filename;
+//         if (!file_exists($target_dir) || !is_dir($target_dir)) {
+//             mkdir($target_dir, 0777);
+//         }
+//         // random filename
+//         $filename = $id . "." . pathinfo($_FILES["file"]["name"], PATHINFO_EXTENSION);
+//         // $filetype = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+//         $filesize = $_FILES["file"]["size"];
+//         $values['image'] = "infrastructures/" . $filename;
 
-        if ($_FILES['file']['error'] != UPLOAD_ERR_OK) {
-            $errorMsg = match ($_FILES['file']['error']) {
-                1 => lang('The uploaded file exceeds the upload_max_filesize directive in php.ini', 'Die hochgeladene Datei überschreitet die Richtlinie upload_max_filesize in php.ini'),
-                2 => lang("File is too big: max 16 MB is allowed.", "Die Datei ist zu groß: maximal 16 MB sind erlaubt."),
-                3 => lang('The uploaded file was only partially uploaded.', 'Die hochgeladene Datei wurde nur teilweise hochgeladen.'),
-                4 => lang('No file was uploaded.', 'Es wurde keine Datei hochgeladen.'),
-                6 => lang('Missing a temporary folder.', 'Der temporäre Ordner fehlt.'),
-                7 => lang('Failed to write file to disk.', 'Datei konnte nicht auf die Festplatte geschrieben werden.'),
-                8 => lang('A PHP extension stopped the file upload.', 'Eine PHP-Erweiterung hat den Datei-Upload gestoppt.'),
-                default => lang('Something went wrong.', 'Etwas ist schiefgelaufen.') . " (" . $_FILES['file']['error'] . ")"
-            };
-            $_SESSION['msg'] = $errorMsg;
-        } else if ($filesize > 2000000) {
-            $_SESSION['msg'] = lang("File is too big: max 2 MB is allowed.", "Die Datei ist zu groß: maximal 2 MB sind erlaubt.");
-        } else if (move_uploaded_file($_FILES["file"]["tmp_name"], $target_dir . $filename)) {
-            $osiris->infrastructures->updateOne(
-                ['_id' => $DB->to_ObjectID($id)],
-                ['$set' => $values]
-            );
-            $_SESSION['msg'] = lang("The file $filename has been uploaded.", "Die Datei <q>$filename</q> wurde hochgeladen.");
-        } else {
-            $_SESSION['msg'] = lang("Sorry, there was an error uploading your file.", "Entschuldigung, aber es gab einen Fehler beim Dateiupload.");
-        }
-    } else if (isset($_POST['delete'])) {
-        $filename = $_POST['delete'];
-        if (file_exists($target_dir . $filename)) {
-            // Use unlink() function to delete a file
-            if (!unlink($target_dir . $filename)) {
-                $_SESSION['msg'] = lang("$filename cannot be deleted due to an error.", "$filename kann nicht gelöscht werden, da ein Fehler aufgetreten ist.");
-            } else {
-                $_SESSION['msg'] = lang("$filename has been deleted.", "$filename wurde gelöscht.");
-            }
-        }
-    }
-    header("Location: " . ROOTPATH . "/infrastructures/view/$id");
-});
+//         if ($_FILES['file']['error'] != UPLOAD_ERR_OK) {
+//             $errorMsg = match ($_FILES['file']['error']) {
+//                 1 => lang('The uploaded file exceeds the upload_max_filesize directive in php.ini', 'Die hochgeladene Datei überschreitet die Richtlinie upload_max_filesize in php.ini'),
+//                 2 => lang("File is too big: max 16 MB is allowed.", "Die Datei ist zu groß: maximal 16 MB sind erlaubt."),
+//                 3 => lang('The uploaded file was only partially uploaded.', 'Die hochgeladene Datei wurde nur teilweise hochgeladen.'),
+//                 4 => lang('No file was uploaded.', 'Es wurde keine Datei hochgeladen.'),
+//                 6 => lang('Missing a temporary folder.', 'Der temporäre Ordner fehlt.'),
+//                 7 => lang('Failed to write file to disk.', 'Datei konnte nicht auf die Festplatte geschrieben werden.'),
+//                 8 => lang('A PHP extension stopped the file upload.', 'Eine PHP-Erweiterung hat den Datei-Upload gestoppt.'),
+//                 default => lang('Something went wrong.', 'Etwas ist schiefgelaufen.') . " (" . $_FILES['file']['error'] . ")"
+//             };
+//             $_SESSION['msg'] = $errorMsg;
+//         } else if ($filesize > 2000000) {
+//             $_SESSION['msg'] = lang("File is too big: max 2 MB is allowed.", "Die Datei ist zu groß: maximal 2 MB sind erlaubt.");
+//         } else if (move_uploaded_file($_FILES["file"]["tmp_name"], $target_dir . $filename)) {
+//             $osiris->infrastructures->updateOne(
+//                 ['_id' => $DB->to_ObjectID($id)],
+//                 ['$set' => $values]
+//             );
+//             $_SESSION['msg'] = lang("The file $filename has been uploaded.", "Die Datei <q>$filename</q> wurde hochgeladen.");
+//         } else {
+//             $_SESSION['msg'] = lang("Sorry, there was an error uploading your file.", "Entschuldigung, aber es gab einen Fehler beim Dateiupload.");
+//         }
+//     } else if (isset($_POST['delete'])) {
+//         $filename = $_POST['delete'];
+//         if (file_exists($target_dir . $filename)) {
+//             // Use unlink() function to delete a file
+//             if (!unlink($target_dir . $filename)) {
+//                 $_SESSION['msg'] = lang("$filename cannot be deleted due to an error.", "$filename kann nicht gelöscht werden, da ein Fehler aufgetreten ist.");
+//             } else {
+//                 $_SESSION['msg'] = lang("$filename has been deleted.", "$filename wurde gelöscht.");
+//             }
+//         }
+//     }
+//     header("Location: " . ROOTPATH . "/infrastructures/view/$id");
+// });
 
 
 Route::post('/crud/infrastructures/update/([A-Za-z0-9]*)', function ($id) {
@@ -311,6 +330,22 @@ Route::post('/crud/infrastructures/update/([A-Za-z0-9]*)', function ($id) {
     $collection = $osiris->infrastructures;
 
     $values = validateValues($_POST['values'], $DB);
+    if (isset($values['collaborative'])) {
+        $values['collaborative'] = $values['collaborative'] == 'yes' ? true : false;
+        if (isset($values['collaborators'])) {
+            $values['coordinator_organization'] = null;
+            if (DB::is_ObjectID($values['coordinator'] ?? null)) {
+                $values['coordinator_organization'] = DB::to_ObjectID($values['coordinator']);
+                $values['coordinator_institute'] = false;
+            } else {
+                $values['coordinator_institute'] = true;
+            }
+        }
+        $values['collaborators'] = array_map('DB::to_ObjectID', $values['collaborators'] ?? []);
+        unset($values['coordinator']);
+        
+    }
+
     // add information on creating process
     $values['updated'] = date('Y-m-d');
     $values['updated_by'] = $_SESSION['username'];
@@ -464,4 +499,3 @@ Route::post('/crud/infrastructures/delete/([A-Za-z0-9]*)', function ($id) {
     $_SESSION['msg'] = lang("Infrastructure has been deleted successfully.", "Infrastruktur wurde erfolgreich gelöscht.");
     header("Location: " . ROOTPATH . "/infrastructures");
 });
-

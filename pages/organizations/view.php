@@ -51,6 +51,15 @@ $edit_perm = ($organization['created_by'] == $_SESSION['username'] || $Settings-
                     <?= $organization['lng'] ?? '-' ?>
                 </td>
             </tr>
+            <tr>
+                <td>
+                    <?= lang('ROR') ?>:
+                    <a href="<?= $organization['ror'] ?>" target="_blank" rel="noopener noreferrer">
+                        <?= $organization['ror'] ?>
+                        <i class="ph ph-arrow-square-out"></i>
+                    </a>
+                </td>
+            </tr>
         </tbody>
     </table>
 </div>

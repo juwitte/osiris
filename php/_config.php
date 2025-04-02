@@ -623,7 +623,7 @@ function format_date($date, $format = "d.m.Y")
     return date_format($d, $format);
 }
 
-function dump($element, $as_json = false)
+function dump($element, $as_json = true)
 {
     echo '<pre class="code">';
     if ($element instanceof MongoDB\Model\BSONArray) {
