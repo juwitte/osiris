@@ -216,7 +216,7 @@ function getRORid(ror, msg = true) {
             selectOrganization(response, true)
             $('#organizations-ror-id').val('')
             if (msg)
-                toastSuccess(lang('Organization added', 'Kooperationspartner hinzugefügt'))
+                toastSuccess(lang('Organization added', 'Organisation hinzugefügt'))
         },
         error: function (response) {
             var errors = response.responseJSON.errors

@@ -32,7 +32,8 @@ class Organization
             'Government' => 'bank',
             'Facility' => 'warehouse',
             'Other' => 'house',
-            'default' => 'hous>'
+            'default' => 'hous>',
+            'Funder' => 'hand-coins',
         ];
         $icon = $icons[$ico] ?? $icons['default'];
         return '<i class="ph ph-' . $icon . ' ' . $cls . '" aria-hidden="true"></i>';

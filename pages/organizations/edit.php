@@ -15,6 +15,7 @@
  * @license     MIT
  */
 
+include_once BASEPATH . "/php/Country.php";
 
 function val($index, $default = '')
 {
@@ -36,218 +37,189 @@ function sel($index, $value)
 $form = $GLOBALS['form'] ?? [];
 
 if (empty($form) || !isset($form['_id'])) {
-    $formaction = ROOTPATH . "/crud/organizations/create";
+    $formaction = ROOTPATH . "/crud/organization/create";
     $url = ROOTPATH . "/organizations/view/*";
 } else {
-    $formaction = ROOTPATH . "/crud/organizations/update/" . $form['_id'];
+    $formaction = ROOTPATH . "/crud/organization/update/" . $form['_id'];
     $url = ROOTPATH . "/organizations/view/" . $form['_id'];
 }
 
 ?>
 
-<script src="<?= ROOTPATH ?>/js/quill.min.js?v=<?= CSS_JS_VERSION ?>"></script>
+<div class="container" style="max-width: 80rem;">
+    <?php if (empty($form) || !isset($form['_id'])) { ?>
 
+        <h1 class="title">
+            <i class="ph ph-building-office" aria-hidden="true"></i>
+            <?= lang('New Organization', 'Neue Organisation') ?>
+        </h1>
 
-<h3 class="title">
-    <?php
-    if (empty($form) || !isset($form['_id'])) {
-        echo lang('New Organization', 'Neue Infrastruktur');
-    } else {
-        echo lang('Edit Organization', 'Infrastruktur bearbeiten');
-    }
-    ?>
-</h3>
+    <?php } else { ?>
+        <h1 class="title">
+            <i class="ph ph-building-office" aria-hidden="true"></i>
+            <?= lang('Edit Organization', 'Organisation bearbeiten') ?>
+        </h1>
+    <?php } ?>
+    <form action="<?= $formaction ?>" method="post" class="form">
+        <input type="hidden" name="redirect" value="<?= $url ?>">
 
-<form action="<?= $formaction ?>" method="post" class="form">
-    <input type="hidden" name="redirect" value="<?= $url ?>">
-
-    <div class="form-group floating-form">
-        <?php if (empty($form)) { ?>
-            <input type="text" id="id" class="form-control" name="values[id]" required value="<?= uniqid() ?>" placeholder="ID is a required field">
-            <label for="id" class="required">ID</label>
-            <small class="text-muted">
-                <?= lang('It it recommended to choose something short you can recognize.', 'Es wird empfohlen, etwas Kurzes, Wiedererkennbares zu nehmen.') ?>
-            </small>
-        <?php } else { ?>
-            <small class="font-weight-bold">ID:</small><br>
-            <?= $form['id'] ?>
-        <?php } ?>
-    </div>
-
-    <div class="row row-eq-spacing">
-        <div class="col-md-6">
-            <label for="start_date" class="required">
-                <?= lang('Start', 'Anfang') ?> <span class="badge kdsf">KDSF-B-13-3</span>
+        <div class="form-group">
+            <label for="ror">
+                <?= lang('ROR-ID') ?>
+                <span class="badge kdsf">KDSF-B-15-1</span>
             </label>
-            <input type="date" class="form-control" name="values[start_date]" id="start_date" required value="<?= $form['start_date'] ?? '' ?>">
+
+            <div class="input-group">
+                <input type="text" class="form-control" name="values[ror]" id="ror" value="<?= $form['ror'] ?? '' ?>">
+                <div class="input-group-append" data-toggle="tooltip" data-title="<?= lang('Retreive updated information from ROR', 'Aktualisiere die Daten von ROR') ?>">
+                    <button class="btn" type="button" onclick="getRORid($('#ror').val())"><i class="ph ph-arrows-clockwise"></i></button>
+                </div>
+            </div>
         </div>
-        <div class="col-md-6">
-            <label for="end_date">
-                <?= lang('End', 'Ende') ?> <span class="badge kdsf">KDSF-B-13-4</span>
+
+        <div class="form-group">
+            <label for="name" class="required">
+                <?= lang('Name of the organization', 'Name der Organisation') ?>
+                <span class="badge kdsf">KDSF-B-15-2</span>
             </label>
-            <input type="date" class="form-control" name="values[end_date]" id="end_date" value="<?= $form['end_date'] ?? '' ?>">
+            <input type="text" class="form-control" name="values[name]" id="name" required value="<?= $form['name'] ?? '' ?>">
         </div>
-    </div>
 
-    <div class="row row-eq-spacing mb-0">
-        <div class="col-md-6">
-            <fieldset>
-                <legend class="d-flex"><?= lang('English', 'Englisch') ?> <img src="<?= ROOTPATH ?>/img/gb.svg" alt="EN" class="flag"></legend>
-                <div class="form-group">
-                    <label for="name" class="required">
-                        <?= lang('Title', 'Titel') ?> (EN)
-                        <span class="badge kdsf">KDSF-B-13-2</span>
-                    </label>
-                    <input type="text" class="form-control large" name="values[name]" id="name" required value="<?= $form['name'] ?? '' ?>">
-                </div>
-
-                <div class="form-group">
-                    <label for="subtitle">
-                        <?= lang('Subtitle', 'Untertitel') ?> (EN)
-                    </label>
-                    <input type="text" class="form-control" name="values[subtitle]" id="subtitle" value="<?= $form['subtitle'] ?? ''  ?>">
-                </div>
-            </fieldset>
-        </div>
-        <div class="col-md-6">
-            <fieldset>
-                <legend class="d-flex"><?= lang('German', 'Deutsch') ?> <img src="<?= ROOTPATH ?>/img/de.svg" alt="DE" class="flag"></legend>
-                <div class="form-group">
-                    <label for="name_de">
-                        <?= lang('Title', 'Titel') ?> (DE)
-                    </label>
-                    <input type="text" class="form-control large" name="values[name_de]" id="name_de" value="<?= $form['name_de'] ?? '' ?>">
-                </div>
-
-                <div class="form-group">
-                    <label for="name_de">
-                        <?= lang('Subtitle', 'Untertitel') ?> (DE)
-                    </label>
-                    <input type="text" class="form-control" name="values[subtitle_de]" id="subtitle_de" value="<?= $form['subtitle_de'] ?? '' ?>">
-                </div>
-            </fieldset>
-        </div>
-    </div>
-
-
-    <label for="description">
-        <?= lang('Description', 'Beschreibung') ?>
-        <span class="badge kdsf">KDSF-B-13-11</span>
-    </label>
-    <div class="form-group">
-        <div id="description-quill"><?= $form['description'] ?? '' ?></div>
-        <textarea name="values[description]" id="description" class="d-none" readonly><?= $form['description'] ?? '' ?></textarea>
-        <script>
-            quillEditor('description');
-        </script>
-    </div>
-
-
-    <div class="row row-eq-spacing">
-        <div class="col-md-6">
-            <label for="type">
-                <?= lang('Type', 'Typ') ?>
-                <span class="badge kdsf">KDSF-B-13-5</span>
+        <div class="form-group">
+            <label for="type" class="required">
+                <?= lang('Type of organization', 'Art der Organisation') ?>
+                <span class="badge kdsf">KDSF-B-15-4</span>
             </label>
-            <select name="values[type]" id="type" class="form-control">
-                <option value="Großgeräte und Instrumente" <?= sel('type', 'Großgeräte und Instrumente') ?>><?= lang('Equipment and Instruments', 'Großgeräte und Instrumente') ?></option>
-                <option value="Wissensressourcen" <?= sel('type', 'Wissensressourcen') ?>><?= lang('Knowledge Resources', 'Wissensressourcen') ?></option>
-                <option value="Informations- und Kommunikationsinfrastrukturen" <?= sel('type', 'Informations- und Kommunikationsinfrastrukturen') ?>><?= lang('Information and Communication Organizations', 'Informations- und Kommunikationsinfrastrukturen') ?></option>
-                <option value="Sonstiges" <?= sel('type', 'Sonstiges') ?>><?= lang('Other', 'Sonstiges') ?></option>
+            <select name="values[type]" id="type" class="form-control" required>
+                <option value="" disabled <?= sel('type', '') ?>><?= lang('Select type', 'Art auswählen') ?></option>
+                <option value="Education" <?= sel('type', 'Education') ?>><?= lang('Education', 'Bildung') ?></option>
+                <option value="Funder" <?= sel('type', 'Funder') ?>><?= lang('Funder', 'Förderer') ?></option>
+                <option value="Healthcare" <?= sel('type', 'Healthcare') ?>><?= lang('Healthcare', 'Gesundheitswesen') ?></option>
+                <option value="Company" <?= sel('type', 'Company') ?>><?= lang('Company', 'Unternehmen') ?></option>
+                <option value="Archive" <?= sel('type', 'Archive') ?>><?= lang('Archive', 'Archiv') ?></option>
+                <option value="Nonprofit" <?= sel('type', 'Nonprofit') ?>><?= lang('Non-profit', 'Gemeinnützig') ?></option>
+                <option value="Government" <?= sel('type', 'Government') ?>><?= lang('Government', 'Regierung') ?></option>
+                <option value="Facility" <?= sel('type', 'Facility') ?>><?= lang('Facility', 'Einrichtung') ?></option>
+                <option value="Other" <?= sel('type', 'Other') ?>><?= lang('Other', 'Sonstiges') ?></option>
             </select>
         </div>
 
-        <div class="col-md-6">
-            <label for="organization_type">
-                <?= lang('Type of organization', 'Art der Infrastruktur') ?>
-                <span class="badge kdsf">KDSF-B-13-6</span>
-            </label>
-            <select name="values[organization_type]" id="organization_type" class="form-control">
-                <option value="Lokal" <?= sel('organization_type', 'Lokal') ?>><?= lang('Local', 'Lokal') ?></option>
-                <option value="Verteilt" <?= sel('organization_type', 'Verteilt') ?>><?= lang('Distributed', 'Verteilt') ?></option>
-                <option value="Virtuell" <?= sel('organization_type', 'Virtuell') ?>><?= lang('Virtual', 'Virtuell') ?></option>
-            </select>
-        </div>
-    </div>
 
+        <div class="row row-eq-spacing">
 
-    <div class="row row-eq-spacing">
-        <div class="col-md-6">
-            <label for="access">
-                <?= lang('User Access', 'Art des Zugangs') ?>
-                <span class="badge kdsf">KDSF-B-13-7</span>
-            </label>
-            <select name="values[access]" id="access" class="form-control">
-                <option value="User Access" <?= sel('access', 'User Access') ?>><?= lang('User Access', 'User Access') ?></option>
-                <option value="Shared Access" <?= sel('access', 'Shared Access') ?>><?= lang('Shared Access', 'Shared Access') ?></option>
-                <option value="Open Access" <?= sel('access', 'Open Access') ?>><?= lang('Open Access', 'Open Access') ?></option>
-                <option value="Sonstiges" <?= sel('access', 'Sonstiges') ?>><?= lang('Other', 'Sonstiges') ?></option>
-            </select>
-        </div>
-    </div>
-
-    <h6>
-        <?= lang('Collaborative research organization', 'Verbundforschungsinfrastruktur') ?>
-    </h6>
-
-    <?php
-    $collaborative = $form['collaborative'] ?? 'no';
-    ?>
-
-
-    <div class="form-group">
-        <label for="collaborative">
-            <?= lang('Is this a collaborative research organization?', 'Ist dies eine Verbundforschungsinfrastruktur?') ?>
-            <span class="badge kdsf">KDSF-B-13-12</span>
-        </label>
-        <div>
-            <input type="radio" name="values[collaborative]" id="collaborative-yes" value="yes" <?= ($collaborative == 'yes') ? 'checked' : '' ?>>
-            <label for="collaborative-yes">Yes</label>
-            <input type="radio" name="values[collaborative]" id="collaborative-no" value="no" <?= ($collaborative == 'no') ? 'checked' : '' ?>>
-            <label for="collaborative-no">No</label>
-        </div>
-
-        <div id="form-collaborative" style="display: <?= ($collaborative == 'yes') ? 'block' : 'none' ?>;" class="box padded">
-
-            <div class="form-group">
-                <label for="coordinator">
-                    <?= lang('Does your institution coordinate the collaborative organization?', 'Koordiniert deine Einrichtung die Verbundinfrastruktur?') ?>
-                    <span class="badge kdsf">KDSF-B-13-13</span>
+            <div class="col-sm">
+                <label for="location">
+                    <?= lang('Location', 'Standort') ?>
                 </label>
-                <select name="values[coordinator]" id="coordinator" class="form-control">
-                    <option value="yes" <?= sel('coordinator', 'yes') ?>><?= lang('Yes', 'Ja') ?></option>
-                    <option value="no" <?= sel('coordinator', 'no') ?>><?= lang('No', 'Nein') ?></option>
+                <input type="text" class="form-control" name="values[location]" id="location" value="<?= $form['location'] ?? '' ?>">
+            </div>
+
+            <div class="col-sm">
+                <label for="country">
+                    <?= lang('Country', 'Land') ?>
+                    <span class="badge kdsf">KDSF-B-15-3</span>
+                </label>
+                <select name="values[country]" id="country" class="form-control">
+                    <option value="" disabled <?= sel('country', '') ?>><?= lang('Select country', 'Land auswählen') ?></option>
+                    <?php foreach (Country::COUNTRIES as $key => $value) { ?>
+                        <option value="<?= $key ?>" <?= sel('country', $key) ?>><?= $value ?></option>
+                    <?php } ?>
                 </select>
-
-            </div>
-            <div class="form-group">
-                <label for="external_coordinator">
-                    <?= lang('If not, who is the coordinator?', 'Falls nein, wer ist die Koordinatoreinrichtung?') ?>
-                    <span class="badge kdsf">KDSF-B-13-14</span>
-                </label>
-                <input type="text" class="form-control" name="values[external_coordinator]" id="external_coordinator" value="<?= $form['external_coordinator'] ?? '' ?>">
-
-            </div>
-
-            <div class="form-group mb-10">
-                <label for="cooperation_partners">
-                    <?= lang('Cooperation Partners', 'Ko-Betreiber:innen') ?>
-                    <span class="badge kdsf">KDSF-B-13-15</span>
-                </label>
-                <input type="text" class="form-control" name="values[cooperation_partners]" id="cooperation_partners" value="<?= $form['cooperation_partners'] ?? '' ?>">
             </div>
         </div>
 
+        <div class="row row-eq-spacing mb-0">
+            <div class="col-sm">
+                <label for="lat">
+                    <?= lang('Latitude', 'Breitengrad') ?>
+                </label>
+                <input type="number" class="form-control" name="values[lat]" id="lat" value="<?= $form['lat'] ?? '' ?>" step="0.00001">
+            </div>
+            <div class="col-sm">
+                <label for="lng">
+                    <?= lang('Longitude', 'Längengrad') ?>
+                </label>
+                <input type="number" class="form-control" name="values[lng]" id="lng" value="<?= $form['lng'] ?? '' ?>" step="0.00001">
+            </div>
+        </div>
+        <small class="text-muted">
+            <?=lang('Geographical coordinates are required to correctly display the organisation on a map.', 'Die geografischen Koordinaten werden benötigt, um die Organisation auf einer Karte korrekt darzustellen.')?>
+        </small>
+        <br>
+        <br>
+
         <script>
-            document.getElementById('collaborative-yes').addEventListener('change', function() {
-                document.getElementById('form-collaborative').style.display = 'block';
+            $('#ror').on('change', function() {
+                const ror = $(this).val();
+                $(this).removeClass('is-invalid');
+                $('#submit').prop('disabled', false);
+                if (!ror || ror.length === 0) {
+                    return;
+                }
+
+                // check if ROR is missing the https://
+                if (ror.match(/^0[a-z|0-9]{6}[0-9]{2}$/)) {
+                    $(this).val('https://ror.org/' + ror);
+                    toastWarning(lang('ROR ID is missing the URL prefix. We updated that for you, please check.', 'Der ROR-ID fehlte der URL-Präfix. Wir haben das für dich geändert, bitte überprüfe es.'));
+                    return;
+                }
+
+                // check if ROR is valid
+                const regex = /^(https?:\/\/)?(www\.)?ror\.org\/0[a-z|0-9]{6}[0-9]{2}$/;
+                if (!regex.test(ror)) {
+                    toastError(lang('Invalid ROR ID format. Please enter a valid ROR ID.', 'Ungültige ROR-ID, bitte überprüfen Sie die Eingabe.'));
+                    $(this).addClass('is-invalid');
+                    $('#submit').prop('disabled', true);
+                    return;
+                }
+
             });
-            document.getElementById('collaborative-no').addEventListener('change', function() {
-                document.getElementById('form-collaborative').style.display = 'none';
-            });
+
+
+            function getRORid(ror) {
+                console.info('getRORid')
+                if (!ror) {
+                    toastError('Please provide a ROR ID')
+                    return
+                }
+                var url = 'https://api.ror.org/organizations/' + ror.trim()
+                $.ajax({
+                    type: "GET",
+                    url: url,
+                    dataType: "json",
+                    beforeSend: function() {
+                        $('.loader').addClass('show')
+                    },
+                    success: function(response) {
+                        $('.loader').removeClass('show')
+                        console.log(response);
+                        if (response.id) {
+                            let address = response.addresses[0] ?? {}
+                            $('#name').val(response.name)
+                            $('#type').val(response.types[0])
+                            $('#location').val(address.city + ', ' + response.country.country_name)
+                            $('#country').val(response.country.country_code)
+                            $('#lat').val(address.lat)
+                            $('#lng').val(address.lng)
+                        } else {
+                            toastError('ROR ID not found')
+                        }
+                    },
+                    error: function(response) {
+                        var errors = response.responseJSON.errors
+                        if (errors) {
+                            toastError(errors.join(', '))
+                        } else {
+                            toastError(response.responseText)
+                        }
+                        $('.loader').removeClass('show')
+                    }
+                })
+            }
         </script>
 
-    </div>
+        <button type="submit" class="btn secondary" id="submit"><?= lang('Save', 'Speichern') ?></button>
+    </form>
+</div>
 
-    <button type="submit" class="btn secondary"><?= lang('Save', 'Speichern') ?></button>
-</form>
+<script src="<?= ROOTPATH ?>/js/collaborators.js?v=<?= CSS_JS_VERSION ?>"></script>

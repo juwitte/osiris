@@ -12,7 +12,9 @@ foreach ($projects as $project) {
             ['name' => $p['name'], 'country' => $p['country']],
             ['ror' => $p['ror']]
         ]]);
-        if (empty($coll_id)) {
+        if (!empty($coll_id)) {
+            $coll_id = $coll_id['_id'];
+        } else {
             $new_org = $osiris->organizations->insertOne([
                 'name' => $p['name'],
                 'type' => $p['type'] ?? 'other',

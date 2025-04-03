@@ -29,6 +29,15 @@ $edit_perm = ($organization['created_by'] == $_SESSION['username'] || $Settings-
         <?= lang($organization['name'], $organization['name_de'] ?? null) ?>
     </h1>
 
+    <div class="btn-toolbar">
+        <?php if ($Settings->hasPermission('organizations.edit')) { ?>
+            <a href="<?= ROOTPATH ?>/organizations/edit/<?= $organization['_id'] ?>" class="btn btn-primary">
+                <i class="ph ph-edit"></i>
+                <?= lang('Edit organization', 'Organisation bearbeiten') ?>
+            </a>
+        <?php } ?>
+    </div>
+
     <table class="table">
         <tbody>
             <tr>
@@ -51,15 +60,17 @@ $edit_perm = ($organization['created_by'] == $_SESSION['username'] || $Settings-
                     <?= $organization['lng'] ?? '-' ?>
                 </td>
             </tr>
-            <tr>
-                <td>
-                    <?= lang('ROR') ?>:
-                    <a href="<?= $organization['ror'] ?>" target="_blank" rel="noopener noreferrer">
-                        <?= $organization['ror'] ?>
-                        <i class="ph ph-arrow-square-out"></i>
-                    </a>
-                </td>
-            </tr>
+            <?php if (!empty($organization['ror'] ?? '')) { ?>
+                <tr>
+                    <td>
+                        <?= lang('ROR') ?>:
+                        <a href="<?= $organization['ror'] ?>" target="_blank" rel="noopener noreferrer">
+                            <?= $organization['ror'] ?>
+                            <i class="ph ph-arrow-square-out"></i>
+                        </a>
+                    </td>
+                </tr>
+            <?php } ?>
         </tbody>
     </table>
 </div>
@@ -88,7 +99,7 @@ $edit_perm = ($organization['created_by'] == $_SESSION['username'] || $Settings-
     <table class="table dataTable responsive" id="projects-table">
         <thead>
             <tr>
-                <th><?= lang('Type', 'Typ') ?></th>
+                <th class="w-100"><?= lang('Type', 'Typ') ?></th>
                 <th><?= lang('Project', 'Projekt') ?></th>
             </tr>
         </thead>

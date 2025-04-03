@@ -1,28 +1,47 @@
 # Neuigkeiten
 
 
-<span class="badge float-right">05.03.2025</span>
-<a class="anchor" href="#version-1.4.1-beta" id="version-1.4.1-beta"></a>
+<span class="badge float-right">01.04.2025</span>
+<a class="anchor" href="#version-1.4.1" id="version-1.4.1"></a>
 
-## Version 1.4.1 (Beta)
+## Version 1.4.1
 
-#### <i class="ph ph"></i> Forschungsinfrastrukturen als neue Entität (05.03.2025)
+#### <i class="ph ph-building-office"></i> Organisationen
+- Es wurden externe Organisationen als eigene Entität hinzugefügt
+- Diese sind mit ROR verknüpft und können über die ROR-ID automatisch angelegt werden
+- Die Organisationen können mit Projekten und Verbundinfrastrukturen verknüpft werden
+- Es gibt eine neue Übersichtsseite für Organisationen, auf der alle Informationen und verlinkte Details dargestellt sind
+- Wenn ihr das Feature neu hinzufügt, werden alle Organisationen, die in OSIRIS angelegt sind, automatisch als externe Organisationen angelegt. Diese können dann bearbeitet werden. Vergesst bitte nicht, dass auch neue Rechte für die Bearbeitung von Organisationen vergeben werden müssen.
+
+#### <i class="ph ph"></i> Forschungsinfrastrukturen
 - Es können nun Forschungsinfrastrukturen angelegt und bearbeitet werden
 - Datenfelder basieren auf dem brandneuen KDSF 2.0
 - Aktivitäten und Personen lassen sich verknüpfen
 - Statistiken können pro Jahr angelegt werden
 - Eine Übersichtsseite mit allen Statistiken der Infrastrukturen wurde hinzugefügt. Damit lassen sich alle Beispielabfragen des KDSF durchführen.
 - Als "Reporter" markierte Personen werden auf ihrer Profilseite darauf hingewiesen, die Daten einmal jährlich zu aktualisieren
+- Die Forschungsinfrastruktur wird im Profil der Person angezeigt
+- Eine Forschungsinfrastruktur kann als Verbundinfrastruktur angelegt werden
+  - Eine Verbundinfrastruktur kann mit den kooperierenden Einrichtungen verknüpft werden
+  - Auf der Statistik-Seite wird dann eine Übersicht über alle kooperierenden Einrichtungen angezeigt
+- Vergesst bitte nicht, dass auch neue Rechte für die Bearbeitung von Forschungsinfrastrukturen vergeben werden müssen.
 
-#### <i class="ph ph-table"></i> Pivot-Tabellen und Diagramme (21.02.2025)
+#### <i class="ph ph-table"></i> Pivot-Tabellen und Diagramme (
 - Es wurde ein neues Modul hinzugefügt, mit dem Pivot-Tabellen und Diagramme erstellt werden können
 - Die Daten können nach verschiedenen Kategorien gruppiert und aggregiert werden, um Trends und Muster zu erkennen
 - Die Daten können in verschiedenen Diagrammen dargestellt werden, z.B. Balken-, Linien- und Tortendiagramme
 
-#### <i class="ph ph-gear"></i> Verbesserungen und Bug Fixes (21.02.2025)
+#### <i class="ph ph-gear"></i> Verbesserungen und Bug Fixes 
 - In der erweiterten Suche können jetzt auch Spalten angezeigt werden, die eigentlich eine Liste sind, wie zum Beispiel die SWS von Autor:innen
 - Die Darstellung von Forschungsbereichen wurde im Profil und in der Aktivitätsübersicht verbessert
 - Es wurde ein Bug in der Portfolio-API behoben, durch den die Daten nicht korrekt ausgeliefert wurden
+- Es wurde ein Fehler behoben, durch den das Profilbild einer Person nicht gelöscht werden konnte
+- Es wurde ein Fehler behoben, durch den einige Filter in der erweiterten Suche nicht korrekt funktionierten (insbesondere Open Access und Open Access Status)
+- 
+
+#### <i class="ph ph-shipping-container"></i> Docker Support
+- Danke an unseren Contributor, Paul Gaida, der OSIRIS in Docker verpackt hat
+- Eine komplette Anleitung zum Einrichten von OSIRIS in Docker findet ihr [hier](https://github.com/OSIRIS-Solutions/osiris/blob/master/docker.md)
 
 ---
 
@@ -44,7 +63,7 @@
 - Es wurden Detailseiten für alle Forschungsbereiche hinzugefügt, auf denen alle Informationen und verlinkte Details dargestellt sind
 - Es wurden zu allen verlinkbaren Aktivitäten Filter hinzugefügt
 - Wie genau die Forschungsbereiche genannt werden, kann ebenfalls im Admin-Bereich definiert werden
-- <i class="ph ph-warnung"></i> Bitte beachte, dass die Forschungsbereiche zurzeit noch nicht über die API ausgeliefert werden. Dies ist für den kommenden Release 1.4.1 geplant.
+- <i class="ph ph-warnung"></i> Bitte beachte, dass die Forschungsbereiche zurzeit noch nicht über die API ausgeliefert werden. Dies ist für den kommenden Release 1.5.0 geplant.
 
 #### <i class="ph ph-users-three"></i> Organisationseinheiten
 - Einheiten können jetzt als inaktiv markiert werden und werden dann nicht mehr in Filtern etc. angezeigt
