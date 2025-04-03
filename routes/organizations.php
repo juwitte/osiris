@@ -135,6 +135,9 @@ Route::post('/crud/organization/create', function () {
             ]
         ];
     }
+    unset($values['ror_id']);
+    unset($values['chosen']);
+    unset($values['id']);
 
     // check if organization id already exists:
     $exist = $collection->findOne($filter);
