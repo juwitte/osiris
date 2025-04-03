@@ -43,6 +43,7 @@
   - Es wurde eine Überprüfung/Fehlermeldung hinzugefügt, wenn der Status "in Vorbereitung" ist, das Startdatum aber in der Vergangenheit liegt
   - Fehlermeldungen und Übersichten wurden so überarbeitet, dass sich das Feld "Status" auch für andere Aktivitäten verwenden lässt und nicht nur für Abschlussarbeiten
 - Es wurde den Custom Fields jetzt auch die Möglichkeit hinzugefügt, eine URL anzulegen, die dann auch als Link dargestellt wird
+- Die Rolle "Admin" wird im Rollen und Rechte-Bereich jetzt immer als letzte Spalte angezeigt
 
 #### <i class="ph ph-bug"></i> Bug Fixes
 - Es wurde ein Fehler behoben, durch den man eine Person nicht mehr inaktiv setzen konnte
@@ -55,6 +56,7 @@
 - Wenn ein Event keinen Link hat, wird jetzt auch kein Link mehr angezeigt
 - Die Liste von Aktivitäten im Download-Bereich passt sich jetzt euren Einstellungen an
 - Beim Klick auf den dunklen Hintergrund hinter einem Popup scrollt die Seite nicht mehr nach oben
+- In der Hierarchie-Ansicht der Organisationseinheiten wird jetzt im englischen Interface auch der englische Name der Einheit angezeigt
 
 
 ### Für Administrator:innen und Systembetreiber:innen
