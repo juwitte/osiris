@@ -1,6 +1,6 @@
 # Neuigkeiten
 
-<span class="badge float-right">01.04.2025</span>
+<span class="badge float-right">03.04.2025</span>
 <a class="anchor" href="#version-1.4.1" id="version-1.4.1"></a>
 
 ## Version 1.4.1
