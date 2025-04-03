@@ -6,6 +6,11 @@ define('ROOTPATH', '');
 // define ADMIN user name
 define('ADMIN', 'juk20');
 
+// set system to maintenance mode
+define('MAINTENANCE', false);
+// if Live is set to false, the system will indicate "Testsystem" in the header
+define('LIVE', true);
+
 // possible values are 'AUTH', 'LDAP' or 'OAUTH'
 define('USER_MANAGEMENT', 'AUTH');
 

@@ -189,7 +189,7 @@ $affiliation = $Settings->get('affiliation_details');
                     </div>
                 </div>
 
-                <button class="btn signal">
+                <button class="btn primary">
                     <i class="ph ph-floppy-disk"></i>
                     Save
                 </button>
@@ -269,20 +269,23 @@ $affiliation = $Settings->get('affiliation_details');
                 ],
                 'internal_id' => [
                     'name' => lang('Internal ID', 'Interne ID'),
-                    'example' => 'objectsid', // Beispiel: "12345"
+                    'example' => '', // Beispiel: "12345"
                 ],
             ];
 
     ?>
-            <p class="text-primary mt-0">
+            <p class="text-primary">
                 <?= lang('You are using the LDAP interface for your user management.', 'Ihr nutzt die LDAP-Schnittstelle fürs Nutzer-Management.') ?>
             </p>
-            <?php
-            break;
-            // TODO: continue
-            ?>
-            <form action="<?= ROOTPATH ?>/synchronize-attributes" method="post" class="box primary padded">
 
+            <p>
+                <b>
+                    <?=lang('Last successful synchronization', 'Letzte erfolgreiche Synchronisation')?>:
+                </b>
+                <?= $Settings->systemInfo('ldap-sync') ?>
+            </p>
+
+            <form action="<?= ROOTPATH ?>/synchronize-attributes" method="post" class="box primary padded">
 
                 <h2 class="title">
                     <?= lang('LDAP Settings', 'LDAP-Einstellungen') ?>
@@ -447,7 +450,7 @@ $affiliation = $Settings->get('affiliation_details');
             </table>
 
 
-            <button class="btn signal">
+            <button class="btn primary">
                 <i class="ph ph-floppy-disk"></i>
                 Save
             </button>
@@ -478,7 +481,7 @@ $affiliation = $Settings->get('affiliation_details');
                 </div>
 
 
-                <button class="btn signal">
+                <button class="btn primary">
                     <i class="ph ph-floppy-disk"></i>
                     Save
                 </button>

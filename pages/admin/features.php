@@ -388,6 +388,32 @@
 
 
 
+    <div class="box px-20">
+        <h3>
+            <?= lang('Infrastructures', 'Infrastrukturen') ?>
+        </h3>
+        <div class="form-group">
+            <label for="">
+                <?= lang('Infrastructures in OSIRIS', 'Infrastrukturen in OSIRIS') ?>
+            </label>
+            <?php
+            $infrastructures = $Settings->featureEnabled('infrastructures');
+            ?>
+
+            <div class="custom-radio">
+                <input type="radio" id="infrastructures-true" value="1" name="values[infrastructures]" <?= $infrastructures ? 'checked' : '' ?>>
+                <label for="infrastructures-true"><?= lang('enabled', 'aktiviert') ?></label>
+            </div>
+
+            <div class="custom-radio">
+                <input type="radio" id="infrastructures-false" value="0" name="values[infrastructures]" <?= $infrastructures ? '' : 'checked' ?>>
+                <label for="infrastructures-false"><?= lang('disabled', 'deaktiviert') ?></label>
+            </div>
+
+        </div>
+
+    </div>
+
 
 
     <div class="box px-20">

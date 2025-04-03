@@ -29,6 +29,7 @@ class Document extends Settings
     private $id = null;
 
     public $custom_fields = [];
+    public $custom_field_values = [];
 
     public $templates = [
         "affiliation" => ["affiliation"],
@@ -112,7 +113,8 @@ class Document extends Settings
         $this->DB = new DB;
 
         $fields = $this->DB->db->adminFields->find()->toArray();
-        $this->custom_fields = array_column($fields, 'values', 'id');
+        $this->custom_fields = array_column($fields, 'format', 'id');
+        $this->custom_field_values = array_column($fields, 'values', 'id');
     }
 
     public function setDocument($doc)
@@ -697,8 +699,13 @@ class Document extends Settings
         }
         if ($epub) $issues[] = "epub";
 
-        // CHECK student status issue
-        if (in_array('status', $this->modules) && isset($this->doc['status']) && $this->doc['status'] == 'in progress' && new DateTime() > getDateTime($this->doc['end'])) $issues[] = "students";
+        // CHECK status issue
+        if (in_array('status', $this->modules)) {
+            $status = $this->doc['status'] ?? '';
+            $today = date('Y-m-d');
+            if ($status == 'in progress' && $this->doc['end_date'] < $today) $issues[] = "status";
+            if ($status == 'preparation' && $this->doc['start_date'] < $today) $issues[] = "status";
+        }
 
         // check ongoing reminder
         if (in_array('date-range-ongoing', $this->modules) && is_null($this->doc['end'])) {
@@ -1017,14 +1024,27 @@ class Document extends Settings
             default:
                 $val = $this->getVal($module, '-');
                 // only in german because standard is always english
-                if (lang('en', 'de') == 'de' && isset($this->custom_fields[$module])) {
-                    foreach ($this->custom_fields[$module] as $field) {
+                if (lang('en', 'de') == 'de' && isset($this->custom_field_values[$module])) {
+                    foreach ($this->custom_field_values[$module] as $field) {
                         if ($val == $field[0] ?? '') return lang(...$field);
                     }
+                }
+                if (isset($this->custom_fields[$module])){
+                    $val = $this->customVal($val, $this->custom_fields[$module]);
                 }
                 if (is_array($val)) return implode(", ", $val);
                 return $val;
         }
+    }
+
+    public function customVal($val, $format){
+        if ($format == 'date') {
+            return Document::format_date($val);
+        }
+        if ($format == 'url') {
+            return "<a href='$val' target='_blank' class='link'>$val</a>";
+        }
+        return $val;
     }
 
     public function format()

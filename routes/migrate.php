@@ -243,6 +243,10 @@ Route::get('/migrate', function () {
         include BASEPATH . "/routes/migration/v1.4.0.php";
     }
 
+    if (version_compare($DBversion, '1.4.1', '<')) {
+        include BASEPATH . "/routes/migration/v1.4.1.php";
+    }
+
     echo "<p>Rerender activities</p>";
     include_once BASEPATH . "/php/Render.php";
     renderActivities();

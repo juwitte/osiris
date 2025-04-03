@@ -192,6 +192,68 @@
         ]
     },
     {
+        "de": "Infrastrukturen",
+        "en": "Infrastructures",
+        "fields": [
+            {
+                "id": "infrastructures.add",
+                "de": "Infrastrukturen hinzufügen",
+                "en": "Add new infrastructures"
+            },
+            {
+                "id": "infrastructures.view",
+                "de": "Alle existierenden Infrastrukturen sehen",
+                "en": "See all existing infrastructures"
+            },
+            {
+                "id": "infrastructures.edit",
+                "de": "Alle Infrastrukturen bearbeiten",
+                "en": "Edit all infrastructures"
+            },
+            {
+                "id": "infrastructures.statistics",
+                "de": "Infrastrukturstatistiken ergänzen",
+                "en": "Add infrastructure statistics"
+            },
+            {
+                "id": "infrastructures.delete",
+                "de": "Infrastrukturen löschen",
+                "en": "Delete infrastructures"
+            }
+        ]
+    },
+    {
+        "de": "Organisationen",
+        "en": "Organizations",
+        "fields": [
+            {
+                "id": "organizations.add",
+                "de": "Organisationen hinzufügen",
+                "en": "Add new organizations"
+            },
+            {
+                "id": "organizations.view",
+                "de": "Alle existierenden Organisationen sehen",
+                "en": "See all existing organizations"
+            },
+            {
+                "id": "organizations.edit",
+                "de": "Alle Organisationen bearbeiten",
+                "en": "Edit all organizations"
+            },
+            {
+                "id": "organizations.statistics",
+                "de": "Infrastrukturstatistiken ergänzen",
+                "en": "Add infrastructure statistics"
+            },
+            {
+                "id": "organizations.delete",
+                "de": "Organisationen löschen",
+                "en": "Delete organizations"
+            }
+        ]
+    },
+    {
         "de": "Organisationseinheiten",
         "en": "Organisational Units",
         "fields": [

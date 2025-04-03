@@ -80,6 +80,13 @@ class Settings
         );
     }
 
+    function systemInfo($key)
+    {
+        $req = $this->osiris->system->findOne(['key' => $key]);
+        if (!empty($req)) return $req['value'];
+        return '-';
+    }
+
     function printLogo($class = "")
     {
         $logo = $this->osiris->adminGeneral->findOne(['key' => 'logo']);

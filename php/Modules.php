@@ -751,9 +751,13 @@ class Modules
             case 'date':
                 echo '<input type="date" class="form-control" name="values[' . $module . ']" id="' . $module . '" ' . $required . ' value="' . valueFromDateArray($this->val($module, $field['default'] ?? '')) . '" placeholder="custom-field">';
                 break;
-            case 'bool':
+            case 'url':
+                echo '<input type="url" class="form-control" name="values[' . $module . ']" id="' . $module . '" ' . $required . ' value="' . $this->val($module, $field['default'] ?? '') . '" placeholder="custom-field">';
                 break;
-
+            case 'bool':
+                echo '<input type="hidden" name="values[' . $module . ']" value="false">';
+                echo '<input type="checkbox" class="form-control" name="values[' . $module . ']" id="' . $module . '" ' . $required . ' value="true" ' . ($this->val($module, $field['default'] ?? '') == 'true' ? 'checked' : '') . '>';
+                break;
             default:
                 echo '<input type="text" class="form-control" name="values[' . $module . ']" id="' . $module . '" ' . $required . ' value="' . $this->val($module, $field['default'] ?? '') . '">';
                 break;
@@ -1354,6 +1358,11 @@ class Modules
                 <div class="data-module col-sm-6" data-module="status" style="align-self: center;">
                     <label for="status" class="<?= $required ?> floating-title">Status</label>
                     <div id="end-question">
+                        <div class="custom-radio d-inline-block">
+                            <input type="radio" name="values[status]" id="status-preparation" value="preparation" checked="checked" value="1">
+                            <label for="status-preparation"><?= lang('In preparation', 'In Vorbereitung') ?></label>
+                        </div>
+
                         <div class="custom-radio d-inline-block">
                             <input type="radio" name="values[status]" id="status-in-progress" value="in progress" checked="checked" value="1">
                             <label for="status-in-progress"><?= lang('In progress', 'In Progress') ?></label>
