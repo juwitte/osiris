@@ -245,32 +245,32 @@ class Project
                 return "<span class='badge'>-</span>";
         }
     }
-    public function getType()
+    public function getType($cls= '')
     {
         $type = $this->project['type'] ?? 'Drittmittel';
         if ($type == 'Drittmittel') { ?>
-            <span class="badge text-danger no-wrap">
+            <span class="badge text-danger no-wrap <?=$cls?>">
                 <i class="ph ph-hand-coins"></i>
                 <?= lang('Third-party funded', 'Drittmittel') ?>
             </span>
 
         <?php } elseif ($type == 'Stipendium') { ?>
-            <span class="badge text-success no-wrap">
+            <span class="badge text-success no-wrap <?=$cls?>">
                 <i class="ph ph-tip-jar"></i>
                 <?= lang('Stipendiate', 'Stipendium') ?>
             </span>
         <?php } else if ($type == 'Eigenfinanziert') { ?>
-            <span class="badge text-signal no-wrap">
+            <span class="badge text-signal no-wrap <?=$cls?>">
                 <i class="ph ph-piggy-bank"></i>
                 <?= lang('Self-funded', 'Eigenfinanziert') ?>
             </span>
         <?php } else if ($type == 'Teilprojekt') { ?>
-            <span class="badge text-danger no-wrap">
+            <span class="badge text-danger no-wrap <?=$cls?>">
                 <i class="ph ph-hand-coins"></i>
                 <?= lang('Subproject', 'Teilprojekt') ?>
             </span>
         <?php } else { ?>
-            <span class="badge text-muted no-wrap">
+            <span class="badge text-muted no-wrap <?=$cls?>">
                 <i class="ph ph-coin"></i>
                 <?= lang('Other', 'Sonstiges') ?>
             </span>

@@ -28,7 +28,7 @@ define('CSS_JS_VERSION', '1.0.0');
 session_start();
 
 define('BASEPATH', $_SERVER['DOCUMENT_ROOT'] . ROOTPATH);
-define('OSIRIS_VERSION', '1.4.1-beta');
+define('OSIRIS_VERSION', '1.4.1');
 
 // set time constants
 $year = date("Y");
@@ -177,6 +177,7 @@ if (
     require_once BASEPATH . '/routes/guests.php';
     include_once BASEPATH . "/routes/calendar.php";
     include_once BASEPATH . "/routes/infrastructures.php";
+    include_once BASEPATH . "/routes/organizations.php";
     // include_once BASEPATH . "/routes/adminGeneral.php";
     // include_once BASEPATH . "/routes/adminRoles.php";
 
