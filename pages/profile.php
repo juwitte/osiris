@@ -177,7 +177,7 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
 
                 <?php if (true) { ?>
                     <hr>
-                    <form action="<?= ROOTPATH ?>/crud/users/update-profile/<?= $user ?>" method="post">
+                    <form action="<?= ROOTPATH ?>/crud/users/profile-picture/<?= $user ?>" method="post">
                         <input type="hidden" name="delete" value="true">
                         <button class="btn danger">
                             <i class="ph ph-trash"></i>
@@ -225,7 +225,7 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
             </span>
         <?php } ?>
 
-        <!-- <span class="badge">Last login: <?= $scientist['lastlogin'] ?></span> -->
+        <!-- <span class="badge">Last login: <?= $scientist['lastlogin'] ?? 'Never' ?></span> -->
         <?php
         // show current guest state
         if ($Settings->featureEnabled('guests')) {
@@ -767,7 +767,7 @@ if ($currentuser) { ?>
                             $approvalDict = [
                                 'approval' => lang('Approval of activities', 'Freigabe von Aktivitäten'),
                                 'epub' => '<em>Online ahead of print</em>-' . lang('Publications', 'Publikationen'),
-                                'students' => lang('Expired theses', 'Abgelaufene Abschlussarbeiten'),
+                                'status' => lang('Expired status', 'Abgelaufener Status'),
                                 'openend' => lang('Ongoing activities', 'Laufende Aktivitäten'),
                                 'project-open' => lang('Open project applications', 'Offene Projektanträge'),
                                 'project-end' => lang('Expired publications', 'Abgelaufene Projekte'),

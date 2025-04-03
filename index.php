@@ -28,7 +28,7 @@ define('CSS_JS_VERSION', '1.0.0');
 session_start();
 
 define('BASEPATH', $_SERVER['DOCUMENT_ROOT'] . ROOTPATH);
-define('OSIRIS_VERSION', '1.4.1-beta');
+define('OSIRIS_VERSION', '1.4.1');
 
 // set time constants
 $year = date("Y");
@@ -91,21 +91,21 @@ if (defined('USER_MANAGEMENT') && strtoupper(USER_MANAGEMENT) == 'AUTH') {
 
 include_once BASEPATH . "/routes/login.php";
 
-Route::get('/test', function () {
-    include_once BASEPATH . "/php/init.php";
-    include_once BASEPATH . "/php/LDAPInterface.php";
+// Route::get('/test', function () {
+//     include_once BASEPATH . "/php/init.php";
+//     include_once BASEPATH . "/php/LDAPInterface.php";
 
-    include BASEPATH . "/header.php";
+//     include BASEPATH . "/header.php";
 
-    $LDAP = new LDAPInterface();
-    // $LDAP->attributes = [];
-    // $user = $LDAP->fetchUser('juk20');
-    // echo $LDAP->convertObjectGUID($user['objectguid'][0]);
-    $user = $LDAP->newUser('ironman');
-    dump($user, true);
+//     $LDAP = new LDAPInterface();
+//     // $LDAP->attributes = [];
+//     // $user = $LDAP->fetchUser('juk20');
+//     // echo $LDAP->convertObjectGUID($user['objectguid'][0]);
+//     $user = $LDAP->newUser('ironman');
+//     dump($user, true);
 
-    include BASEPATH . "/footer.php";
-});
+//     include BASEPATH . "/footer.php";
+// });
 
 
 // route for language setting
@@ -179,6 +179,7 @@ if (
     require_once BASEPATH . '/routes/guests.php';
     include_once BASEPATH . "/routes/calendar.php";
     include_once BASEPATH . "/routes/infrastructures.php";
+    include_once BASEPATH . "/routes/organizations.php";
     // include_once BASEPATH . "/routes/adminGeneral.php";
     // include_once BASEPATH . "/routes/adminRoles.php";
 
@@ -186,9 +187,9 @@ if (
 }
 include_once BASEPATH . "/routes/migrate.php";
 
-include_once BASEPATH . "/routes/api.php";
-include_once BASEPATH . "/routes/rest.php";
-// include_once BASEPATH . "/routes/CRUD.php";
+include_once BASEPATH . "/routes/api/api.php";
+include_once BASEPATH . "/routes/api/dashboard.php";
+include_once BASEPATH . "/routes/api/portfolio.php";
 
 
 /**
@@ -221,7 +222,7 @@ Route::pathNotFound(function ($path) {
         // Send plain text response for scripts expecting text
         header('Content-Type: text/plain');
         echo "404 Not Found";
-    } elseif (!$_SESSION['loggedin']) {
+    } elseif (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] === false) {
         header("Location: " . ROOTPATH . "/user/login?redirect=" . urlencode($_SERVER['REQUEST_URI']));
     } else {
         // Send HTML response for users

@@ -258,7 +258,7 @@ $pageactive = function ($p) use ($page) {
                 </a>
                 <?php } else {
                 $realusername = $_SESSION['realuser'] ?? $_SESSION['username'];
-                $maintain = $osiris->persons->find(['maintenance' => $realusername], ['projection' => ['displayname' => 1, 'username' => 1]])->toArray();
+                $maintain = $osiris->persons->find(['maintenance' => $realusername, 'username' => ['$exists'=>true]], ['projection' => ['displayname' => 1, 'username' => 1]])->toArray();
                 if (!empty($maintain)) { ?>
                     <form action="" class="nav-search" id="navbar-search">
                         <div class="input-group">
@@ -511,6 +511,11 @@ $pageactive = function ($p) use ($page) {
                         <a href="<?= ROOTPATH ?>/groups" class="with-icon <?= $pageactive('groups') ?>">
                             <i class="ph ph-users-three" aria-hidden="true"></i>
                             <?= lang('Organisational Units', 'Einheiten') ?>
+                        </a>
+                        
+                        <a href="<?= ROOTPATH ?>/organizations" class="with-icon <?= $pageactive('organizations') ?>">
+                            <i class="ph ph-building-office" aria-hidden="true"></i>
+                            <?= lang('Organizations', 'Organisationen') ?>
                         </a>
 
                         <!-- <a href="<?= ROOTPATH ?>/expertise" class="with-icon <?= $pageactive('expertise') ?>">

@@ -646,6 +646,7 @@ class DB
         if ($user === null) $user = $_SESSION['username'];
         $issues = array();
         $now = new DateTime();
+        $today = date('Y-m-d');
 
         // check if new activity was added for user
         $docs = $this->db->activities->distinct(
@@ -654,11 +655,21 @@ class DB
         );
         if (!empty($docs)) $issues['approval'] = array_map('strval', $docs);
 
-        // CHECK student status issue
-        $docs = $this->db->activities->find(['authors.user' => $user, 'status' => 'in progress', 'end.year' => ['$lte' => CURRENTYEAR]], ['projection' => ['end' => 1]]);
+        // CHECK status issue
+        $docs = $this->db->activities->find(
+            [
+                'authors.user' => $user,
+                '$or' => [
+                    ['status' => 'in progress', '$or' => [['end_date' => null], ['end_date' => ['$lt' => $today]]]],
+                    ['status' => 'preparation', 'start_date' => ['$lt' => $today]],
+                ]
+            ],
+            [
+                'projection' => ['status'=>1]
+            ]
+        );
         foreach ($docs as $doc) {
-            if ($now < getDateTime($doc['end'])) continue;
-            $issues['students'][] = strval($doc['_id']);
+            $issues['status'][] = strval($doc['_id']);
         }
 
         // check EPUB issue

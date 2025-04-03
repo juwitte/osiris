@@ -462,9 +462,9 @@ function getDateTime($date)
             $date['day'] ?? 1
         );
     } else {
-        try {
+        if (is_string($date)) {
             $d = date_create($date);
-        } catch (TypeError $th) {
+        } else {
             $d = null;
         }
     }
@@ -623,7 +623,7 @@ function format_date($date, $format = "d.m.Y")
     return date_format($d, $format);
 }
 
-function dump($element, $as_json = false)
+function dump($element, $as_json = true)
 {
     echo '<pre class="code">';
     if ($element instanceof MongoDB\Model\BSONArray) {

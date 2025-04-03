@@ -60,4 +60,4 @@ if (!defined('ORCID_SECRET_KEY'))
     define("ORCID_SECRET_KEY", null);
 
 if (!defined('PORTALPATH'))
-    define('PORTALPATH', $_GET['path'] ?? (ROOTPATH . '/preview'));
+    define('PORTALPATH', $_GET['path']??(ROOTPATH.'/preview'));
