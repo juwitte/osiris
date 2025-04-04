@@ -872,7 +872,7 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                         ?>
                             <tr>
                                 <td class="<?= (($author['aoi'] ?? 0) == '1' ? 'font-weight-bold' : '') ?>">
-                                    <?php if (isset($author['user'])) { ?>
+                                    <?php if (isset($author['user']) && !empty($author['user'])) { ?>
                                         <a href="<?= ROOTPATH ?>/profile/<?= $author['user'] ?>">
                                             <?= $author['last'] ?? '' ?>
                                         </a>
