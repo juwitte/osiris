@@ -1035,7 +1035,7 @@ class Modules
                                     <th><?= lang('First name', 'Vorname') ?></th>
                                     <th><?= lang('Affiliated', 'Affiliert') ?></th>
                                     <th>Username</th>
-                                    <th><?= lang('SWS', 'Anteil in SWS') ?></th>
+                                    <th><?= lang('SWS', 'Anteil in SWS') ?> <span class="text-danger">*</span></th>
                                     <th>
                                         <a href="#sws-calc" class="btn link"><i class="ph ph-calculator"></i></a>
                                     </th>
@@ -1061,7 +1061,7 @@ class Modules
                                         </td>
 
                                         <td>
-                                            <input type="number" step="0.1" class="form-control" name="values[authors][<?= $i ?>][sws]" id="teaching-sws" value="<?= $author['sws'] ?? 0 ?>">
+                                            <input type="number" step="0.1" class="form-control" name="values[authors][<?= $i ?>][sws]" id="teaching-sws" value="<?= $author['sws'] ?? '' ?>" required>
                                         </td>
                                         <td>
                                             <button class="btn text-danger" type="button" onclick="removeSupervisorRow(this)"><i class="ph ph-trash"></i></button>
@@ -1097,7 +1097,7 @@ class Modules
                             tr.append('<td><input name="values[authors][' + counter + '][first]" type="text" class="form-control"></td>')
                             tr.append('<td><div class="custom-checkbox"><input type="checkbox" id="checkbox-' + counter + '" name="values[authors][' + counter + '][aoi]" value="1"><label for="checkbox-' + counter + '" class="blank"></label></div></td>')
                             tr.append('<td> <input name="values[authors][' + counter + '][user]" type="text" class="form-control" list="user-list"></td>')
-                            tr.append('<td><input type="number" step="0.1" class="form-control" name="values[authors][' + counter + '][sws]" id="teaching-sws" value="0"></td>')
+                            tr.append('<td><input type="number" step="0.1" class="form-control" name="values[authors][' + counter + '][sws]" id="teaching-sws" value="" required></td>')
                             var btn = $('<button class="btn" type="button">').html('<i class="ph ph-trash"></i>').on('click', function() {
                                 $(this).closest('tr').remove();
                             });
