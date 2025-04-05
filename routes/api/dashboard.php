@@ -1243,7 +1243,7 @@ Route::get('/api/pivot-data', function () {
         'status' => 1,
         'software_type' => 1,
         'country' => 1,
-        'openaccess-status' => 1,
+        'oa_status' => 1,
         'quartile' => 1,
         'impact' => 1,
         // 'pubmed' => 1,
@@ -1256,7 +1256,6 @@ Route::get('/api/pivot-data', function () {
     ];
 
     // add custom fields
-
     foreach ($osiris->adminFields->find() as $field) {
         $projection[$field['id']] = 1;
     }
