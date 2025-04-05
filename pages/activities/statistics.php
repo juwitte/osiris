@@ -81,7 +81,7 @@ $all = $osiris->activities->count(['affiliated' => true]);
 </div>
 
 <p class="text-muted">
-    <?=lang('Only affiliated activities are counted (at least one author is affiliated with the institute).', 'Es werden nur affilierte Aktivitäten gezählt (mind. ein:e Autor:in ist mit dem Institut affiliert).')?>
+    <?= lang('Only affiliated activities are counted (at least one author is affiliated with the institute).', 'Es werden nur affilierte Aktivitäten gezählt (mind. ein:e Autor:in ist mit dem Institut affiliert).') ?>
 </p>
 
 <br>
@@ -142,10 +142,80 @@ $all = $osiris->activities->count(['affiliated' => true]);
         </tfoot>
     </table>
 
+    <br>
+    <hr>
 
     <h2>
-        <?= lang('Number of Open Access publications', 'Anzahl der Open Access-Pubikationen') ?>
+        <?= lang('Statistics on publications', 'Statistiken zu Publikationen') ?>
     </h2>
+
+    <p class="text-muted">
+        <?= lang('Only publications with a publication date in the reporting year and at least one affiliated author are counted.', 'Es werden nur Publikationen mit einem Veröffentlichungsdatum im Reportjahr und mindestens einer/einem affilierten Autor/Autorin gezählt.') ?>
+    </p>
+
+    <?php
+    $filter = [
+        'type' => 'publication',
+        'year' => $reportyear,
+        'affiliated' => true
+    ];
+    $publications = $osiris->activities->aggregate([
+        [
+            '$match' => $filter
+        ],
+        [
+            '$group' => [
+                '_id' => '$subtype',
+                'count' => ['$sum' => 1],
+                // count epub = true
+                'epub' => ['$sum' => ['$cond' => [['$eq' => ['$epub', true]], 1, 0]]]
+            ]
+        ],
+        [
+            '$sort' => [
+                'count' => -1
+            ]
+        ]
+    ])->toArray();
+    $count_all = $osiris->activities->count($filter);
+    $count_all_epub = $osiris->activities->count(array_merge($filter, ['epub' => true]));
+    ?>
+
+    <table class="table w-auto">
+        <thead>
+            <tr>
+                <th><?= lang('Type of publication', 'Art der Publikation') ?></th>
+                <th><?= lang('Count', 'Anzahl') ?></th>
+                <th><?= lang('Count of Online*', 'davon Online*') ?></th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($publications as $publication): ?>
+                <tr class="text-<?= $publication['_id'] ?>">
+                    <td><?= $Settings->title(null, $publication['_id']) ?></td>
+                    <th><?= $publication['count'] ?></th>
+                    <td>
+                        <?= $publication['epub'] ?? 0 ?>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="1"><?= lang('Total', 'Gesamt') ?></th>
+                <th><?= $count_all ?></th>
+                <th><?= $count_all_epub ?></th>
+            </tr>
+        </tfoot>
+    </table>
+    <p class="text-muted mt-0">
+        *Online = Online ahead of print
+    </p>
+
+
+    <h3>
+        <?= lang('Number of Open Access publications', 'Anzahl der Open Access-Pubikationen') ?>
+    </h3>
 
     <?php
     $filter = ['oa_status' => ['$ne' => null], 'year' => $reportyear, 'affiliated' => true];
@@ -177,37 +247,37 @@ $all = $osiris->activities->count(['affiliated' => true]);
                 <tr class="text-<?= $oa['status'] ?>">
                     <td>
                         <?php
-                            switch ($oa['status']) {
-                                case 'closed':
-                                    echo '<i class="icon-closed-access text-danger"></i> <span class="badge danger"> Closed Access</span>';
-                                    break;
-                                case 'green':
-                                    echo '<i class="icon-open-access text-success"></i> 
+                        switch ($oa['status']) {
+                            case 'closed':
+                                echo '<i class="icon-closed-access text-danger"></i> <span class="badge danger"> Closed Access</span>';
+                                break;
+                            case 'green':
+                                echo '<i class="icon-open-access text-success"></i> 
                                         <span class="badge success">Green Open Access</span>';
-                                    break;
-                                case 'gold':
-                                    echo '<i class="icon-open-access text-success"></i> 
+                                break;
+                            case 'gold':
+                                echo '<i class="icon-open-access text-success"></i> 
                                         <span class="badge signal">Gold Open Access</span>';
-                                    break;
-                                case 'hybrid':
-                                    echo '<i class="icon-open-access text-success"></i> 
+                                break;
+                            case 'hybrid':
+                                echo '<i class="icon-open-access text-success"></i> 
                                         <span class="badge">Hybrid Open Access</span>';
-                                    break;
-                                case 'bronze':
-                                    echo '<i class="icon-open-access text-success"></i> 
+                                break;
+                            case 'bronze':
+                                echo '<i class="icon-open-access text-success"></i> 
                                         <span class="badge secondary">Bronze Open Access</span>';
-                                    break;
-                                case 'diamond':
-                                    echo '<i class="icon-open-access text-success"></i> 
+                                break;
+                            case 'diamond':
+                                echo '<i class="icon-open-access text-success"></i> 
                                         <span class="badge primary">Diamond Open Access</span>';
-                                    break;
-                                default:
-                                    echo '<i class="icon-open-access text-success"></i> 
+                                break;
+                            default:
+                                echo '<i class="icon-open-access text-success"></i> 
                                         <span class="badge muted">Open Access (Unknown Status)</span>';
-                                    break;
-                            }
+                                break;
+                        }
                         ?>
-                        
+
                     </td>
                     <th><?= $oa['count'] ?></th>
                 </tr>
