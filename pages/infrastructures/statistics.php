@@ -53,7 +53,7 @@ $all = $osiris->infrastructures->count();
 </style>
 
 <h1>
-    <i class="ph ph-chart-bar" aria-hidden="true"></i>
+    <i class="ph ph-chart-line-up" aria-hidden="true"></i>
     <?= lang('Statistics', 'Statistiken') ?>
 </h1>
 

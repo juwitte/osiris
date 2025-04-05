@@ -1,6 +1,36 @@
 # Neuigkeiten
 
 <span class="badge float-right">03.04.2025</span>
+<a class="anchor" href="#version-1.4.2" id="version-1.4.2"></a>
+
+## Version 1.4.2
+
+
+####  <i class="ph ph-chart-line-up"></i> Statistiken
+
+Es wurden neue Statistiken hinzugefügt, die ähnlich wie die Statistik der Infrastrukturen funktionieren. Statistiken wurden für Aktivitäten und Publikationen, Projekte, und Lehrveranstaltungen hinzugefügt
+- Die Statistiken sind in den jeweiligen Übersichtseiten zu finden
+- Eine ganze Reihe vorgefertigter Statistiken sind bereits vorhanden, inklusive einiger cooler Abbildungen
+
+
+#### <i class="ph ph-lock-key-open"></i> Module: Open Access und politische Beratung
+- Dem Open Access-Modul wurde "Diamond" als weitere Option hinzugefügt
+  - Diamond wird auch über de DOI ausgeliefert und somit automatisch ausgefüllt
+- Außerdem wurde ein neues Feld für politische und soziale Beratungsbeiträge hinzugefügt
+  - Dieses Feld ist für die Paktabfrage der GWK relevant
+
+#### <i class="ph ph-globe"></i> Länder
+- Länder können jetzt semi-automatisch aktualisiert werden
+- Dafür wird eine aktuelle Liste der Länder [heruntergeladen](https://stefangabos.github.io/world_countries/) und in OSIRIS importiert
+- Um die Liste zu aktualisieren und einen Überblick über die aktuell vorhandenen Länder zu bekommen, gibt es eine neue Seite im Admin-Bereich "Generelle Einstellungen"
+
+#### <i class="ph ph-code"></i> Bug Fixes und Verbesserungen
+- Es wurde ein seltsames Verhalten mit dem Login beim Auth-Addon behoben
+- In der Autorenliste wird jetzt kein Link mehr gezeigt, wenn kein Nutzer verknüpft ist
+
+----
+
+<span class="badge float-right">03.04.2025</span>
 <a class="anchor" href="#version-1.4.1" id="version-1.4.1"></a>
 
 ## Version 1.4.1

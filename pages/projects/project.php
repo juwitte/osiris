@@ -440,8 +440,9 @@ if (empty($institute) || !isset($institute['lat']) || empty($institute['lat'])) 
                                                 <div class="alert signal">
                                                     <h6 class="title"><?= lang('Countries', 'Länder:') ?></h6>
                                                     <ul class="list signal mb-0">
-                                                        <?php foreach ($project['nagoya_countries'] ?? [] as $c) { ?>
-                                                            <li><?= Country::get($c) ?></li>
+                                                        <?php $lang = lang('name', 'name_de');
+                                                        foreach ($project['nagoya_countries'] ?? [] as $c) { ?>
+                                                            <li><?= $DB->getCountry($c, $lang) ?></li>
                                                         <?php } ?>
                                                     </ul>
                                                 </div>
@@ -451,8 +452,10 @@ if (empty($institute) || !isset($institute['lat']) || empty($institute['lat'])) 
                                         case 'countries': ?>
                                             <span class="key"><?= lang('Countries', 'Länder') ?></span>
                                             <ul class="list signal mb-0">
-                                                <?php foreach ($project['countries'] ?? [] as $c) { ?>
-                                                    <li><?= Country::get($c) ?></li>
+                                                <?php 
+                                                $lang = lang('name', 'name_de');
+                                                foreach ($project['countries'] ?? [] as $c) { ?>
+                                                    <li><?= $DB->getCountry($c, $lang) ?></li>
                                                 <?php } ?>
                                             </ul>
                                         <?php break;

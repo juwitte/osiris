@@ -827,4 +827,23 @@ class DB
         $new_doc['history'][] = $hist;
         return $new_doc;
     }
+
+    function getCountry($iso, $key = null){
+        if (empty($iso)) return null;
+        $country = $this->db->countries->findOne(['iso' => $iso]);
+        if (empty($country)) return null;
+        if ($key !== null) {
+            if (isset($country[$key])) return $country[$key];
+            return null;
+        }
+        return $this->doc2Arr($country);
+    }
+    function getCountries($key='name'){
+        $countries = $this->db->countries->find();
+        $result = [];
+        foreach ($countries as $country) {
+            $result[$country['iso']] = $country[$key];
+        }
+        return $result;
+    }
 }

@@ -53,6 +53,18 @@ Route::get('/activities/search', function () {
     include BASEPATH . "/footer.php";
 }, 'login');
 
+Route::get('/activities/statistics', function () {
+    include_once BASEPATH . "/php/init.php";
+    $user = $_SESSION['username'];
+    $breadcrumb = [
+        ['name' => lang('Activities', "Aktivitäten"), 'path' => "/activities"],
+        ['name' => lang("Statistics", "Statistiken")]
+    ];
+    include BASEPATH . "/header.php";
+    include BASEPATH . "/pages/activities/statistics.php";
+    include BASEPATH . "/footer.php";
+}, 'login');
+
 Route::get('/add-activity', function () {
     include_once BASEPATH . "/php/init.php";
 
