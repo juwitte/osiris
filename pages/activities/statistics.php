@@ -240,7 +240,6 @@ $all = $osiris->activities->count(['affiliated' => true]);
         <sup>3</sup><?= lang('Peer-reviewed = Only if the <code>peer-reviewed</code> module is used.', 'Peer-reviewed = Nur gefüllt, wenn das <code>peer-reviewed</code>-Modul verwendet wird.') ?>
     </p>
 
-
     <h3>
         <?= lang('Number of Open Access publications', 'Anzahl der Open Access-Pubikationen') ?>
     </h3>

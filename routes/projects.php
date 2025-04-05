@@ -51,6 +51,19 @@ Route::get('/projects/search', function () {
 }, 'login');
 
 
+Route::get('/projects/statistics', function () {
+    include_once BASEPATH . "/php/init.php";
+    $user = $_SESSION['username'];
+    $breadcrumb = [
+        ['name' => lang('Projects', 'Projekte'), 'path' => "/projects"],
+        ['name' => lang("Statistics", "Statistik")]
+    ];
+    include BASEPATH . "/header.php";
+    include BASEPATH . "/pages/projects/statistics.php";
+    include BASEPATH . "/footer.php";
+}, 'login');
+
+
 Route::get('/projects/view/(.*)', function ($id) {
     include_once BASEPATH . "/php/init.php";
     $user = $_SESSION['username'];

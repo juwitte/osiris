@@ -102,14 +102,25 @@ if (!$Settings->hasPermission('projects.view')) {
 </h1>
 
 
+<div class="btn-toolbar">
+
+    <a href="<?= ROOTPATH ?>/projects/statistics" class="btn">
+        <i class="ph ph-chart-line-up"></i>
+        <?= lang('Statistics', 'Statistiken') ?>
+    </a>
+    <a href="<?= ROOTPATH ?>/projects/search" class="btn">
+        <i class="ph ph-magnifying-glass-plus"></i>
+        <?= lang('Advanced search', 'Erweiterte Suche') ?>
+    </a>
+    
 <?php if ($Settings->hasPermission('projects.add')) { ?>
-    <a href="<?= ROOTPATH ?>/projects/new" class="mb-10 d-inline-block">
+    <a href="<?= ROOTPATH ?>/projects/new" class="">
         <i class="ph ph-plus"></i>
         <?= lang('Add new project', 'Neues Projekt anlegen') ?>
     </a>
 <?php } ?>
+</div>
 
-<!-- TODO: advanced search? -->
 
 
 <button class="btn primary float-right" onclick="$('.filter-wrapper').slideToggle()">Filter <i class="ph ph-caret-down"></i></button>
@@ -120,8 +131,8 @@ if (!$Settings->hasPermission('projects.view')) {
 
         <div class="dropdown float-right">
             <button class="btn small" data-toggle="dropdown" type="button" id="dropdown-1" aria-haspopup="true" aria-expanded="false">
-               <i class="ph ph-sort-ascending"></i>  
-               <?=lang('Sort', 'Sortieren')?> <i class="ph ph-caret-down ml-5" aria-hidden="true"></i>
+                <i class="ph ph-sort-ascending"></i>
+                <?= lang('Sort', 'Sortieren') ?> <i class="ph ph-caret-down ml-5" aria-hidden="true"></i>
             </button>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown-1">
                 <a class="item" onclick="sortTable(this, 3, 'asc')">Start date (ASC)</a>
@@ -726,11 +737,11 @@ if (!$Settings->hasPermission('projects.view')) {
 
     }
 
-    function sortTable(el, column, direction='asc'){
+    function sortTable(el, column, direction = 'asc') {
         $(el).closest('.dropdown-menu').find('.active').removeClass('active');
         $(el).addClass('active');
 
-        dataTable.order([column, direction]).draw(); 
+        dataTable.order([column, direction]).draw();
         return false;
     }
 </script>
