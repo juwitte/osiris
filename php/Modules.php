@@ -546,6 +546,13 @@ class Modules
             "description" => "A field for the volume of a publication, e.g. for a journal.",
             "description_de" => "Ein Feld für den Band einer Publikation, z.B. für eine Zeitschrift."
         ],
+        "political-consultation" => [
+            "fields" => ["political_consultation" => 'Gutachten'],
+            "name" => "Contribution to political and social consulting",
+            "name_de" => "Beitrag zur Politik- und Gesellschaftsberatung",
+            "description" => "A field for the type of contribution to political and social consulting, e.g. for a report. Possible values are: Gutachten, Stellungnahme, Kommentar, Empfehlung.",
+            "description_de" => "Ein Feld für die Art des Beitrags zur Politik- und Gesellschaftsberatung, z.B. für einen Bericht. Mögliche Werte sind: Gutachten, Stellungnahme, Kommentar, Empfehlung."
+        ],
     );
 
     private $DB;
@@ -733,14 +740,16 @@ class Modules
             case 'list':
                 $multiple = $field['multiple'] ?? false;
                 $name = 'values[' . $module . ']' . ($multiple ? '[]' : '');
-                echo '<select class="form-control" name="'.$name.'" id="' . $module . '" ' . $required . ' '.($multiple ? 'multiple': '').'>';
+                echo '<select class="form-control" name="' . $name . '" id="' . $module . '" ' . $required . ' ' . ($multiple ? 'multiple' : '') . '>';
                 $val = $this->val($module, $field['default'] ?? '');
                 if (!$req) {
                     '<option value="" ' . (empty($val) ? 'selected' : '') . '>-</option>';
                 }
                 foreach ($field['values'] as $opt) {
                     // if is type MongoDB\Model\BSONArray, convert to array
-                    if ($opt instanceof MongoDB\Model\BSONArray) { $opt = DB::doc2Arr($opt); }
+                    if ($opt instanceof MongoDB\Model\BSONArray) {
+                        $opt = DB::doc2Arr($opt);
+                    }
                     if (is_array($opt)) {
                         $opt = lang(...$opt);
                     }
@@ -1497,7 +1506,7 @@ class Modules
                 </div>
             <?php
                 break;
-                // case "date-range-ongoing-simple"
+            // case "date-range-ongoing-simple"
 
             case "software-venue":
             ?>
@@ -2003,6 +2012,27 @@ class Modules
                     <input type="text" class="form-control" <?= $required ?> name="values[editor_type]" id="editor_type" value="<?= $this->val('editor_type') ?>" placeholder="Guest Editor for Research Topic 'XY'" placeholder="editor_type">
                     <label for="editor_type" class="element-cat <?= $required ?>">
                         <?= lang('Details', 'Details') ?>
+                    </label>
+                </div>
+            <?php
+                break;
+
+            case "political-consultation":
+            ?>
+                <div class="data-module floating-form col-sm-6" data-module="political_consultation">
+                    <select type="text" class="form-control" <?= $required ?> name="values[political_consultation]" id="political_consultation">
+                        <!-- Gutachten,Positionspapier,Studie,Sonstiges -->
+                        <?php if (!$required) { ?>
+                            <option value="" <?= empty($this->val('political_consultation')) ? 'selected' : '' ?>><?= lang('No political consultation', 'Keine politische Beratung') ?></option>
+                        <?php } ?>
+                        <option value="Gutachten" <?= $this->val('political_consultation') == 'Gutachten' ? 'selected' : '' ?>><?= lang('Review', 'Gutachten') ?></option>
+                        <option value="Positionspapier" <?= $this->val('political_consultation') == 'Positionspapier' ? 'selected' : '' ?>><?= lang('Position paper', 'Positionspapier') ?></option>
+                        <option value="Studie" <?= $this->val('political_consultation') == 'Studie' ? 'selected' : '' ?>><?= lang('Study', 'Studie') ?></option>
+                        <option value="Sonstiges" <?= $this->val('political_consultation') == 'Sonstiges' ? 'selected' : '' ?>><?= lang('Other', 'Sonstiges') ?></option>
+                    </select>
+
+                    <label for="political_consultation" class="<?= $required ?>">
+                        <?= lang('Contribution to political and social consulting', 'Beitrag zur Politik- und Gesellschaftsberatung') ?>
                     </label>
                 </div>
             <?php
