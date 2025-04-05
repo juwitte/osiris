@@ -26,6 +26,7 @@ $reportstart = $reportyear . '-01-01';
 $reportend = $reportyear . '-12-31';
 
 $filter = [
+    'affiliated' => true,
     'start_date' => ['$gte' => $reportstart],
     '$or' => [
         ['end_date' => ['$lte' => $reportend]],
@@ -35,7 +36,7 @@ $filter = [
 
 $activities  = $osiris->activities->find($filter)->toArray();
 
-$all = $osiris->activities->count();
+$all = $osiris->activities->count(['affiliated' => true]);
 ?>
 
 <style>
@@ -78,6 +79,10 @@ $all = $osiris->activities->count();
         <button class="btn signal filled" type="submit"><?= lang('Update', 'Ändern') ?></button>
     </form>
 </div>
+
+<p class="text-muted">
+    <?=lang('Only affiliated activities are counted (at least one author is affiliated with the institute).', 'Es werden nur affilierte Aktivitäten gezählt (mind. ein:e Autor:in ist mit dem Institut affiliert).')?>
+</p>
 
 <br>
 <div id="statistics">
@@ -143,7 +148,7 @@ $all = $osiris->activities->count();
     </h2>
 
     <?php
-    $filter = ['oa_status' => ['$ne' => null], 'year' => $reportyear];
+    $filter = ['oa_status' => ['$ne' => null], 'year' => $reportyear, 'affiliated' => true];
 
     $oa_publications = $osiris->activities->aggregate([
         ['$match' => $filter],
