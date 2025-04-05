@@ -544,7 +544,6 @@ function sel($index, $value)
             <?php if (in_array('nagoya', $fields) && $Settings->featureEnabled('nagoya')) {
                 $countries = $form['nagoya_countries'] ?? [];
                 $nagoya = $form['nagoya'] ?? 'no';
-                include_once BASEPATH . "/php/Country.php";
             ?>
 
                 <h6>
@@ -572,10 +571,12 @@ function sel($index, $value)
 
                         <div class="author-widget" id="author-widget">
                             <div class="author-list p-10" id="author-list">
-                                <?php foreach ($countries as $iso) { ?>
+                                <?php 
+                                $lang = lang('name', 'name_de');
+                                foreach ($countries as $iso) { ?>
                                     <div class='author'>
                                         <input type='hidden' name='values[nagoya_countries][]' value='<?= $iso ?>'>
-                                        <?= Country::get($iso) ?>
+                                        <?= $DB->getCountry($iso, $lang) ?>
                                         <a onclick="$(this).closest('.author').remove()">&times;</a>
                                     </div>
                                 <?php } ?>
@@ -585,7 +586,7 @@ function sel($index, $value)
                                 <div class="input-group sm d-inline-flex w-auto">
                                     <select id="add-country">
                                         <option value="" disabled checked><?= lang('Please select a country', 'Bitte wähle ein Land aus') ?></option>
-                                        <?php foreach (Country::COUNTRIES as $iso => $name) { ?>
+                                        <?php foreach ($DB->getCountries(lang('name', 'name_de')) as $iso => $name) { ?>
                                             <option value="<?= $iso ?>"><?= $name ?></option>
                                         <?php } ?>
                                     </select>

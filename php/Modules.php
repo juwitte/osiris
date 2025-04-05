@@ -1,7 +1,6 @@
 <?php
 include_once "_config.php";
 include_once "init.php";
-include_once "Country.php";
 
 $defaultauthors = [
     [
@@ -546,7 +545,7 @@ class Modules
             "description" => "A field for the volume of a publication, e.g. for a journal.",
             "description_de" => "Ein Feld für den Band einer Publikation, z.B. für eine Zeitschrift."
         ],
-        "political-consultation" => [
+        "political_consultation" => [
             "fields" => ["political_consultation" => 'Gutachten'],
             "name" => "Contribution to political and social consulting",
             "name_de" => "Beitrag zur Politik- und Gesellschaftsberatung",
@@ -814,7 +813,7 @@ class Modules
                 <div class="data-module floating-form col-sm-6" data-module="country">
                     <select name="values[country]" id="country" class="form-control" <?= $required ?>>
                         <option value="" <?= empty($val) ? 'selected' : '' ?>><?= lang('unknown', 'unbekannt') ?></option>
-                        <?php foreach (Country::COUNTRIES as $code => $country) { ?>
+                        <?php foreach ($this->DB->getCountries(lang('name', 'name_de')) as $code => $country) { ?>
                             <option value="<?= $code ?>" <?= $val == $code ? 'selected' : '' ?>><?= $country ?></option>
                         <?php } ?>
                     </select>
@@ -2017,7 +2016,7 @@ class Modules
             <?php
                 break;
 
-            case "political-consultation":
+            case "political_consultation":
             ?>
                 <div class="data-module floating-form col-sm-6" data-module="political_consultation">
                     <select type="text" class="form-control" <?= $required ?> name="values[political_consultation]" id="political_consultation">

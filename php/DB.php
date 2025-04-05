@@ -838,4 +838,12 @@ class DB
         }
         return $this->doc2Arr($country);
     }
+    function getCountries($key='name'){
+        $countries = $this->db->countries->find();
+        $result = [];
+        foreach ($countries as $country) {
+            $result[$country['iso']] = $country[$key];
+        }
+        return $result;
+    }
 }

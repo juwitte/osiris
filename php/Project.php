@@ -18,7 +18,7 @@ require_once "DB.php";
 require_once "Country.php";
 require_once "Groups.php";
 
-class Project
+class Project extends DB
 {
     public $project = array();
 
@@ -205,14 +205,11 @@ class Project
         'collaborators'
     ];
 
-    private $db;
-
     function __construct($project = null)
     {
+        parent::__construct();
         if ($project !== null)
             $this->project = $project;
-        $DB = new DB();
-        $this->db = $DB->db;
     }
 
     public function getFields($type)
@@ -527,12 +524,12 @@ class Project
 
         $scope = 'national';
         $countries = array_unique($countries);
-        if (count($countries) == 1) return ['scope' => $scope, 'region' => Country::get($countries[0])];
+        if (count($countries) == 1) return ['scope' => $scope, 'region' => $this->getCountry($countries[0], 'name')];
 
         $scope = 'continental';
         $continents = [];
         foreach ($countries as $code) {
-            $continents[] = Country::countryToContinent($code);
+            $continents[] = $this->getCountry($code, 'continent');
         }
         $continents = array_unique($continents);
         if (count($continents) == 1) return ['scope' => $scope, 'region' => $continents[0]];
@@ -548,7 +545,7 @@ class Project
         $countries = array_unique($countries);
         $continents = [];
         foreach ($countries as $code) {
-            $continents[] = Country::countryToContinent($code);
+            $continents[] = $this->getCountry($code, 'continent');
         }
         $continents = array_unique($continents);
         return $continents;

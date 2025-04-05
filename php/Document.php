@@ -103,7 +103,7 @@ class Document extends Settings
         "nationality" => ["nationality"],
         "gender" => ["gender"],
         "volume-issue-pages" => ["volume"],
-        "political-consultation" => ["political_consultation"],
+        "political_consultation" => ["political_consultation"],
     ];
 
 
@@ -1001,7 +1001,7 @@ class Document extends Settings
             case "country":
             case "nationality":
                 $code = $this->getVal('country');
-                return Country::get($code);
+                return $this->DB->getCountry($code, lang('name', 'name_de'));
             case "gender":
                 switch ($this->getVal('gender')) {
                     case 'f':
@@ -1027,7 +1027,7 @@ class Document extends Settings
                     $val .= ": " . $this->getVal('pages');
                 }
                 return $val;
-            case "political-consultation":
+            case "political_consultation":
                 return $this->getVal('political_consultation', false);
             default:
                 $val = $this->getVal($module, '-');

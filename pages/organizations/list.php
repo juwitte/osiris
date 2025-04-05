@@ -14,7 +14,6 @@
  * @author		Julia Koblitz <julia.koblitz@osiris-solutions.de>
  * @license     MIT
  */
-include_once BASEPATH . "/php/Country.php";
 include_once BASEPATH . "/php/Organization.php";
 
 $organizations  = $osiris->organizations->find(
