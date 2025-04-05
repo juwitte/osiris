@@ -76,6 +76,7 @@ class Document extends Settings
         "magazine" => ["magazine"],
         "online-ahead-of-print" => ["epub"],
         "openaccess" => ["open_access"],
+        "openaccess-text" => ["open_access"],
         "openaccess-status" => ["oa_status"],
         "pages" => ["pages"],
         "person" => ["name", "affiliation", "academic_title"],
@@ -102,6 +103,7 @@ class Document extends Settings
         "nationality" => ["nationality"],
         "gender" => ["gender"],
         "volume-issue-pages" => ["volume"],
+        "political-consultation" => ["political_consultation"],
     ];
 
 
@@ -910,7 +912,11 @@ class Document extends Settings
                 }
                 if ($this->usecase == 'list') return $oa . " (" . $status . ")";
                 return $oa;
-
+            case "openaccess-text": // ["open_access"],
+                if ($this->getVal('open_access', false)) {
+                    return 'Open Access';
+                } 
+                return '';
             case "oa_status": // ["oa_status"],
             case "openaccess-status": // ["oa_status"],
                 return $this->getVal('oa_status', 'Unknown Status');
@@ -1021,6 +1027,8 @@ class Document extends Settings
                     $val .= ": " . $this->getVal('pages');
                 }
                 return $val;
+            case "political-consultation":
+                return $this->getVal('political_consultation', false);
             default:
                 $val = $this->getVal($module, '-');
                 // only in german because standard is always english
