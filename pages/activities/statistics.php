@@ -168,7 +168,11 @@ $all = $osiris->activities->count(['affiliated' => true]);
                 '_id' => '$subtype',
                 'count' => ['$sum' => 1],
                 // count epub = true
-                'epub' => ['$sum' => ['$cond' => [['$eq' => ['$epub', true]], 1, 0]]]
+                'epub' => ['$sum' => ['$cond' => [['$eq' => ['$epub', true]], 1, 0]]],
+                // count cooperative != leading or contributing
+                'cooperative' => ['$sum' => ['$cond' => [['$ne' => ['$cooperative', 'leading']], 1, 0]]],
+                // peer-reviewed = true
+                'peer_reviewed' => ['$sum' => ['$cond' => [['$eq' => ['$peer_reviewed', true]], 1, 0]]],
             ]
         ],
         [
@@ -177,8 +181,6 @@ $all = $osiris->activities->count(['affiliated' => true]);
             ]
         ]
     ])->toArray();
-    $count_all = $osiris->activities->count($filter);
-    $count_all_epub = $osiris->activities->count(array_merge($filter, ['epub' => true]));
     ?>
 
     <table class="table w-auto">
@@ -186,16 +188,36 @@ $all = $osiris->activities->count(['affiliated' => true]);
             <tr>
                 <th><?= lang('Type of publication', 'Art der Publikation') ?></th>
                 <th><?= lang('Count', 'Anzahl') ?></th>
-                <th><?= lang('Count of Online*', 'davon Online*') ?></th>
+                <th><?= lang('Count of Online', 'davon Online') ?><sup>1</sup></th>
+                <th><?= lang('Without external', 'ohne Externe') ?><sup>2</sup></th>
+                <th><?= lang('Peer-reviewed') ?><sup>3</sup></th>
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($publications as $publication): ?>
+            <?php
+            $counts = [
+                'all' => 0,
+                'epub' => 0,
+                'cooperative' => 0,
+                'peer_reviewed' => 0
+            ];
+            foreach ($publications as $publication):
+                $counts['all'] += $publication['count'];
+                $counts['epub'] += $publication['epub'] ?? 0;
+                $counts['cooperative'] += $publication['cooperative'] ?? 0;
+                $counts['peer_reviewed'] += $publication['peer_reviewed'] ?? 0;
+            ?>
                 <tr class="text-<?= $publication['_id'] ?>">
                     <td><?= $Settings->title(null, $publication['_id']) ?></td>
                     <th><?= $publication['count'] ?></th>
                     <td>
                         <?= $publication['epub'] ?? 0 ?>
+                    </td>
+                    <td>
+                        <?= $publication['cooperative'] ?? 0 ?>
+                    </td>
+                    <td>
+                        <?= $publication['peer_reviewed'] ?? 0 ?>
                     </td>
                 </tr>
             <?php endforeach; ?>
@@ -203,13 +225,19 @@ $all = $osiris->activities->count(['affiliated' => true]);
         <tfoot>
             <tr>
                 <th colspan="1"><?= lang('Total', 'Gesamt') ?></th>
-                <th><?= $count_all ?></th>
-                <th><?= $count_all_epub ?></th>
+                <th><?= $counts['all'] ?></th>
+                <th><?= $counts['epub'] ?></th>
+                <th><?= $counts['cooperative'] ?></th>
+                <th><?= $counts['peer_reviewed'] ?></th>
             </tr>
         </tfoot>
     </table>
     <p class="text-muted mt-0">
-        *Online = Online ahead of print
+        <sup>1</sup>Online = Online ahead of print
+        <br>
+        <sup>2</sup><?= lang('External co-creators are persons who are not affiliated with the reporting institution via an employment relationship or a doctoral procedure.', 'Als externe Ko-Schöpfer/-innen gelten Personen, die nicht mit der berichtenden Einrichtung affiliiert sind über ein Beschäftigungsverhältnis oder ein Promotionsverfahren.') ?>
+        <br>
+        <sup>3</sup><?= lang('Peer-reviewed = Only if the <code>peer-reviewed</code> module is used.', 'Peer-reviewed = Nur gefüllt, wenn das <code>peer-reviewed</code>-Modul verwendet wird.') ?>
     </p>
 
 
