@@ -15,15 +15,28 @@
  * @license     MIT
  */
 
+
+$time_frame = '';
+$phrase = lang('in the reporting year', 'im Reportjahr');
 // today is the default reportyear
-if (!isset($_GET['reportyear']) || empty($_GET['reportyear'])) {
-    $reportyear = CURRENTYEAR;
-} else {
+if (isset($_GET['reportyear']) && !empty($_GET['reportyear'])) {
     $reportyear = intval($_GET['reportyear']);
+    $time_frame = lang('Reporting year', 'Reportjahr') . ': ' . $reportyear;
+    $reportstart = $reportyear . '-01-01';
+    $reportend = $reportyear . '-12-31';
+} elseif (isset($_GET['reportstart']) && !empty($_GET['reportstart']) && isset($_GET['reportend']) && !empty($_GET['reportend'])) {
+    $reportstart = $_GET['reportstart'];
+    $reportend = $_GET['reportend'];
+    $time_frame = lang('Reporting period', 'Reportzeitraum') . ': ' . date('d.m.Y', strtotime($reportstart)) . ' - ' . date('d.m.Y', strtotime($reportend));
+    $reportyear = date('Y', strtotime($reportstart));
+    $phrase = lang('in the reporting period', 'im Reportzeitraum');
+} else {
+    $reportyear = CURRENTYEAR;
+    $time_frame = lang('Reporting year', 'Reportjahr') . ': ' . $reportyear;
+    $reportstart = $reportyear . '-01-01';
+    $reportend = $reportyear . '-12-31';
 }
 
-$reportstart = $reportyear . '-01-01';
-$reportend = $reportyear . '-12-31';
 
 $filter = [
     'affiliated' => true,
@@ -62,7 +75,7 @@ $all = $osiris->activities->count(['affiliated' => true]);
 </h1>
 
 <div class="btn-toolbar">
-    <a href="<?= ROOTPATH ?>/all-activities">
+    <a href="<?= ROOTPATH ?>/activities">
         <i class="ph ph-arrow-left"></i>
         <?= lang('Back to Activities', 'Zurück zu Aktivitäten') ?>
     </a>
@@ -71,13 +84,31 @@ $all = $osiris->activities->count(['affiliated' => true]);
 
 <div class="alert signal">
     <i class="ph ph-warning text-signal"></i>
-    <?= lang('All of the following statistics are based on the reporting year.', 'Alle unten aufgeführten Statistiken basieren auf dem angegebenen Reportjahr.') ?>
+    <?= lang('All of the following statistics are based on the reporting period.', 'Alle unten aufgeführten Statistiken basieren auf dem angegebenen Reportzeitraum.') ?>
 
-    <form action="<?= ROOTPATH ?>/activities/statistics" method="get" class="d-flex align-items-baseline mt-10" style="grid-gap: 1rem;">
-        <h6 class="mb-0 mt-5"><?= lang('Change Reporting Year', 'Reportjahr ändern') ?>:</h6>
-        <input type="number" name="reportyear" value="<?= $reportyear ?>" class="form-control w-auto d-inline-block" step="1" min="1900" max="<?= CURRENTYEAR + 2 ?>" />
-        <button class="btn signal filled" type="submit"><?= lang('Update', 'Ändern') ?></button>
-    </form>
+
+    <div class="row position-relative mt-10">
+        <div class="col-sm p-10">
+
+            <form action="<?= ROOTPATH ?>/activities/statistics" method="get" class="d-flex align-items-baseline" style="grid-gap: 1rem;">
+                <h6 class="m-0"><?= lang('Change Reporting Year', 'Reportjahr ändern') ?>:</h6>
+                <input type="number" name="reportyear" value="<?= $reportyear ?>" class="form-control w-auto d-inline-block" step="1" min="1900" max="<?= CURRENTYEAR + 2 ?>" />
+                <button class="btn signal filled" type="submit"><?= lang('Update', 'Ändern') ?></button>
+            </form>
+        </div>
+
+        <div class="text-divider"><?= lang('OR', 'ODER') ?></div>
+
+        <div class="col-sm p-10">
+
+            <form action="<?= ROOTPATH ?>/activities/statistics" method="get" class="d-flex align-items-baseline ml-20" style="grid-gap: 1rem;">
+                <h6 class="m-0"><?= lang('Change Reporting Period', 'Reportzeitraum ändern') ?>:</h6>
+                <input type="date" name="reportstart" value="<?= $reportstart ?>" class="form-control w-auto d-inline-block" required />
+                <input type="date" name="reportend" value="<?= $reportend ?>" class="form-control w-auto d-inline-block" required />
+                <button class="btn signal filled" type="submit"><?= lang('Update', 'Ändern') ?></button>
+            </form>
+        </div>
+    </div>
 </div>
 
 <p class="text-muted">
@@ -86,16 +117,24 @@ $all = $osiris->activities->count(['affiliated' => true]);
 
 <br>
 <div id="statistics">
+
+    <h2 class="text-decoration-underline">
+        <?= $time_frame ?>
+    </h2>
+
     <p class="lead">
-        <?= lang('Number of activities on the reporting date', 'Anzahl der Aktivitäten im Reportjahr') ?>:
+        <?= lang('Number of activities', 'Anzahl der Aktivitäten') ?> <?= $phrase ?>:
         <b class="badge signal"><?= count($activities) ?></b>
         <span class="text-muted">(<?= $all ?> <?= lang('total', 'gesamt') ?>)</span>
     </p>
 
 
     <h2>
-        <?= lang('Number of activities by category and type', 'Anzahl der Aktivitäten pro Typ') ?>
+        <?= lang('Activities', 'Aktivitäten') ?> <?= $phrase ?>:
     </h2>
+    <p class="text-muted">
+        <?= lang('Only activities with a start and end date in the reporting period and at least one affiliated author are counted.', 'Es werden nur Aktivitäten mit einem Start- und Enddatum im Reportzeitraum und mindestens einer/einem affilierten Autor/Autorin gezählt.') ?>
+    </p>
 
     <?php
     $activities_by_type = $osiris->activities->aggregate([
@@ -142,6 +181,66 @@ $all = $osiris->activities->count(['affiliated' => true]);
         </tfoot>
     </table>
 
+
+    <h3>
+        <?= lang('Activities that have started before the time frame', 'Aktivitäten, die vor dem Zeitraum gestartet sind') ?>
+    </h3>
+    <p class="text-muted">
+        <?= lang('Only activities that have started before the reporting period but were still running are counted.', 'Es werden nur Aktivitäten gezählt, die vor dem Reportzeitraum gestartet sind, aber im Zeitraum immer noch liefen.') ?>
+    </p>
+    <?php
+    $filter = [
+        'affiliated' => true,
+        'start_date' => ['$lt' => $reportstart],
+        'end_date' => ['$gte' => $reportstart]
+    ];
+    $activities_by_type = $osiris->activities->aggregate([
+        [
+            '$match' => $filter
+        ],
+        [
+            '$group' => [
+                '_id' => '$subtype',
+                'type' => ['$first' => '$type'],
+                'count' => ['$sum' => 1]
+            ]
+        ],
+        [
+            '$sort' => [
+                'type' => 1
+            ]
+        ]
+    ])->toArray();
+    ?>
+
+
+    <table class="table w-auto">
+        <thead>
+            <tr>
+                <th><?= lang('Type', 'Typ') ?></th>
+                <th><?= lang('Subtype', 'Untertyp') ?></th>
+                <th><?= lang('Count', 'Anzahl') ?></th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($activities_by_type as $activity): ?>
+                <tr class="text-<?= $activity['type'] ?>">
+                    <td><?= $Settings->title($activity['type']); ?></td>
+                    <td><?= $Settings->title($activity['type'], $activity['_id']) ?></td>
+                    <th><?= $activity['count'] ?></th>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="2"><?= lang('Total', 'Gesamt') ?></th>
+                <th><?= count($activities) ?></th>
+            </tr>
+        </tfoot>
+    </table>
+
+
+
     <br>
     <hr>
 
@@ -150,14 +249,19 @@ $all = $osiris->activities->count(['affiliated' => true]);
     </h2>
 
     <p class="text-muted">
-        <?= lang('Only publications with a publication date in the reporting year and at least one affiliated author are counted.', 'Es werden nur Publikationen mit einem Veröffentlichungsdatum im Reportjahr und mindestens einer/einem affilierten Autor/Autorin gezählt.') ?>
+        <?= lang('Only publications with a start and end date in the reporting period and at least one affiliated author are counted.', 'Es werden nur Publikationen mit einem Start- und Enddatum im Reportzeitraum und mindestens einer/einem affilierten Autor/Autorin gezählt.') ?>
     </p>
 
     <?php
     $filter = [
         'type' => 'publication',
-        'year' => $reportyear,
-        'affiliated' => true
+        'start_date' => ['$gte' => $reportstart],
+        'end_date' => ['$lte' => $reportend],
+        // '$or' => [
+        //     ['end_date' => ['$lte' => $reportend]],
+        //     ['end_date' => null]
+        // ],
+        // 'affiliated' => true
     ];
     $publications = $osiris->activities->aggregate([
         [
@@ -167,6 +271,7 @@ $all = $osiris->activities->count(['affiliated' => true]);
             '$group' => [
                 '_id' => '$subtype',
                 'count' => ['$sum' => 1],
+                'affiliated' => ['$sum' => ['$cond' => [['$eq' => ['$affiliated', true]], 1, 0]]],
                 // count epub = true
                 'epub' => ['$sum' => ['$cond' => [['$eq' => ['$epub', true]], 1, 0]]],
                 // count cooperative != leading or contributing
@@ -187,7 +292,8 @@ $all = $osiris->activities->count(['affiliated' => true]);
         <thead>
             <tr>
                 <th><?= lang('Type of publication', 'Art der Publikation') ?></th>
-                <th><?= lang('Count', 'Anzahl') ?></th>
+                <th><?= lang('Count', 'Gesamt') ?></th>
+                <th><?= lang('Count of affiliated', 'davon Affiliert') ?></th>
                 <th><?= lang('Count of Online', 'davon Online') ?><sup>1</sup></th>
                 <th><?= lang('Without external', 'ohne Externe') ?><sup>2</sup></th>
                 <th><?= lang('Peer-reviewed') ?><sup>3</sup></th>
@@ -197,19 +303,24 @@ $all = $osiris->activities->count(['affiliated' => true]);
             <?php
             $counts = [
                 'all' => 0,
+                'affiliated' => 0,
                 'epub' => 0,
                 'cooperative' => 0,
                 'peer_reviewed' => 0
             ];
             foreach ($publications as $publication):
                 $counts['all'] += $publication['count'];
+                $counts['affiliated'] += $publication['affiliated'] ?? 0;
                 $counts['epub'] += $publication['epub'] ?? 0;
                 $counts['cooperative'] += $publication['cooperative'] ?? 0;
                 $counts['peer_reviewed'] += $publication['peer_reviewed'] ?? 0;
             ?>
                 <tr class="text-<?= $publication['_id'] ?>">
                     <td><?= $Settings->title(null, $publication['_id']) ?></td>
-                    <th><?= $publication['count'] ?></th>
+                    <td><?= $publication['count'] ?></td>
+                    <th>
+                        <?= $publication['affiliated'] ?? 0 ?>
+                    </th>
                     <td>
                         <?= $publication['epub'] ?? 0 ?>
                     </td>
@@ -226,6 +337,7 @@ $all = $osiris->activities->count(['affiliated' => true]);
             <tr>
                 <th colspan="1"><?= lang('Total', 'Gesamt') ?></th>
                 <th><?= $counts['all'] ?></th>
+                <th><?= $counts['affiliated'] ?></th>
                 <th><?= $counts['epub'] ?></th>
                 <th><?= $counts['cooperative'] ?></th>
                 <th><?= $counts['peer_reviewed'] ?></th>
@@ -245,7 +357,12 @@ $all = $osiris->activities->count(['affiliated' => true]);
     </h3>
 
     <?php
-    $filter = ['oa_status' => ['$ne' => null], 'year' => $reportyear, 'affiliated' => true];
+    $filter = [
+        'oa_status' => ['$ne' => null],
+        'start_date' => ['$gte' => $reportstart],
+        'end_date' => ['$lte' => $reportend],
+        'affiliated' => true
+    ];
 
     $oa_publications = $osiris->activities->aggregate([
         ['$match' => $filter],

@@ -18,23 +18,21 @@ $phrase = lang('in the reporting year', 'im Reportjahr');
 $time_frame = '';
 
 // today is the default reportyear
-if (!isset($_GET['reportyear']) || empty($_GET['reportyear'])) {
-    if (isset($_GET['reportdate']) && !empty($_GET['reportdate'])) {
-        $reportdate = $_GET['reportdate'];
-        $reportyear = date('Y', strtotime($reportdate));
-        $reportstart = date('Y-m-d', strtotime($reportdate));
-        $reportend = date('Y-m-d', strtotime($reportdate));
-        $phrase = lang('on the reporting date', 'am Stichtag');
-        $time_frame = lang('Reporting date', 'Stichtag') . ': ' . $reportdate;
-    } else {
-        $reportyear = CURRENTYEAR;
-        $reportstart = $reportyear . '-01-01';
-        $reportend = $reportyear . '-12-31';
-        $reportdate = date('Y-m-d');
-        $time_frame = lang('Reporting year', 'Reportjahr') . ': ' . $reportyear;
-    }
-} else {
+if (isset($_GET['reportdate']) && !empty($_GET['reportdate'])) {
+    $reportdate = $_GET['reportdate'];
+    $reportyear = date('Y', strtotime($reportdate));
+    $reportstart = date('Y-m-d', strtotime($reportdate));
+    $reportend = date('Y-m-d', strtotime($reportdate));
+    $phrase = lang('on the reporting date', 'am Stichtag');
+    $time_frame = lang('Reporting date', 'Stichtag') . ': ' . $reportdate;
+} else if (isset($_GET['reportyear']) && !empty($_GET['reportyear'])) {
     $reportyear = intval($_GET['reportyear']);
+    $reportstart = $reportyear . '-01-01';
+    $reportend = $reportyear . '-12-31';
+    $reportdate = date('Y-m-d');
+    $time_frame = lang('Reporting year', 'Reportjahr') . ': ' . $reportyear;
+} else {
+    $reportyear = CURRENTYEAR;
     $reportstart = $reportyear . '-01-01';
     $reportend = $reportyear . '-12-31';
     $reportdate = date('Y-m-d');
@@ -250,7 +248,7 @@ $all = $osiris->projects->count();
             </tr>
         </thead>
         <tbody>
-            <?php 
+            <?php
             $counts = [
                 'count' => 0,
                 'approved' => 0,

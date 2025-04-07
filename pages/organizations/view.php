@@ -91,6 +91,7 @@ $edit_perm = ($organization['created_by'] == $_SESSION['username'] || $Settings-
     }
 </style>
 
+<?php if ($Settings->featureEnabled('projects')) { ?>
 <h2>
     <?= lang('Connected projects', 'Verknüpfte Projekte') ?>
 </h2>
@@ -124,7 +125,11 @@ $edit_perm = ($organization['created_by'] == $_SESSION['username'] || $Settings-
 <script>
     $('#projects-table').DataTable({});
 </script>
+<?php } ?>
 
+
+
+<?php if ($Settings->featureEnabled('infrastructures')) { ?>
 <h2>
     <?= lang('Connected infrastructures', 'Verknüpfte Infrastrukturen') ?>
 </h2>
@@ -169,7 +174,7 @@ $edit_perm = ($organization['created_by'] == $_SESSION['username'] || $Settings-
 <script>
     $('#infrastructures-table').DataTable({});
 </script>
-
+<?php } ?>
 
 
 <?php if (isset($_GET['verbose'])) {
