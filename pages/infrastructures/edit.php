@@ -238,7 +238,7 @@ if (empty($form) || !isset($form['_id'])) {
                             </td>
                             <td>
                                 <div class="custom-radio">
-                                    <input type="radio" name="values[coordinator]" id="coordinator" value="0" <?= ($coordinator_institute) ? 'checked' : '' ?> required>
+                                    <input type="radio" name="values[coordinator]" id="coordinator" value="0" <?= ($coordinator_institute) ? 'checked' : '' ?>>
                                     <label for="coordinator" class="empty"></label>
                                 </div>
                             </td>
@@ -298,9 +298,19 @@ if (empty($form) || !isset($form['_id'])) {
         <script>
             document.getElementById('collaborative-yes').addEventListener('change', function() {
                 document.getElementById('form-collaborative').style.display = 'block';
+                // enable required for all collaborators
+                const inputs = document.querySelectorAll('#collaborators input[type="radio"]');
+                inputs.forEach(input => {
+                    input.required = true;
+                });
             });
             document.getElementById('collaborative-no').addEventListener('change', function() {
                 document.getElementById('form-collaborative').style.display = 'none';
+                // disable required for all collaborators
+                const inputs = document.querySelectorAll('#collaborators input[type="radio"]');
+                inputs.forEach(input => {
+                    input.required = false;
+                });
             });
         </script>
 
