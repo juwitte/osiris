@@ -227,24 +227,9 @@
         "en": "Organizations",
         "fields": [
             {
-                "id": "organizations.add",
-                "de": "Organisationen hinzufügen",
-                "en": "Add new organizations"
-            },
-            {
-                "id": "organizations.view",
-                "de": "Alle existierenden Organisationen sehen",
-                "en": "See all existing organizations"
-            },
-            {
                 "id": "organizations.edit",
-                "de": "Alle Organisationen bearbeiten",
-                "en": "Edit all organizations"
-            },
-            {
-                "id": "organizations.statistics",
-                "de": "Infrastrukturstatistiken ergänzen",
-                "en": "Add infrastructure statistics"
+                "de": "Organisationen hinzufügen und bearbeiten",
+                "en": "Add and edit organizations"
             },
             {
                 "id": "organizations.delete",
