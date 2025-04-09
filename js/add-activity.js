@@ -983,7 +983,7 @@ function getDOI(doi) {
             // console.log(funder);
 
             var pages = pub.page
-            if (pub.page === undefined || pub.page !== null) {
+            if (pub.page === undefined || pub.page === null) {
                 pages = pub['article-number'] ?? null;
             }
 
