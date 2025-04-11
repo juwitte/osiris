@@ -222,12 +222,14 @@ Route::get('/api/html', function () {
         } elseif (!empty($doc['link'] ?? null)) {
             $link = $doc['link'];
         }
-
+        $depts = DB::doc2Arr($doc['units'] ?? []);
+        $depts = array_intersect($depts, array_keys($Departments));
+        $depts = array_values($depts);
         $entry = [
             'id' => strval($doc['_id']),
             'html' => $rendered['print'],
             'year' => $doc['year'] ?? null,
-            'departments' => $rendered['depts'],
+            'departments' => $depts,
             'link' => $link
         ];
         $result[] = $entry;
