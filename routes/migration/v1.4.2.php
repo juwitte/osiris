@@ -41,3 +41,6 @@ foreach ($countries as $country) {
 
 // success message
 echo "Countries updated successfully. <br>";
+
+// flush();
+// ob_flush();

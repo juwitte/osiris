@@ -635,7 +635,7 @@ $pageactive = function ($p) use ($page) {
                         <?php if ($Settings->hasPermission('admin.see')) { ?>
                             <a href="<?= ROOTPATH ?>/admin/general" class="with-icon <?= $pageactive('admin/general') ?>">
                                 <i class="ph ph-gear" aria-hidden="true"></i>
-                                <?= lang('General settings') ?>
+                                <?= lang('General settings', 'Einstellungen') ?>
                             </a>
                             <a href="<?= ROOTPATH ?>/admin/roles" class="with-icon <?= $pageactive('admin/roles') ?>">
                                 <i class="ph ph-shield-check" aria-hidden="true"></i>
