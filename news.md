@@ -1,10 +1,24 @@
 # Neuigkeiten
 
+<span class="badge float-right">13.04.2025</span>
+<a class="anchor" href="#version-1.4.3" id="version-1.4.3"></a>
+
+## Version 1.4.3
+
+#### <i class="ph ph-stack"></i> Journale und Impact Faktoren
+
+- Die automatische Synchronisation der Metriken kann nun deaktiviert werden. Ihr findet eine Einstellung im Admin-Bereich unter "Features".
+- Es wurde eine neue Seite hinzugefügt, auf der die Metriken eines Jahres für alle Journale aktualisiert werden können. Ihr findet sie mit den Bearbeitsrechten der Journale in der Übersicht der Journale.
+- Die Metriken für das Jahr 2024 sind nun über unsere OSIRIS-API verfügbar und können automatisch aktualisiert werden.
+- Die Quartile können nun auch manuell hinzugefügt werden, für den Fall, dass ihr sie nicht über die API aktualisieren wollt. 
+- Es wurde ein Graph hinzugefügt, der die Quartile der letzten Jahre anzeigt. Dieser ist in der Detailansicht des Journals zu finden.
+- Die Kategorien der Journale können nun ebenfalls manuell bearbeitet werden. Dies kann in der Detailansicht des Journals gefunden werden.
+
+
 <span class="badge float-right">03.04.2025</span>
 <a class="anchor" href="#version-1.4.2" id="version-1.4.2"></a>
 
 ## Version 1.4.2
-
 
 ####  <i class="ph ph-chart-line-up"></i> Statistiken
 

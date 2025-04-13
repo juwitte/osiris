@@ -12485,8 +12485,8 @@ a.concept:hover {
 }
 
 .quartile.Q3 {
-  color: var(--warning-color);
-  background-color: var(--warning-color-30);
+  color: var(--signal-color);
+  background-color: var(--signal-color-30);
 }
 
 .quartile.Q2 {
@@ -12572,6 +12572,22 @@ a.concept:hover {
 
 .ui-sortable-helper {
   border-top: 1px solid var(--border-color);
+}
+
+progress {
+  width: 100%;
+  height: 2rem;
+  border-radius: 0.5rem;
+}
+
+progress::-webkit-progress-bar {
+  background-color: var(--body-color);
+  border-radius: 0.5rem;
+}
+
+progress::-webkit-progress-value {
+  background-color: var(--primary-color);
+  border-radius: 0.5rem;
 }
 
 /*!
