@@ -20,16 +20,45 @@
 <script src="<?= ROOTPATH ?>/js/chart.min.js"></script>
 <script src="<?= ROOTPATH ?>/js/datatables/jquery.dataTables.naturalsort.js"></script>
 
-
-<?php if ($Settings->hasPermission('journals.edit')) { ?>
-    <a href="<?= ROOTPATH ?>/journal/edit/<?= $id ?>" class="btn osiris float-right"><?= lang('Edit Journal', 'Journal bearbeiten') ?></a>
-<?php } ?>
-
-
 <h2 class="mt-0">
     <i class="ph ph-stack text-primary"></i>
     <?= $data['journal'] ?>
 </h2>
+<div class="btn-toolbar mb-20">
+    <?php if ($Settings->hasPermission('journals.edit')) { ?>
+        <a href="<?= ROOTPATH ?>/journal/edit/<?= $id ?>" class="btn primary">
+            <i class="ph ph-edit"></i>
+            <?= lang('Edit Journal', 'Journal bearbeiten') ?>
+        </a>
+    <?php } ?>
+
+    <?php if ($Settings->hasPermission('journals.edit') && !$Settings->featureEnabled('no-journal-metrics')) { ?>
+
+        <a href="#metrics-modal" class="btn primary">
+            <i class="ph ph-ranking"></i> <?= lang('Update Metrics', 'Metriken aktualisieren') ?>
+        </a>
+
+        <div class="modal" id="metrics-modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <a href="#/" class="close" role="button" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </a>
+                    <h5 class="title"><?= lang('Update metrics', 'Metriken aktualisieren') ?></h5>
+                    <p>
+                        <i class="ph ph-warning text-signal"></i>
+                        <?= lang('This will update the metrics for this journal and overwrite all manual changes to impact factors, categories and quartiles.', 'Dadurch werden die Metriken für diese Zeitschrift aktualisiert und alle manuellen Änderungen an Impact-Faktoren, Kategorien und Quartilen überschrieben.') ?>
+                    </p>
+
+                    <form action="<?= ROOTPATH ?>/crud/journal/update-metrics/<?= $id ?>" method="post">
+                        <button class="btn primary"><i class="ph ph-arrows-clockwise"></i> <?= lang('Update Metrics', 'Metriken aktualisieren') ?></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    <?php } ?>
+</div>
 
 
 <table class="table" id="result-table">
@@ -77,7 +106,93 @@
             </td>
         </tr>
     <?php } ?>
+    <tr>
+        <td>
+            <?= lang('Catergories', 'Kategorien') ?>
+            <?php if ($Settings->hasPermission('journals.edit')) { ?>
+
+                <a aria-haspopup="true" aria-expanded="false" href="#cat-modal" data-toggle="modal">
+                    <i class="ph ph-edit"></i>
+                </a>
+            <?php } ?>
+
+        </td>
+        <td>
+            <?php
+            $categories = $data['categories'] ?? [];
+            if (empty($categories)) {
+                echo lang('No categories available.', 'Keine Kategorien verfügbar.');
+            } else {
+                echo '<ul class="list">';
+                foreach ($categories as $cat) { ?>
+                    <li>
+                        <?= $cat['name'] ?? $cat ?>
+                    </li>
+            <?php
+                }
+                echo '</ul>';
+            }
+            ?>
+        </td>
+    </tr>
 </table>
+
+<?php
+if ($Settings->hasPermission('journals.edit')) { ?>
+
+    <div class="modal" id="cat-modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <a href="#/" class="close" role="button" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </a>
+                <h5 class="title"><?= lang('Edit journal categories', 'Journal-Kategorien bearbeiten') ?></h5>
+
+                <form action="<?= ROOTPATH ?>/crud/journal/update/<?= $id ?>" method="post">
+                    <input type="hidden" class="hidden" name="redirect" value="<?= $url ?? $_SERVER['REDIRECT_URL'] ?? $_SERVER['REQUEST_URI'] ?>">
+
+                    <div id="category-form">
+                        <?php if (empty($categories)) { ?>
+                            <input type="text" class="form-control" name="values[categories][]" id="categories" placeholder="<?= lang('Category', 'Kategorie') ?>" required list="categories-list">
+                        <?php } else { ?>
+                            <?php foreach ($categories as $cat) { ?>
+                                <div class="input-group mb-10">
+                                    <input type="text" class="form-control" name="values[categories][][name]" id="categories" placeholder="<?= lang('Category', 'Kategorie') ?>" required list="categories-list" value="<?= $cat['name'] ?? $cat ?>">
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn" onclick="$(this).closest('.input-group').remove()"><i class="ph ph-trash"></i></button>
+                                    </div>
+                                </div>
+                            <?php } ?>
+                        <?php } ?>
+                    </div>
+                    <button type="button" class="btn" id="add-category" onclick="addCategory()"><i class="ph ph-plus"></i></button>
+                    <br><br>
+                    <button class="btn primary"><i class="ph ph-floppy-disk"></i> <?= lang('Save', 'Speichern') ?></button>
+                </form>
+                <datalist id="categories-list">
+                    <?php foreach ($osiris->journals->distinct('categories.name') as $cat) { ?>
+                        <option value="<?= $cat ?>"><?= $cat ?></option>
+                    <?php } ?>
+                </datalist>
+
+                <script>
+                    function addCategory() {
+                        var input = `<div class="input-group mb-10">
+                    <input type="text" class="form-control" name="values[categories][][name]" id="categories" placeholder="<?= lang('Category', 'Kategorie') ?>" required list="categories-list">
+                    <div class="input-group-append">
+                        <button type="button" class="btn" onclick="$(this).closest('.input-group').remove()"><i class="ph ph-trash"></i></button>
+                    </div>
+                </div>`;
+                        $('#category-form').append(input);
+                    }
+                </script>
+            </div>
+        </div>
+    </div>
+
+<?php }
+?>
+
 
 <h3>
     <?= lang('Publications in this journal', 'Publikationen in diesem Journal') ?>
@@ -206,22 +321,6 @@
     });
 </script>
 
-<h3><?= lang('Catergories', 'Kategorien') ?></h3>
-<?php
-$categories = $data['categories'] ?? [];
-if (empty($categories)) {
-    echo '<p>' . lang('No categories available.', 'Keine Kategorien verfügbar.') . '</p>';
-} else {
-    echo '<ul>';
-    foreach ($categories as $cat) { ?>
-        <li>
-            <?= $cat['name'] ?>
-        </li>
-<?php
-    }
-    echo '</ul>';
-}
-?>
 
 
 <h3><?= lang('Impact factors', 'Impact-Faktoren') ?></h3>
@@ -461,51 +560,46 @@ foreach ($metrics as $metric) {
     </div>
 </div>
 
+<?php if (!$Settings->featureEnabled('no-journal-metrics')) { ?>
+    <h3><?= lang('More Metrics', 'Weitere Metriken') ?></h3>
 
-<?php if ($Settings->hasPermission('journals.edit') && !$Settings->featureEnabled('no-journal-metrics')) { ?>
-    <form action="<?= ROOTPATH ?>/crud/journal/update-metrics/<?= $id ?>" method="post">
-        <button class="btn primary float-md-right"><i class="ph ph-arrows-clockwise"></i> <?= lang('Update Metrics', 'Metriken aktualisieren') ?></button>
-    </form>
-<?php } ?>
-<h3><?= lang('Metrics', 'Metriken') ?></h3>
+    <?php
+    $metrics = DB::doc2Arr($data['metrics'] ?? array());
 
-<?php
-$metrics = DB::doc2Arr($data['metrics'] ?? array());
-
-if (empty($metrics)) {
-    echo '<p>' . lang('No metrics available.', 'Keine Metriken verfügbar.') . '</p>';
-} else { ?>
-    <table class="table small">
-        <thead>
-            <th><?= lang('Year', 'Jahr') ?></th>
-            <th>SJR</th>
-            <th>IF (2Y)</th>
-            <th>IF (3Y)</th>
-            <th><?= lang('Best Quartile', 'Bestes Quartil') ?></th>
-        </thead>
-        <tbody>
-            <?php
-            foreach ($metrics as $metric) {
-                echo '<tr>';
-                echo '<th>' . $metric['year'] . '</th>';
-                echo '<td>' . ($metric['sjr'] ?? '-') . '</td>';
-                echo '<td>' . ($metric['if_2y'] ?? '-') . '</td>';
-                echo '<td>' . ($metric['if_3y'] ?? '-') . '</td>';
-                echo '<td>';
-                if (isset($metric['quartile'])) {
-                    echo '<span class="quartile ' . $metric['quartile'] . '">' . $metric['quartile'] . '</span>';
+    if (empty($metrics)) {
+        echo '<p>' . lang('No metrics available.', 'Keine weiteren Metriken verfügbar.') . '</p>';
+    } else { ?>
+        <table class="table small">
+            <thead>
+                <th><?= lang('Year', 'Jahr') ?></th>
+                <th>SJR</th>
+                <th>IF (2Y)</th>
+                <th>IF (3Y)</th>
+                <th><?= lang('Best Quartile', 'Bestes Quartil') ?></th>
+            </thead>
+            <tbody>
+                <?php
+                foreach ($metrics as $metric) {
+                    echo '<tr>';
+                    echo '<th>' . $metric['year'] . '</th>';
+                    echo '<td>' . ($metric['sjr'] ?? '-') . '</td>';
+                    echo '<td>' . ($metric['if_2y'] ?? '-') . '</td>';
+                    echo '<td>' . ($metric['if_3y'] ?? '-') . '</td>';
+                    echo '<td>';
+                    if (isset($metric['quartile'])) {
+                        echo '<span class="quartile ' . $metric['quartile'] . '">' . $metric['quartile'] . '</span>';
+                    }
+                    echo '</td>';
+                    echo '</tr>';
                 }
-                echo '</td>';
-                echo '</tr>';
-            }
-            ?>
-        </tbody>
-    </table>
+                ?>
+            </tbody>
+        </table>
+    <?php } ?>
 <?php } ?>
 
 
 <?php
-
 if (isset($_GET['verbose'])) {
     dump($data, true);
 }
