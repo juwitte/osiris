@@ -182,6 +182,7 @@ Route::post('/journal/metrics/update/(\d{4})', function ($year) {
     include_once BASEPATH . "/php/init.php";
     // enhance time limit
     set_time_limit(0);
+    $year = intval($year);
 
     $count = $osiris->journals->count([
         'metrics.year' => ['$ne' => $year],
