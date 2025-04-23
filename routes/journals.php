@@ -242,7 +242,7 @@ Route::post('/journal/metrics/update/(\d{4})', function ($year) {
             ['_id' => $mongoid, 'impact.year' => ['$exists' => true]],
             [
                 '$pull' => [
-                    'impact' => ['year' => $year],
+                    'impact' => ['year' => ['$in' => [$year, strval($year)]]],
                 ]
             ]
         );
@@ -251,7 +251,7 @@ Route::post('/journal/metrics/update/(\d{4})', function ($year) {
             ['_id' => $mongoid, 'metrics.year' => ['$exists' => true]],
             [
                 '$pull' => [
-                    'metrics' => ['year' => $year],
+                    'metrics' => ['year' => ['$in' => [$year, strval($year)]]],
                 ]
             ]
         );
