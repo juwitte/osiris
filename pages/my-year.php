@@ -480,10 +480,12 @@ if (!$Settings->featureEnabled('coins')) {
             <nav class="on-this-page-nav">
                 <div class="content">
                     <div class="title"><?= lang('Activities', 'Aktivitäten') ?></div>
-                    <?php foreach ($groups as $col => $data) { ?>
+                    <?php foreach ($groups as $col => $data) { 
+                        $type = $Settings->getActivities($col);
+                        ?>
                         <a href="#<?= $col ?>" class="text-<?= $col ?>">
-                            <i class="ph ph-fw ph-<?= $Settings->getActivities($col)['icon'] ?> mr-5"></i>
-                            <?= $Settings->getActivities($col)[lang('name', 'name_de')] ?>
+                            <i class="ph ph-fw ph-<?= $type['icon'] ?> mr-5"></i>
+                            <?= lang($type['name'], $type['name_de'] ?? null) ?>
                             (<?= count($data) ?>)
                         </a>
                     <?php } ?>
