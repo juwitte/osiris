@@ -47,7 +47,7 @@ $coins = $Coins->getCoins($user, $YEAR);
 
 
 $groups = [];
-foreach ($Settings->getActivities() as $value) {
+foreach ($Categories->categories as $value) {
     $groups[$value['id']] = [];
 }
 
@@ -309,7 +309,7 @@ if (!$Settings->featureEnabled('coins')) {
         <div class="content my-0">
 
             <h2>
-                <?= lang('Research activities in ', 'Forschungsaktivitäten in ') . $YEAR ?>
+                <?= lang('Activities in ', 'Aktivitäten in ') . $YEAR ?>
             </h2>
 
 
@@ -346,13 +346,14 @@ if (!$Settings->featureEnabled('coins')) {
 
             <?php
             foreach ($groups as $col => $data) {
+                $type = $Settings->getActivities($col);
             ?>
 
                 <div class="box box-<?= $col ?>" id="<?= $col ?>">
                     <div class="content mb-0">
                         <h3 class="title text-<?= $col ?> m-0">
-                            <i class="ph ph-fw ph-<?= $Settings->getActivities($col)['icon'] ?> mr-5"></i>
-                            <?= $Settings->getActivities($col)[lang('name', 'name_de')] ?>
+                            <i class="ph ph-fw ph-<?= $type['icon'] ?> mr-5"></i>
+                            <?= lang($type['name'], $type['name_de'] ?? null) ?>
                         </h3>
                     </div>
                     <?php if (empty($data)) { ?>
