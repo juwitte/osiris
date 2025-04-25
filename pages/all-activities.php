@@ -142,17 +142,10 @@ $topicsEnabled = $Settings->featureEnabled('topics') && $osiris->topics->count()
                     font-weight: bold;
                 }
 
-                /* .filter tr td .submenu a.active::before {
-                    content: '●';
-                    color: var(--highlight-color);
-                    font-size: small;
-                    position: absolute;
-                    left: 2rem;
-                } */
             </style>
             <div class="filter" style="max-height: 22rem;">
                 <table id="filter-type" class="table small simple">
-                    <?php foreach ($Settings->getActivities() as $a) {
+                    <?php foreach ($Categories->categories as $a) {
                         $id = $a['id'];
                     ?>
                         <tr style="--highlight-color:  <?= $a['color'] ?>;">
@@ -164,7 +157,7 @@ $topicsEnabled = $Settings->featureEnabled('topics') && $osiris->topics->count()
                                     </span>
                                 </a>
                                 <?php
-                                $subtypes = $osiris->adminTypes->find(['parent' => $id])->toArray();
+                                $subtypes = $a['children'] ?? [];
                                 if (count($subtypes) > 1) {
                                 ?>
 
