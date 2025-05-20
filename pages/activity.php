@@ -374,7 +374,7 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                 <div class="custom-switch">
                     <input type="checkbox" id="hide" <?= $doc['hide'] ? 'checked' : '' ?> name="values[hide]" onchange="hide()">
                     <label for="hide" id="hide-label">
-                        <?= $doc['hide'] ? lang('Visible', 'Sichtbar') : lang('Hidden', 'Versteckt') ?>
+                        <?= $doc['hide'] ? lang('Hidden', 'Versteckt') :  lang('Visible', 'Sichtbar')  ?>
                     </label>
                 </div>
 
@@ -388,7 +388,7 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'add-success') { ?>
                             },
                             success: function(response) {
                                 var hide = $('#hide').prop('checked');
-                                $('#hide-label').text(hide ? '<?= lang('Visible', 'Sichtbar') ?>' : '<?= lang('Hidden', 'Versteckt') ?>');
+                                $('#hide-label').text(hide ? '<?= lang('Hidden', 'Versteckt') ?>': '<?= lang('Visible', 'Sichtbar') ?>');
                                 toastSuccess(lang('Highlight status changed', 'Hervorhebungsstatus geändert'))
                             },
                             error: function(response) {
