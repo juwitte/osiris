@@ -368,6 +368,26 @@ Route::post('/crud/groups/removeperson/(.*)', function ($id) {
 });
 
 
+// delegate editing rights
+Route::post('/crud/groups/editorperson/(.*)', function ($id) {
+    include_once BASEPATH . "/php/init.php";
+    if (!isset($_POST['username'])) die("no username given");
+    // add id to person dept
+    $action = $_POST['action'] ?? 'add';
+    $updateResult = $osiris->persons->updateOne(
+        ['username' => $_POST['username']],
+        // set units.editor to true where unit is the group id
+        ['$set' => ["units.$[elem].editor" => ($action == 'add')]],
+        [
+            'arrayFilters' => [['elem.unit' => $id]]
+        ]
+    );
+
+    dump($updateResult);
+    header("Location: " . ROOTPATH . "/groups/edit/$id?msg=updated-editor#section-personnel");
+});
+
+
 Route::post('/crud/groups/reorder/(.*)', function ($id) {
     include_once BASEPATH . "/php/init.php";
 
