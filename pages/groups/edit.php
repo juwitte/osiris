@@ -341,6 +341,7 @@ function sel($index, $value)
                                         <?= $doc['rendered']['icon'] ?>
                                         <?= $doc['rendered']['plain'] ?>
                                         <input type="hidden" name="values[research][<?= $i ?>][activities][]" value="<?= $res ?>">
+                                        <button class="btn link text-danger small" type="button" onclick="$(this).closest('li').remove()"><i class="ph ph-trash"></i></button>
                                     </li>
                                 <?php } ?>
 
