@@ -226,6 +226,14 @@ Route::post('/crud/groups/update/([A-Za-z0-9]*)', function ($id) {
         }
     }
 
+    if (isset($values['research'])){
+        if (!empty($values['research']) && is_array($values['research'])) {
+            $values['research'] = array_values($values['research']);
+        } else {
+            $values['research'] = [];
+        }
+    }
+
 
     // check if head is connected 
     if (isset($values['head'])) {

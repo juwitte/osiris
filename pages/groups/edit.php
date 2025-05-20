@@ -279,6 +279,9 @@ function sel($index, $value)
     <section id="research-interest" style="display:none;">
 
         <h3><?= lang('Research interest', 'Forschungsinteressen') ?></h3>
+
+        <!-- ensure empty list gets still submitted -->
+        <input type="hidden" name="values[research]" value="">
         <div id="research-list">
             <?php
             if (isset($form['research']) && !empty($form['research'])) {

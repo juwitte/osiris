@@ -79,8 +79,8 @@ function searchActivities(index) {
 
 function addResearchrow(evt, parent) {
     evt.preventDefault();
-    var i = $(parent).find('.box').length;
-    i++;
+    // i is a random number between 100 and 1000
+    var i = Math.floor(Math.random() * 1000) + 100;
     var el = `
 <div class="box padded">
     <div class="row row-eq-spacing my-0">
