@@ -14,7 +14,7 @@ from datetime import datetime
 class CrossRefParser:
     def __init__(self):
         config = configparser.ConfigParser()
-        path = os.path.dirname(__file__)
+        path = os.getcwd()      # os.path.dirname(__file__)
         config.read(os.path.join(path, 'config.ini'))      
         
         # set up database connection

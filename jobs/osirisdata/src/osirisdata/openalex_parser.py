@@ -3,7 +3,7 @@ from pymongo import MongoClient
 import configparser
 import os
 
-from diophila import OpenAlex
+from diophila.openalex import OpenAlex
 from nameparser import HumanName
 from Levenshtein import ratio
 
@@ -53,8 +53,11 @@ class OpenAlexParser():
 
         # read the config file
         config = configparser.ConfigParser()
-        path = os.path.dirname(__file__)
+        path = os.getcwd()      # os.path.dirname(__file__)
         config.read(os.path.join(path, 'config.ini'))
+
+        print(path)
+        print(config)
 
         self.inst_id = config['OpenAlex']['Institution'].upper()
         self.startyear = config['DEFAULT']['StartYear']

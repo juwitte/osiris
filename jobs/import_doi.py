@@ -1,4 +1,4 @@
-from openalex_parser import OpenAlexParser
+from jobs.osirisdata.src.osirisdata.openalex_parser import OpenAlexParser
 
 parser = OpenAlexParser()
 with open('jobs/doi.csv') as f:

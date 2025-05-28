@@ -1,7 +1,7 @@
 author = 'a5102003692'
 
-from openalex_parser import OpenAlexParser
-from crossref_parser import CrossrefParser
+from jobs.osirisdata.src.osirisdata.openalex_parser import OpenAlexParser
+from jobs.osirisdata.src.osirisdata.crossref_parser import CrossrefParser
 from datetime import datetime
 
 
