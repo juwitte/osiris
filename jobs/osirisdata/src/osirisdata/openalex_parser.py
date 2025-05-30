@@ -1,8 +1,4 @@
 
-from pymongo import MongoClient
-import configparser
-import os
-
 from diophila.openalex import OpenAlex
 from nameparser import HumanName
 from Levenshtein import ratio
@@ -11,68 +7,57 @@ from datetime import datetime
 import html
 from pprint import pprint
 
+from osirisdata.parser import Parser
 
-class OpenAlexParser():
+TYPES = {
+    "book-section": "chapter",
+    "monograph": "book",
+    "report-component": "others",
+    "report": "others",
+    "peer-review": "others",
+    "book-track": "book",
+    "journal-article": "article",
+    "article": "article",
+    "book-part": "book",
+    "other": "others",
+    "book": "book",
+    "journal-volume": "article",
+    "book-set": "book",
+    "reference-entry": "others",
+    "proceedings-article": "others",
+    "journal": "others",
+    "component": "others",
+    "book-chapter": "chapter",
+    "proceedings-series": "others",
+    "report-series": "others",
+    "proceedings": "others",
+    "database": "others",
+    "standard": "others",
+    "reference-book": "book",
+    "posted-content": "others",
+    "journal-issue": "others",
+    "dissertation": "dissertation",
+    "grant": "others",
+    "dataset": "others",
+    "book-series": "book",
+    "edited-book": "book",
+    "review": "magazine",
+    "preprint": "preprint",
+}
+
+
+class OpenAlexParser(Parser):
     def __init__(self, ignore_duplicates=False) -> None:
-        self.TYPES = {
-            "book-section": "chapter",
-            "monograph": "book",
-            "report-component": "others",
-            "report": "others",
-            "peer-review": "others",
-            "book-track": "book",
-            "journal-article": "article",
-            "article": "article",
-            "book-part": "book",
-            "other": "others",
-            "book": "book",
-            "journal-volume": "article",
-            "book-set": "book",
-            "reference-entry": "others",
-            "proceedings-article": "others",
-            "journal": "others",
-            "component": "others",
-            "book-chapter": "chapter",
-            "proceedings-series": "others",
-            "report-series": "others",
-            "proceedings": "others",
-            "database": "others",
-            "standard": "others",
-            "reference-book": "book",
-            "posted-content": "others",
-            "journal-issue": "others",
-            "dissertation": "dissertation",
-            "grant": "others",
-            "dataset": "others",
-            "book-series": "book",
-            "edited-book": "book",
-            "review": "magazine",
-            "preprint": "preprint",
-        }
 
-
-        # read the config file
-        config = configparser.ConfigParser()
-        path = os.getcwd()      # os.path.dirname(__file__)
-        config.read(os.path.join(path, 'config.ini'))
-
-        print(path)
-        print(config)
-
-        self.inst_id = config['OpenAlex']['Institution'].upper()
-        self.startyear = config['DEFAULT']['StartYear']
-
-        # set up database connection
-        client = MongoClient(config['Database']['Connection'])
-        self.osiris = client[config['Database']['Database']]
-
+        self.inst_id = Parser.config['OpenAlex']['Institution'].upper()
+        self.startyear = Parser.config['DEFAULT']['StartYear']
 
         # set up OpenAlex
-        self.openalex = OpenAlex(config['DEFAULT'].get('AdminMail'))
+        self.openalex = OpenAlex(Parser.mail)
         
         self.possible_dupl = []
         if not ignore_duplicates:
-            possible_dupl = self.osiris['activities'].find({
+            possible_dupl = Parser.osiris['activities'].find({
                 'type': 'publication',
                         'year': {'$gte': int(self.startyear)},
             }, {'title': 1})
@@ -84,10 +69,10 @@ class OpenAlexParser():
 
     def getUserId(self, name, orcid=None):
         if orcid:
-            user = self.osiris['persons'].find_one({'orcid': orcid})
+            user = Parser.osiris['persons'].find_one({'orcid': orcid})
             if user:
                 return user['username']
-        user = self.osiris['persons'].find_one(
+        user = Parser.osiris['persons'].find_one(
             {'$or': [
                 {'last': name.last, 'first': {'$regex': '^'+name.first+'.*'}},
                 {'names': f'{name.last}, {name.first}'}
@@ -111,7 +96,7 @@ class OpenAlexParser():
         return abstract
 
     def getJournal(self, issn):
-        journal = self.osiris['journals'].find_one({'issn': {'$in': issn}})
+        journal = Parser.osiris['journals'].find_one({'issn': {'$in': issn}})
         if journal:
             return journal
 
@@ -128,7 +113,7 @@ class OpenAlexParser():
             'oa': source['is_oa'],
             'openalex': source['id'].replace('https://openalex.org/', '')
         }
-        new_doc = self.osiris['journals'].insert_one(new_journal)
+        new_doc = Parser.osiris['journals'].insert_one(new_journal)
 
         new_journal['_id'] = new_doc.inserted_id
         return new_journal
@@ -154,17 +139,17 @@ class OpenAlexParser():
 
         # check if element is in the database
         doi = work['doi'].replace('https://doi.org/', '')
-        if doi and self.osiris["activities"].count_documents({'doi': doi}) > 0:
+        if doi and Parser.osiris["activities"].count_documents({'doi': doi}) > 0:
             print(f'DOI {doi} exists and was omitted.')
             return False
-        if pubmed and self.osiris["activities"].count_documents({'pubmed': pubmed}) > 0:
+        if pubmed and Parser.osiris["activities"].count_documents({'pubmed': pubmed}) > 0:
             print(f'Pubmed {pubmed} exists and was omitted.')
             return False
-        if self.osiris['queue'].count_documents({'doi': doi}) > 0:
+        if Parser.osiris['queue'].count_documents({'doi': doi}) > 0:
             print(f'DOI {doi} exists in queue and was omitted.')
             return False
         # print(doi)
-        typ = self.TYPES.get(work['type'])
+        typ = TYPES.get(work['type'])
         if not typ:
             print(f'Activity type {work["type"]} is unknown (DOI: {doi}).')
             return False
@@ -283,7 +268,7 @@ class OpenAlexParser():
     def get_work(self, id, idtype='doi', ignoreDupl=True, test=False):
         if (test):
             # delete all entries with the same DOI
-            self.osiris['activities'].delete_many({'doi': id})
+            Parser.osiris['activities'].delete_many({'doi': id})
         work = self.openalex.get_single_work(id, idtype)
         element = self.parseWork(work)
         if test:
@@ -293,7 +278,7 @@ class OpenAlexParser():
             if ignoreDupl and element.get('duplicate'):
                 print(f'Activity might have a duplicate (DOI {element["doi"]}) and was omitted.')
                 return
-            self.osiris['activities'].insert_one(element)
+            Parser.osiris['activities'].insert_one(element)
             print(f'{idtype.upper()} {id} has been added to the database.')
     
     def get_works_dois(self, filters=None):
@@ -347,7 +332,7 @@ class OpenAlexParser():
     def queueJob(self):
         for element in self.get_works():
             print(element)
-            self.osiris['queue'].insert_one(element)
+            Parser.osiris['queue'].insert_one(element)
     
     def importJob(self):
         for element in self.get_works():
@@ -356,7 +341,7 @@ class OpenAlexParser():
                 continue
             element['imported'] = datetime.now().date().isoformat()
             element['history'] = [self.getHistory(element)]
-            self.osiris['activities'].insert_one(element)
+            Parser.osiris['activities'].insert_one(element)
 
 
 if __name__ == '__main__':

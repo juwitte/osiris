@@ -1,2 +1,4 @@
 tests
 build
+venv
+src/osirisdata.egg-info

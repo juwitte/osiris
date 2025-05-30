@@ -3,26 +3,16 @@ Import publications from CrossRef API by DOI
 Parse publication metadata and import it into the database
 '''
 
-from pymongo import MongoClient
+
 import requests
-import json
-import os
-import configparser
 import re
-from datetime import datetime
 
-class CrossRefParser:
-    def __init__(self):
-        config = configparser.ConfigParser()
-        path = os.getcwd()      # os.path.dirname(__file__)
-        config.read(os.path.join(path, 'config.ini'))      
-        
-        # set up database connection
-        client = MongoClient(config['Database']['Connection'])
-        self.osiris = client[config['Database']['Database']]
+from osirisdata.parser import Parser
 
-        self.mail = config['DEFAULT'].get('AdminMail')
-        self.affiliation = config['DEFAULT'].get('AffiliationRegex')
+class CrossRefParser(Parser):
+    def __init__(self): 
+
+        self.affiliation = Parser.config['DEFAULT'].get('AffiliationRegex')
         self.affiliation = re.compile(self.affiliation)
         
         self.api_url = 'https://api.crossref.org/works/'
@@ -58,10 +48,10 @@ class CrossRefParser:
     
     def getUserId(self, name, orcid=None):
         if orcid:
-            user = self.osiris['persons'].find_one({'orcid': orcid})
+            user = Parser.osiris['persons'].find_one({'orcid': orcid})
             if user:
                 return user['username']
-        user = self.osiris['persons'].find_one(
+        user = Parser.osiris['persons'].find_one(
             {'$or': [
                 {'last': name['last'], 'first': {'$regex': '^'+name['first']+'.*'}},
                 {'names': f'{name['last']}, {name['first']}'}
@@ -101,7 +91,7 @@ class CrossRefParser:
         if pub_type in TYPES:
             selected_type = pub_type
         
-        cat = self.osiris['adminTypes'].find_one({'id': selected_type})
+        cat = Parser.osiris['adminTypes'].find_one({'id': selected_type})
         if not cat:
             return None
 

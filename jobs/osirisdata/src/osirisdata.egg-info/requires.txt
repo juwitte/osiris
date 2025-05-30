@@ -1,4 +1,0 @@
-pymongo
-nameparser
-levenshtein
-requests
