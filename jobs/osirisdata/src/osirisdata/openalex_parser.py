@@ -1,61 +1,13 @@
-
+import html
 from diophila.openalex import OpenAlex
-
 from Levenshtein import ratio
 from nameparser import HumanName
-
 from datetime import datetime
-import html
 from pprint import pprint
 
 from osirisdata.parser import Parser
+from osirisdata.utils.openalex_utils import makeAbstractString, TYPES
 
-TYPES = {
-    "book-section": "chapter",
-    "monograph": "book",
-    "report-component": "others",
-    "report": "others",
-    "peer-review": "others",
-    "book-track": "book",
-    "journal-article": "article",
-    "article": "article",
-    "book-part": "book",
-    "other": "others",
-    "book": "book",
-    "journal-volume": "article",
-    "book-set": "book",
-    "reference-entry": "others",
-    "proceedings-article": "others",
-    "journal": "others",
-    "component": "others",
-    "book-chapter": "chapter",
-    "proceedings-series": "others",
-    "report-series": "others",
-    "proceedings": "others",
-    "database": "others",
-    "standard": "others",
-    "reference-book": "book",
-    "posted-content": "others",
-    "journal-issue": "others",
-    "dissertation": "dissertation",
-    "grant": "others",
-    "dataset": "others",
-    "book-series": "book",
-    "edited-book": "book",
-    "review": "magazine",
-    "preprint": "preprint",
-}
-
-def getAbstract(inverted_abstract : dict[str, list[int]]):
-        if not inverted_abstract: return None
-        
-        # search largest position and adjust array size
-        abstract = [''] * (1 + max(max(inverted_abstract.values())))
-        
-        for word, positions in inverted_abstract.items():
-            for pos in positions:
-                abstract[pos] = word
-        return " ".join(abstract)
 
 def getHistory(element={}):
         return {
@@ -87,9 +39,8 @@ class OpenAlexParser(Parser):
     
 
     def getJournal(self, issn):
-        journal = Parser.osiris['journals'].find_one({'issn': {'$in': issn}})
-        if journal:
-            return journal
+        if jrnl := super.getJournal(issn):
+            return jrnl
 
         # if journal does not exist: create one
         source = self.openalex.get_single_venue(issn[-1], "issn")
@@ -104,11 +55,9 @@ class OpenAlexParser(Parser):
             'oa': source['is_oa'],
             'openalex': source['id'].replace('https://openalex.org/', '')
         }
-        new_doc = Parser.osiris['journals'].insert_one(new_journal)
-
-        new_journal['_id'] = new_doc.inserted_id
+        
+        new_journal['_id'] = self.addJournal(new_journal)
         return new_journal
-
 
 
     def parseWork(self, work):
@@ -191,7 +140,7 @@ class OpenAlexParser(Parser):
         if len(date) >= 3:
             day = int(date[2])
 
-        abstract = getAbstract(work.get('abstract_inverted_index'))
+        abstract = makeAbstractString(work.get('abstract_inverted_index'))
         work['title'] = html.unescape(work['title'])
         element = {
             'doi': doi,
@@ -249,7 +198,6 @@ class OpenAlexParser(Parser):
         if (typ == 'magazine' or typ == 'preprint'):
             element['magazine'] = loc.get('display_name') if loc else None
 
-
         for id, dupl in self.possible_dupl:
             dist = ratio(dupl, element['title'])
             # print(dist, dupl)
@@ -266,7 +214,6 @@ class OpenAlexParser(Parser):
         element = self.parseWork(work)
         if test:
             pprint(element)
-            
         if (element != False):
             if ignoreDupl and element.get('duplicate'):
                 print(f'Activity might have a duplicate (DOI {element["doi"]}) and was omitted.')
@@ -274,6 +221,7 @@ class OpenAlexParser(Parser):
             Parser.osiris['activities'].insert_one(element)
             print(f'{idtype.upper()} {id} has been added to the database.')
     
+
     def get_works_dois(self, filters=None):
         if not filters:
             filters = {
@@ -297,7 +245,6 @@ class OpenAlexParser(Parser):
                 "has_doi": 'true'
             }
 
-
         pages_of_works = self.openalex.get_list_of_works(filters=filters, pages=None)
 
         works_count = 0
@@ -315,12 +262,12 @@ class OpenAlexParser(Parser):
         print(f'--- Finished. Imported {works_count} documents.')
     
     
-    
     def queueJob(self):
         for element in self.get_works():
             print(element)
             Parser.osiris['queue'].insert_one(element)
     
+
     def importJob(self):
         for element in self.get_works():
             if element.get('duplicate'):

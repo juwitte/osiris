@@ -16,10 +16,10 @@ class Parser:
 
     def getUserId(self, name_last: str, name_first: str = '', orcid=None):
         if orcid:
-            user = Parser.osiris['persons'].find_one({'orcid': orcid})
+            user = self.osiris['persons'].find_one({'orcid': orcid})
             if user:
                 return user['username']
-        user = Parser.osiris['persons'].find_one(
+        user = self.osiris['persons'].find_one(
             {'$or': [
                 {'last': name_last, 'first': {'$regex': f'^{name_first}.*'}},
                 {'names': f'{name_last}, {name_first}'}
@@ -28,3 +28,10 @@ class Parser:
         if user:
             return user['username']
         return None
+    
+    def getJournal(self, issn):
+        return self.osiris['journals'].find_one({'issn': {'$in': issn}})
+    
+    def addJournal(self, new_journal):
+        new_doc = self.osiris['journals'].insert_one(new_journal)
+        return new_doc.inserted_id
