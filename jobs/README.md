@@ -19,10 +19,10 @@ source ./venv/bin/activate
 
 ## Set up osirisdata
 
-Now you can install the python library **osirisdata** and all dependencies like this:
+Now you can install the python library **osirisdata** and all dependencies. Therefore you can switch directory into the `jobs` folder and run:
 
 ```bash
-pip3 install ./jobs/osirisdata/
+make install
 ```
 
 Additionally, you have to copy the **configuration file** `config.default.ini` in the jobs folder and rename it to `config.ini`. 
