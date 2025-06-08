@@ -13,3 +13,18 @@ class Parser:
     osiris = client[config['Database']['Database']]
 
     mail = config['DEFAULT'].get('AdminMail')
+
+    def getUserId(self, name_last: str, name_first: str = '', orcid=None):
+        if orcid:
+            user = Parser.osiris['persons'].find_one({'orcid': orcid})
+            if user:
+                return user['username']
+        user = Parser.osiris['persons'].find_one(
+            {'$or': [
+                {'last': name_last, 'first': {'$regex': f'^{name_first}.*'}},
+                {'names': f'{name_last}, {name_first}'}
+            ]}
+        )
+        if user:
+            return user['username']
+        return None

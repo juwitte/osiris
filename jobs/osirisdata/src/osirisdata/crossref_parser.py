@@ -46,21 +46,6 @@ class CrossRefParser(Parser):
         return ["", "", ""]
     
     
-    def getUserId(self, name, orcid=None):
-        if orcid:
-            user = Parser.osiris['persons'].find_one({'orcid': orcid})
-            if user:
-                return user['username']
-        user = Parser.osiris['persons'].find_one(
-            {'$or': [
-                {'last': name['last'], 'first': {'$regex': '^'+name['first']+'.*'}},
-                {'names': f'{name['last']}, {name['first']}'}
-            ]}
-        )
-        if user:
-            return user['username']
-        return None
-    
     def getType(self, pub_type):
         TYPES = {
             "journal-article": "article",
@@ -118,25 +103,25 @@ class CrossRefParser(Parser):
             pub['author'] = pub['editor']
 
         if 'author' in pub:
-            for i, a in enumerate(pub['author']):
-                aoi = any(self.affiliation.search(aff.get('name', '')) for aff in a.get('affiliation', []))
-                pos = a.get('sequence', 'middle')
-                if i == 0:
+            for idx, author in enumerate(pub['author']):
+                aoi = any(self.affiliation.search(aff.get('name', '')) for aff in author.get('affiliation', []))
+                pos = author.get('sequence', 'middle')
+                if idx == 0:
                     pos = 'first'
-                elif i == len(pub['author']) - 1:
+                elif idx == len(pub['author']) - 1:
                     pos = 'last'
                 name = {
-                    'last': a.get('family') or a.get('name'),
-                    'first': a.get('given'),
+                    'last': author.get('family') or author.get('name'),
+                    'first': author.get('given'),
                     'affiliation': aoi,
                     'position': pos,
                     'user': None
                 }
-                if 'orcid' in a:
-                    name['orcid'] = a['orcid']
-                name['user'] = self.getUserId(name, name.get('orcid'))
-                if a.get('sequence') == 'first':
-                    first = i + 1
+                if 'orcid' in author:
+                    name['orcid'] = author['orcid']
+                name['user'] = Parser.getUserId(name.get('last'), name.get('first'), name.get('orcid'))
+                if author.get('sequence') == 'first':
+                    first = idx + 1
                 authors.append(name)
 
         issue = pub.get('journal-issue', {}).get('issue', None)

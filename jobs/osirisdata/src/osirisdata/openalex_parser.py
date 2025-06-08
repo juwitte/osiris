@@ -1,7 +1,8 @@
 
 from diophila.openalex import OpenAlex
-from nameparser import HumanName
+
 from Levenshtein import ratio
+from nameparser import HumanName
 
 from datetime import datetime
 import html
@@ -45,6 +46,25 @@ TYPES = {
     "preprint": "preprint",
 }
 
+def getAbstract(inverted_abstract : dict[str, list[int]]):
+        if not inverted_abstract: return None
+        
+        # search largest position and adjust array size
+        abstract = [''] * (1 + max(max(inverted_abstract.values())))
+        
+        for word, positions in inverted_abstract.items():
+            for pos in positions:
+                abstract[pos] = word
+        return " ".join(abstract)
+
+def getHistory(element={}):
+        return {
+            'type': 'imported',
+            'user': None,
+            'date': datetime.now().date().isoformat(),
+            # 'data': element
+        }
+
 
 class OpenAlexParser(Parser):
     def __init__(self, ignore_duplicates=False) -> None:
@@ -64,36 +84,7 @@ class OpenAlexParser(Parser):
             self.possible_dupl = [
                 (i['_id'], i['title']) for i in possible_dupl
             ]
-            
-
-
-    def getUserId(self, name, orcid=None):
-        if orcid:
-            user = Parser.osiris['persons'].find_one({'orcid': orcid})
-            if user:
-                return user['username']
-        user = Parser.osiris['persons'].find_one(
-            {'$or': [
-                {'last': name.last, 'first': {'$regex': '^'+name.first+'.*'}},
-                {'names': f'{name.last}, {name.first}'}
-            ]}
-        )
-        # print(user)
-        # exit()
-        if user:
-            return user['username']
-        return None
-
-    def getAbstract(self, inverted_abstract):
-        if not inverted_abstract: return None
-        
-        abstract = []
-        for word in inverted_abstract:
-            occurence = inverted_abstract[word]
-            for oc in occurence:
-                abstract.append((oc, word))
-        abstract = " ".join([i[1] for i in sorted(abstract)])
-        return abstract
+    
 
     def getJournal(self, issn):
         journal = Parser.osiris['journals'].find_one({'issn': {'$in': issn}})
@@ -156,19 +147,21 @@ class OpenAlexParser(Parser):
 
         # print(doi)
         authors = []
-        for a in work['authorships']:
+        for author in work['authorships']:
             # match via name and ORCID
-            name = HumanName(a['author']['display_name'])
-            orcid = a['author'].get('orcid')
+            name = HumanName(author['author']['display_name'])
+            orcid = author['author'].get('orcid')
             if (orcid):
                 orcid = orcid.replace('https://orcid.org/', '')
 
-            user = self.getUserId(name, orcid)
-            pos = a['author_position']
-            if pos == 'middle' and a.get('is_corresponding'):
+            name_first = name.first
+            name_last = name.last
+            user = Parser.getUserId(name_last, name_first, orcid)
+            pos = author['author_position']
+            if pos == 'middle' and author.get('is_corresponding'):
                 pos = 'corresponding'
 
-            inst = [i.get('id') for i in a['institutions']]
+            inst = [i.get('id') for i in author['institutions']]
             authors.append({
                 'last': name.last,
                 'first': name.first + (' ' + name.middle if name.middle else ''),
@@ -198,7 +191,7 @@ class OpenAlexParser(Parser):
         if len(date) >= 3:
             day = int(date[2])
 
-        abstract = self.getAbstract(work.get('abstract_inverted_index'));
+        abstract = getAbstract(work.get('abstract_inverted_index'))
         work['title'] = html.unescape(work['title'])
         element = {
             'doi': doi,
@@ -307,27 +300,21 @@ class OpenAlexParser(Parser):
 
         pages_of_works = self.openalex.get_list_of_works(filters=filters, pages=None)
 
-        i = 0
+        works_count = 0
         for page in pages_of_works:
             for work in page['results']:
                 try: 
                     element = self.parseWork(work)
                     if element == False: continue
-                    i+=1
+                    works_count+=1
                     yield element
                 except Exception as e:
                     print(f'Error with DOI {work["doi"]}')
                     print(e)
                     continue
-        print(f'--- Finished. Imported {i} documents.')
+        print(f'--- Finished. Imported {works_count} documents.')
     
-    def getHistory(self, element):
-        return {
-            'type': 'imported',
-            'user': None,
-            'date': datetime.now().date().isoformat(),
-            # 'data': element
-        }
+    
     
     def queueJob(self):
         for element in self.get_works():
@@ -340,7 +327,7 @@ class OpenAlexParser(Parser):
                 print(f'Activity might have a duplicate (DOI {element["doi"]}) and was omitted.')
                 continue
             element['imported'] = datetime.now().date().isoformat()
-            element['history'] = [self.getHistory(element)]
+            element['history'] = [getHistory(element)]
             Parser.osiris['activities'].insert_one(element)
 
 
