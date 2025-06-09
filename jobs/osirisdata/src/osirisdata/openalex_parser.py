@@ -21,25 +21,22 @@ def getHistory(element={}):
 class OpenAlexParser(Parser):
     def __init__(self, ignore_duplicates=False) -> None:
 
-        self.inst_id = Parser.config['OpenAlex']['Institution'].upper()
-        self.startyear = Parser.config['DEFAULT']['StartYear']
+        self.inst_id = self.config['OpenAlex']['Institution'].upper()
+        self.startyear = self.config['DEFAULT']['StartYear']
 
         # set up OpenAlex
-        self.openalex = OpenAlex(Parser.mail)
+        self.openalex = OpenAlex(self.mail)
         
         self.possible_dupl = []
         if not ignore_duplicates:
-            possible_dupl = Parser.osiris['activities'].find({
-                'type': 'publication',
-                        'year': {'$gte': int(self.startyear)},
-            }, {'title': 1})
+            possible_dupl = self.osiris.getActvities(self.startyear)
             self.possible_dupl = [
                 (i['_id'], i['title']) for i in possible_dupl
             ]
     
 
     def getJournal(self, issn):
-        if jrnl := super.getJournal(issn):
+        if jrnl := self.osiris.getJournal(issn):
             return jrnl
 
         # if journal does not exist: create one
@@ -55,8 +52,8 @@ class OpenAlexParser(Parser):
             'oa': source['is_oa'],
             'openalex': source['id'].replace('https://openalex.org/', '')
         }
-        
-        new_journal['_id'] = self.addJournal(new_journal)
+
+        new_journal['_id'] = self.osiris.addJournal(new_journal)
         return new_journal
 
 
@@ -68,7 +65,6 @@ class OpenAlexParser(Parser):
 
         # print(work['doi'])
         if not work['doi'] or 'https://doi.org/' not in work['doi']:
-            
             print('doi not found')
             print(work)
             return False
@@ -77,18 +73,12 @@ class OpenAlexParser(Parser):
         if pubmed:
             pubmed = pubmed.replace('https://pubmed.ncbi.nlm.nih.gov/', '')
 
-        # check if element is in the database
         doi = work['doi'].replace('https://doi.org/', '')
-        if doi and Parser.osiris["activities"].count_documents({'doi': doi}) > 0:
-            print(f'DOI {doi} exists and was omitted.')
-            return False
-        if pubmed and Parser.osiris["activities"].count_documents({'pubmed': pubmed}) > 0:
-            print(f'Pubmed {pubmed} exists and was omitted.')
-            return False
-        if Parser.osiris['queue'].count_documents({'doi': doi}) > 0:
-            print(f'DOI {doi} exists in queue and was omitted.')
-            return False
         # print(doi)
+        # check if element is in the database
+        if self.osiris.checkExistence(doi, pubmed):
+            return False
+
         typ = TYPES.get(work['type'])
         if not typ:
             print(f'Activity type {work["type"]} is unknown (DOI: {doi}).')
@@ -105,7 +95,7 @@ class OpenAlexParser(Parser):
 
             name_first = name.first
             name_last = name.last
-            user = Parser.getUserId(name_last, name_first, orcid)
+            user = self.osiris.getUserId(name_last, name_first, orcid)
             pos = author['author_position']
             if pos == 'middle' and author.get('is_corresponding'):
                 pos = 'corresponding'
@@ -209,7 +199,7 @@ class OpenAlexParser(Parser):
     def get_work(self, id, idtype='doi', ignoreDupl=True, test=False):
         if (test):
             # delete all entries with the same DOI
-            Parser.osiris['activities'].delete_many({'doi': id})
+            self.osiris.deleteActivity(id)
         work = self.openalex.get_single_work(id, idtype)
         element = self.parseWork(work)
         if test:
@@ -218,7 +208,7 @@ class OpenAlexParser(Parser):
             if ignoreDupl and element.get('duplicate'):
                 print(f'Activity might have a duplicate (DOI {element["doi"]}) and was omitted.')
                 return
-            Parser.osiris['activities'].insert_one(element)
+            self.osiris.addActivity(element)
             print(f'{idtype.upper()} {id} has been added to the database.')
     
 
@@ -265,7 +255,7 @@ class OpenAlexParser(Parser):
     def queueJob(self):
         for element in self.get_works():
             print(element)
-            Parser.osiris['queue'].insert_one(element)
+            self.osiris.addQueue(element)
     
 
     def importJob(self):
@@ -275,7 +265,7 @@ class OpenAlexParser(Parser):
                 continue
             element['imported'] = datetime.now().date().isoformat()
             element['history'] = [getHistory(element)]
-            Parser.osiris['activities'].insert_one(element)
+            self.osiris.addActivity(element)
 
 
 if __name__ == '__main__':
