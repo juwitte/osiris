@@ -22,7 +22,7 @@ class OsirisIO:
         return None
     
     def getJournal(self, issn) -> None:
-        return self.osiris['journals'].find_one({'issn': {'$in': issn}})
+        return self.osiris['journals'].find_one({'issn': {'$in': [issn]}})
     
 
     def addJournal(self, new_journal) -> int: 

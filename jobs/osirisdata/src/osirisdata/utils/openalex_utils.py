@@ -3,7 +3,8 @@ def makeAbstractString(inverted_abstract : dict[str, list[int]]):
         if not inverted_abstract: return None
         
         # search largest position and adjust array size
-        abstract = [''] * (1 + max(max(inverted_abstract.values())))
+        max_value = max([max(x) for x in inverted_abstract.values()])
+        abstract = [''] * (1 + max_value)
         
         for word, positions in inverted_abstract.items():
             for pos in positions:

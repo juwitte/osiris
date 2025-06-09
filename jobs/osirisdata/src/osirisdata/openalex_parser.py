@@ -242,7 +242,8 @@ class OpenAlexParser(Parser):
             for work in page['results']:
                 try: 
                     element = self.parseWork(work)
-                    if element == False: continue
+                    if element == False:
+                        continue
                     works_count+=1
                     yield element
                 except Exception as e:
