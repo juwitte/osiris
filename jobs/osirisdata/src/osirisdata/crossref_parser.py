@@ -8,11 +8,12 @@ import requests
 import re
 
 from osirisdata.parser import Parser
+from osirisdata.utils.crossref_utils import TYPES
 
 class CrossRefParser(Parser):
     def __init__(self): 
 
-        self.affiliation = Parser.config['DEFAULT'].get('AffiliationRegex')
+        self.affiliation = self.config['DEFAULT'].get('AffiliationRegex')
         self.affiliation = re.compile(self.affiliation)
         
         self.api_url = 'https://api.crossref.org/works/'
@@ -45,47 +46,19 @@ class CrossRefParser(Parser):
             return date_parts + [""] * (3 - len(date_parts))  # Ensure 3 elements in the list
         return ["", "", ""]
     
-    
     def getType(self, pub_type):
-        TYPES = {
-            "journal-article": "article",
-            "magazine-article": "magazine",
-            "book-chapter": "chapter",
-            "publication": "article",
-            "doctoral-thesis": "dissertation",
-            "master-thesis": "dissertation",
-            "bachelor-thesis": "dissertation",
-            "reviewer": "review",
-            "editor": "editorial",
-            "monograph": "book",
-            "edited-book": "book",
-            "posted-content": "preprint",
-            "peer-review": "review",
-            "report": "others",
-            "working-paper": "others",
-            "conference-paper": "others",
-            "proceedings-article": "others",
-            "conference-proceedings": "others",
-            "conference-poster": "others",
-            "conference-abstract": "others",
-            "conference-review": "others",
-            "conference-report": "others",
-        }
         selected_type = pub_type
         pub_type = pub_type.lower()
         if pub_type in TYPES:
-            selected_type = pub_type
-        
-        cat = Parser.osiris['adminTypes'].find_one({'id': selected_type})
+            selected_type = TYPES[pub_type]
+        cat = self.osiris.getType({'id': selected_type})
         if not cat:
             return None
-
         return {
             'type': cat['parent'],
             'subtype': cat['id']
         }
-        
-        
+
         
 
     def parse_metadata(self, data):
@@ -119,7 +92,7 @@ class CrossRefParser(Parser):
                 }
                 if 'orcid' in author:
                     name['orcid'] = author['orcid']
-                name['user'] = Parser.getUserId(name.get('last'), name.get('first'), name.get('orcid'))
+                name['user'] = self.osiris.getUserId(name.get('last'), name.get('first'), name.get('orcid'))
                 if author.get('sequence') == 'first':
                     first = idx + 1
                 authors.append(name)
@@ -177,11 +150,13 @@ class CrossRefParser(Parser):
 
 if __name__ == '__main__':
     parser = CrossRefParser()
-    dois = ['10.1007/978-3-642-18156-6_6', '10.1158/0008-5472.can-06-2615']
-    
+    dois = ['10.1007/978-3-642-18156-6_6', '10.1158/0008-5472.can-06-2615', ]
+
     for data in parser.get_works(dois):
         pubdata = parser.parse_metadata(data)
         print(pubdata)
+
+        # old:
         # parser.osiris['publications'].insert_one(pubdata)
         # print(f'Publication with DOI {pubdata["doi"]} was imported.')
         # pubdata['imported'] = datetime.now().date().isoformat()

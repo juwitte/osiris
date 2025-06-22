@@ -60,3 +60,7 @@ class OsirisIO:
 
     def addQueue(self, element):
         self.osiris['queue'].insert_one(element)
+
+    def getType(self, element):
+        # element = {id: searchterm}
+        return self.osiris['adminTypes'].find_one(element)
