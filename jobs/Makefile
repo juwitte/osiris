@@ -7,5 +7,6 @@ uninstall:
 reinstall: uninstall install
 
 runTests:
-	@python3 ./osirisdata/tests/test_OpenAlexParser.py > ./osirisdata/tests/test_output.txt
+	@python3 ./osirisdata/tests/test_OpenAlexParser.py > /dev/null
+	@python3 ./osirisdata/src/osirisdata/crossref_parser.py > /dev/null
 	@echo DONE

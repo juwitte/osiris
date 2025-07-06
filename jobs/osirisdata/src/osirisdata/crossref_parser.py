@@ -30,6 +30,13 @@ class CrossRefParser(Parser):
         else:
             print(f'Error: {response.status_code}')
     
+    def queue_all_unknown_dois(self):
+        # Work in progress
+        # get 'https://api.crossref.org/works?query.affiliation={institute name or ror}'
+        # searches text in affiliation strings
+        pass
+        
+
     def get_publishing_date(self, pub):
         date = ["", "", ""]
         if 'published-print' in pub:
@@ -46,12 +53,12 @@ class CrossRefParser(Parser):
             return date_parts + [""] * (3 - len(date_parts))  # Ensure 3 elements in the list
         return ["", "", ""]
     
-    def getType(self, pub_type):
+    def get_type(self, pub_type):
         selected_type = pub_type
         pub_type = pub_type.lower()
         if pub_type in TYPES:
             selected_type = TYPES[pub_type]
-        cat = self.osiris.getType({'id': selected_type})
+        cat = self.osiris.get_type({'id': selected_type})
         if not cat:
             return None
         return {
@@ -92,7 +99,7 @@ class CrossRefParser(Parser):
                 }
                 if 'orcid' in author:
                     name['orcid'] = author['orcid']
-                name['user'] = self.osiris.getUserId(name.get('last'), name.get('first'), name.get('orcid'))
+                name['user'] = self.osiris.get_user_id(name.get('last'), name.get('first'), name.get('orcid'))
                 if author.get('sequence') == 'first':
                     first = idx + 1
                 authors.append(name)
@@ -129,7 +136,7 @@ class CrossRefParser(Parser):
             'funding': ','.join(funder)
         }
         
-        types = self.getType(pub.get('type'))
+        types = self.get_type(pub.get('type'))
         if not types:
             return None
         pubdata['type'] = types['type']

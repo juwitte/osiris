@@ -6,10 +6,10 @@ from datetime import datetime
 from pprint import pprint
 
 from osirisdata.parser import Parser
-from osirisdata.utils.openalex_utils import makeAbstractString, TYPES
+from osirisdata.utils.openalex_utils import make_abstract_string, TYPES
 
 
-def getHistory(element={}):
+def get_history(element={}):
         return {
             'type': 'imported',
             'user': None,
@@ -29,14 +29,87 @@ class OpenAlexParser(Parser):
         
         self.possible_dupl = []
         if not ignore_duplicates:
-            possible_dupl = self.osiris.getActvities(self.startyear)
+            possible_dupl = self.osiris.get_activities(self.startyear)
             self.possible_dupl = [
                 (i['_id'], i['title']) for i in possible_dupl
             ]
-    
+                    
+    def get_works(self, filters=None):
+        # NOPE: use created_date and updated_date to filter
+        # Not possible, needs payed version
 
-    def getJournal(self, issn):
-        if jrnl := self.osiris.getJournal(issn):
+        if not filters:
+            filters = {
+                "from_publication_date": self.startyear + "-01-01",
+                "institutions.id": self.inst_id,
+                "has_doi": 'true'
+            }
+
+        pages_of_works = self.openalex.get_list_of_works(filters=filters, pages=None)
+
+        works_count = 0
+        for page in pages_of_works:
+            for work in page['results']:
+                try: 
+                    element = self.parse_work(work)
+                    if element == False:
+                        continue
+                    works_count+=1
+                    yield element
+                except Exception as e:
+                    print(f'Error with DOI {work["doi"]}')
+                    print(e)
+                    continue
+        print(f'--- Finished. Imported {works_count} documents.')
+
+    def get_work(self, id, idtype='doi', ignoreDupl=True, test=False):
+        if (test):
+            # delete all entries with the same DOI
+            self.osiris.delete_activity(id)
+        work = self.openalex.get_single_work(id, idtype)
+        element = self.parse_work(work)
+        if test:
+            pprint(element)
+        if (element != False):
+            if ignoreDupl and element.get('duplicate'):
+                print(f'Activity might have a duplicate (DOI {element["doi"]}) and was omitted.')
+                return
+            self.osiris.add_activity(element)
+            print(f'{idtype.upper()} {id} has been added to the database.')
+    
+    
+    
+    def get_works_dois(self, filters=None):
+        if not filters:
+            filters = {
+                "from_publication_date": self.startyear + "-01-01",
+                "institutions.id": self.inst_id,
+                "has_doi": 'true'
+            }
+        pages_of_works = self.openalex.get_list_of_works(filters=filters, pages=None)
+        for page in pages_of_works:
+            for work in page['results']:
+                yield work['doi']
+    
+    def queue_job(self):
+        for element in self.get_works():
+            print(element)
+            self.osiris.addQueue(element)
+
+    def import_job(self):
+        for element in self.get_works():
+            if element.get('duplicate'):
+                print(f'Activity might have a duplicate (DOI {element["doi"]}) and was omitted.')
+                continue
+            element['imported'] = datetime.now().date().isoformat()
+            element['history'] = [get_history(element)]
+            self.osiris.add_activity(element)
+
+    def get_journal(self, issn) -> dict | None:
+        """
+        Returnd joural from DB if exists, else creates the journal
+        """
+        if jrnl := self.osiris.get_journal(issn):
             return jrnl
 
         # if journal does not exist: create one
@@ -57,7 +130,7 @@ class OpenAlexParser(Parser):
         return new_journal
 
 
-    def parseWork(self, work):
+    def parse_work(self, work) -> dict | bool:
         if work['is_retracted']:
             print('retracted')
             print(work)
@@ -74,9 +147,9 @@ class OpenAlexParser(Parser):
             pubmed = pubmed.replace('https://pubmed.ncbi.nlm.nih.gov/', '')
 
         doi = work['doi'].replace('https://doi.org/', '')
-        # print(doi)
+
         # check if element is in the database
-        if self.osiris.checkExistence(doi, pubmed):
+        if self.osiris.check_existence(doi, pubmed):
             return False
 
         typ = TYPES.get(work['type'])
@@ -84,7 +157,6 @@ class OpenAlexParser(Parser):
             print(f'Activity type {work["type"]} is unknown (DOI: {doi}).')
             return False
 
-        # print(doi)
         authors = []
         for author in work['authorships']:
             # match via name and ORCID
@@ -95,7 +167,7 @@ class OpenAlexParser(Parser):
 
             name_first = name.first
             name_last = name.last
-            user = self.osiris.getUserId(name_last, name_first, orcid)
+            user = self.osiris.get_user_id(name_last, name_first, orcid)
             pos = author['author_position']
             if pos == 'middle' and author.get('is_corresponding'):
                 pos = 'corresponding'
@@ -130,7 +202,7 @@ class OpenAlexParser(Parser):
         if len(date) >= 3:
             day = int(date[2])
 
-        abstract = makeAbstractString(work.get('abstract_inverted_index'))
+        abstract = make_abstract_string(work.get('abstract_inverted_index'))
         work['title'] = html.unescape(work['title'])
         element = {
             'doi': doi,
@@ -156,7 +228,7 @@ class OpenAlexParser(Parser):
         journal = None
         if loc and loc.get('type') == 'journal':
             element['location'] = loc['display_name']
-            journal = self.getJournal(loc['issn'])
+            journal = self.get_journal(loc['issn'])
             if journal:
                 element.update({
                         'volume': work['biblio']['volume'],
@@ -196,78 +268,6 @@ class OpenAlexParser(Parser):
                 break
         return element
     
-    def get_work(self, id, idtype='doi', ignoreDupl=True, test=False):
-        if (test):
-            # delete all entries with the same DOI
-            self.osiris.deleteActivity(id)
-        work = self.openalex.get_single_work(id, idtype)
-        element = self.parseWork(work)
-        if test:
-            pprint(element)
-        if (element != False):
-            if ignoreDupl and element.get('duplicate'):
-                print(f'Activity might have a duplicate (DOI {element["doi"]}) and was omitted.')
-                return
-            self.osiris.addActivity(element)
-            print(f'{idtype.upper()} {id} has been added to the database.')
-    
-
-    def get_works_dois(self, filters=None):
-        if not filters:
-            filters = {
-                "from_publication_date": self.startyear + "-01-01",
-                "institutions.id": self.inst_id,
-                "has_doi": 'true'
-            }
-        pages_of_works = self.openalex.get_list_of_works(filters=filters, pages=None)
-        for page in pages_of_works:
-            for work in page['results']:
-                yield work['doi']
-                    
-    def get_works(self, filters=None):
-        # NOPE: use created_date and updated_date to filter
-        # Not possible, needs payed version
-
-        if not filters:
-            filters = {
-                "from_publication_date": self.startyear + "-01-01",
-                "institutions.id": self.inst_id,
-                "has_doi": 'true'
-            }
-
-        pages_of_works = self.openalex.get_list_of_works(filters=filters, pages=None)
-
-        works_count = 0
-        for page in pages_of_works:
-            for work in page['results']:
-                try: 
-                    element = self.parseWork(work)
-                    if element == False:
-                        continue
-                    works_count+=1
-                    yield element
-                except Exception as e:
-                    print(f'Error with DOI {work["doi"]}')
-                    print(e)
-                    continue
-        print(f'--- Finished. Imported {works_count} documents.')
-    
-    
-    def queueJob(self):
-        for element in self.get_works():
-            print(element)
-            self.osiris.addQueue(element)
-    
-
-    def importJob(self):
-        for element in self.get_works():
-            if element.get('duplicate'):
-                print(f'Activity might have a duplicate (DOI {element["doi"]}) and was omitted.')
-                continue
-            element['imported'] = datetime.now().date().isoformat()
-            element['history'] = [getHistory(element)]
-            self.osiris.addActivity(element)
-
 
 if __name__ == '__main__':
     parser = OpenAlexParser()

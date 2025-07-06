@@ -1,12 +1,12 @@
 author = 'a5102003692'
 
 from jobs.osirisdata.src.osirisdata.openalex_parser import OpenAlexParser
-from jobs.osirisdata.src.osirisdata.crossref_parser import CrossrefParser
+from jobs.osirisdata.src.osirisdata.crossref_parser import CrossRefParser
 from datetime import datetime
 
 
 openalex = OpenAlexParser()
-crossref = CrossrefParser()
+crossref = CrossRefParser()
 
 filters = {
     "from_publication_date": openalex.startyear + "-01-01",

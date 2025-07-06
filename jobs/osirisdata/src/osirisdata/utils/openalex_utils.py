@@ -1,5 +1,5 @@
 
-def makeAbstractString(inverted_abstract : dict[str, list[int]]):
+def make_abstract_string(inverted_abstract : dict[str, list[int]]):
         if not inverted_abstract: return None
         
         # search largest position and adjust array size
