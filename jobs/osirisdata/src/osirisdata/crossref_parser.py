@@ -114,7 +114,7 @@ class CrossRefParser(Parser):
             abstract = re.sub(r'\s\s+', ' ', abstract)  # Remove line breaks and extra spaces
             abstract = re.sub(r'^abstract', '', abstract, flags=re.I).strip()  # Remove leading "abstract"
 
-        pubdata = {
+        element = {
             'title': pub.get('title', [None])[0],
             'first_authors': first,
             'authors': authors,
@@ -139,20 +139,20 @@ class CrossRefParser(Parser):
         types = self.get_type(pub.get('type'))
         if not types:
             return None
-        pubdata['type'] = types['type']
-        pubdata['subtype'] = types['subtype']
+        element['type'] = types['type']
+        element['subtype'] = types['subtype']
 
-        if pubdata['type'] == 'article':
+        if element['type'] == 'article':
             pub['book'] = pub.pop('journal', None)
-        elif pubdata['type'] == 'book':
+        elif element['type'] == 'book':
             if 'editors' in pub and len(pub['editors']) > 0 and 'authors' in pub and len(pub['authors']) > 0:
-                pubdata['type'] = 'chapter'
+                element['type'] = 'chapter'
             elif 'editors' in pub and len(pub['editors']) > 0:
                 pub['book'] = pub.pop('journal', None)
             else:
                 pub['series'] = pub.pop('journal', None)
         
-        return pubdata
+        return element
         
 
 if __name__ == '__main__':
@@ -160,13 +160,13 @@ if __name__ == '__main__':
     dois = ['10.1007/978-3-642-18156-6_6', '10.1158/0008-5472.can-06-2615', ]
 
     for data in parser.get_works(dois):
-        pubdata = parser.parse_metadata(data)
-        print(pubdata)
+        element = parser.parse_metadata(data)
+        print(element)
 
         # old:
-        # parser.osiris['publications'].insert_one(pubdata)
-        # print(f'Publication with DOI {pubdata["doi"]} was imported.')
-        # pubdata['imported'] = datetime.now().date().isoformat()
-        # pubdata['history'] = [data]
-        # parser.osiris['publications'].insert_one(pubdata)
-        # print(f'Publication with DOI {pubdata["doi"]} was imported.')
+        # parser.osiris['publications'].insert_one(element)
+        # print(f'Publication with DOI {element["doi"]} was imported.')
+        # element['imported'] = datetime.now().date().isoformat()
+        # element['history'] = [data]
+        # parser.osiris['publications'].insert_one(element)
+        # print(f'Publication with DOI {element["doi"]} was imported.')

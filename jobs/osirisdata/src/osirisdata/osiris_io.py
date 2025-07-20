@@ -41,11 +41,11 @@ class OsirisIO:
             print(f'DOI {doi} exists in queue and was omitted.')
             return True
 
-    def get_activities(self, startyear=0):
+    def get_activities(self, start_year=0):
         return self.osiris['activities'].find(
                 {
                     'type': 'publication',
-                    'year': {'$gte': int(startyear)},
+                    'year': {'$gte': int(start_year)},
                 }, 
                 {
                     'title': 1
@@ -54,6 +54,9 @@ class OsirisIO:
     def add_activity(self, element):
         self.osiris['activities'].insert_one(element) 
    
+    def get_activity_by_id(self, id, id_type='_id'):
+        return self.osiris['activities'].find_one({id_type: id})
+
     def delete_activity(self, doi):
         # delete all entries with the same DOI
         self.osiris['activities'].delete_many({'doi': doi})
@@ -62,8 +65,20 @@ class OsirisIO:
         self.osiris['queue'].insert_one(element)
 
     def get_type(self, element):
-        # element = {id: searchterm}
         return self.osiris['adminTypes'].find_one(element)
     
-    def update_single_entry(self, element):
-        pass
+    def update_activity(self, element):
+        # TODO improve original object search
+        original = self.get_activity_by_id(element.get('doi'), id_type='doi')
+        if not original:
+            return
+        update = {}
+        for key, value in element.items():
+            if key not in original.keys():
+                update[key] = value
+            # TODO add more to update
+
+        return self.osiris['activities'].update_one(
+            {'_id': original.get('_id')},
+            {'$set': update}
+        )

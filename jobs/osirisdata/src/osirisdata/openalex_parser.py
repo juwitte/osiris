@@ -22,16 +22,16 @@ class OpenAlexParser(Parser):
     def __init__(self, ignore_duplicates=False) -> None:
 
         self.inst_id = self.config['OpenAlex']['Institution'].upper()
-        self.startyear = self.config['DEFAULT']['StartYear']
+        self.start_year = self.config['DEFAULT']['StartYear']
 
         # set up OpenAlex
         self.openalex = OpenAlex(self.mail)
         
-        self.possible_dupl = []
+        self.possible_duplicates = []
         if not ignore_duplicates:
-            possible_dupl = self.osiris.get_activities(self.startyear)
-            self.possible_dupl = [
-                (i['_id'], i['title']) for i in possible_dupl
+            osiris_activities = self.osiris.get_activities(self.start_year)
+            self.possible_duplicates = [
+                (i['_id'], i['title']) for i in osiris_activities
             ]
                     
     def get_works(self, filters=None):
@@ -40,7 +40,7 @@ class OpenAlexParser(Parser):
 
         if not filters:
             filters = {
-                "from_publication_date": self.startyear + "-01-01",
+                "from_publication_date": self.start_year + "-01-01",
                 "institutions.id": self.inst_id,
                 "has_doi": 'true'
             }
@@ -62,27 +62,30 @@ class OpenAlexParser(Parser):
                     continue
         print(f'--- Finished. Imported {works_count} documents.')
 
-    def get_work(self, id, idtype='doi', ignoreDupl=True, test=False):
+    def get_work(self, id, id_type='doi'):
+        work = self.openalex.get_single_work(id, id_type)
+        return self.parse_work(work)
+
+    def add_work(self, id, id_type='doi', ignore_duplicates=True, test=False):
         if (test):
             # delete all entries with the same DOI
             self.osiris.delete_activity(id)
-        work = self.openalex.get_single_work(id, idtype)
-        element = self.parse_work(work)
+        element = self.get_work(id, id_type)
         if test:
             pprint(element)
         if (element != False):
-            if ignoreDupl and element.get('duplicate'):
+            if ignore_duplicates and element.get('duplicate'):
                 print(f'Activity might have a duplicate (DOI {element["doi"]}) and was omitted.')
                 return
             self.osiris.add_activity(element)
-            print(f'{idtype.upper()} {id} has been added to the database.')
+            print(f'{id_type.upper()} {id} has been added to the database.')
     
     
     
     def get_works_dois(self, filters=None):
         if not filters:
             filters = {
-                "from_publication_date": self.startyear + "-01-01",
+                "from_publication_date": self.start_year + "-01-01",
                 "institutions.id": self.inst_id,
                 "has_doi": 'true'
             }
@@ -105,12 +108,24 @@ class OpenAlexParser(Parser):
             element['history'] = [get_history(element)]
             self.osiris.add_activity(element)
 
+    def update_job(self):
+
+        for activity in self.osiris.get_activities():
+            if doi := activity.get('doi'):
+                element = self.get_work(doi, 'doi')
+            # elif openalex_id := activity.get('openalex'):
+            #     element = self.get_work(openalex_id, 'openalex')
+            else:
+                # No identifier found, skip entry
+                continue
+            self.osiris.update_activity(element)
+
     def get_journal(self, issn) -> dict | None:
         """
-        Returnd joural from DB if exists, else creates the journal
+        Return journal from DB if exists, else creates the journal
         """
-        if jrnl := self.osiris.get_journal(issn):
-            return jrnl
+        if journal := self.osiris.get_journal(issn):
+            return journal
 
         # if journal does not exist: create one
         source = self.openalex.get_single_venue(issn[-1], "issn")
@@ -260,9 +275,9 @@ class OpenAlexParser(Parser):
         if (typ == 'magazine' or typ == 'preprint'):
             element['magazine'] = loc.get('display_name') if loc else None
 
-        for id, dupl in self.possible_dupl:
-            dist = ratio(dupl, element['title'])
-            # print(dist, dupl)
+        for id, duplicate in self.possible_duplicates:
+            dist = ratio(duplicate, element['title'])
+            # print(dist, duplicate)
             if (dist > 0.9):
                 element['duplicate'] = id
                 break
@@ -273,4 +288,4 @@ if __name__ == '__main__':
     parser = OpenAlexParser()
     # parser.queueJob()
     
-    parser.get_work('10.1007/978-3-319-69075-9_13', test=True)
+    parser.add_work('10.1007/978-3-319-69075-9_13', test=True)

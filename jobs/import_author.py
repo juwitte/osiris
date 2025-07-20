@@ -9,7 +9,7 @@ openalex = OpenAlexParser()
 crossref = CrossRefParser()
 
 filters = {
-    "from_publication_date": openalex.startyear + "-01-01",
+    "from_publication_date": openalex.start_year + "-01-01",
     # "institutions.id": parser.inst_id,
     "has_doi": 'true',
     "author.id": author
