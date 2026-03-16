@@ -50,10 +50,10 @@ if (str_ends_with($_SERVER['REQUEST_URI'], '/install')) {
     die;
 } elseif (version_compare($version['value'], OSIRIS_VERSION, '<')) {
     $allowed_routes = [
-        '/migrate',
-        '/migration-needed',
-        '/user/logout',
-        '/user/login'
+        ROOTPATH . '/migrate',
+        ROOTPATH . '/migration-needed',
+        ROOTPATH . '/user/logout',
+        ROOTPATH . '/user/login'
     ];
     if (!in_array($_SERVER['REQUEST_URI'], $allowed_routes)) {
         header('Location: ' . ROOTPATH . '/migration-needed');
