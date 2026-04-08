@@ -51,7 +51,7 @@ function validateValues($values, $DB)
             if (!str_contains($value, '10.')) $value = null;
             elseif (!str_starts_with($value, '10.')) {
                 $value = explode('10.', $value, 2);
-                $values[$key] = "10." . $value[1];
+                $value = "10." . $value[1];
             }
             // save as lowercase
             $values[$key] = strtolower($value);
