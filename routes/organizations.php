@@ -110,7 +110,7 @@ Route::get('/organizations/edit/(.*)', function ($id) {
 Route::post('/crud/organizations/create', function () {
     include_once BASEPATH . "/php/init.php";
 
-    if (!$Settings->hasPermission('organizations.create')) {
+    if (!$Settings->hasPermission('organizations.edit')) {
         abortwith(403, lang('You do not have permission to create a new organization.', 'Du hast keine Berechtigung, eine neue Organisation zu erstellen.'), '/organizations', lang('Go back to organizations', 'Zurück zu Organisationen'));
     }
 
