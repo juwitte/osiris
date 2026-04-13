@@ -53,9 +53,12 @@ if (str_ends_with($_SERVER['REQUEST_URI'], '/install')) {
         ROOTPATH . '/migrate',
         ROOTPATH . '/migration-needed',
         ROOTPATH . '/user/logout',
-        ROOTPATH . '/user/login'
+        ROOTPATH . '/user/login',
+        ROOTPATH . '/user/oauth',
+        ROOTPATH . '/user/oauth-callback',
     ];
-    if (!in_array($_SERVER['REQUEST_URI'], $allowed_routes)) {
+    $uri = strtok($_SERVER['REQUEST_URI'], '?');   // strip query string
+    if (!in_array($uri, $allowed_routes)) {
         header('Location: ' . ROOTPATH . '/migration-needed');
         die;
     }
