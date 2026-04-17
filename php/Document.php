@@ -616,6 +616,193 @@ class Document extends Settings
         return Document::commalist($authors, $separator) . $append;
     }
 
+
+    private function formatAuthorsNew($module)
+    {
+        $isEditors = str_starts_with($module, 'editors-');
+        $isSupervisors = str_starts_with($module, 'supervisors-');
+        $authorKey = $isEditors ? 'editors' : ($isSupervisors ? 'supervisors' : 'authors');
+
+        $authors = DB::doc2Arr($this->getVal($authorKey, []));
+        if (empty($authors)) return '';
+        $N = count($authors);
+
+        $firstPos = 1;
+        $lastPos = 1;
+        $corresponding = false;
+        if (!empty($authors) && is_array($authors)) {
+            $pos = array_count_values(array_column($authors, 'position'));
+            $firstPos = $pos['first'] ?? 1;
+            $lastPos = $pos['last'] ?? 1;
+        }
+
+        $formatParts = explode('-', str_replace(['authors-', 'editors-', 'supervisors-'], '', $module));
+
+        // Default values
+        $nameFormat = 'last f.'; // e.g., last-f, f.-last, etc.
+        $delimiter = ', ';
+        $lastSeparator = ' and ';
+        $etalLimit = null;
+        $ellipsesLimit = null;
+        $suffix = "";
+        $aoi_format = $this->get('affiliation_format', 'bold');
+        if ($this->highlight !== true) {
+            $aoi_format = 'none';
+        }
+
+        $nameparts = ['last f.', 'last f', 'f last', 'f. last', 'last first', 'first last', 'last, f.', 'last, f', 'last, first'];
+        foreach ($formatParts as $part) {
+            if (in_array($part, $nameparts)) {
+                $nameFormat = $part;
+                break;
+            }
+        }
+
+        // format the parts according to the module name
+        foreach ($formatParts as $part) {
+            if ($part === 'amp') {
+                $lastSeparator = ' & ';
+            } elseif ($part === 'amp+comma') {
+                $lastSeparator = ', & ';
+            } elseif ($part === 'semicolon') {
+                $delimiter = '; ';
+            } elseif (str_starts_with($part, 'etal')) {
+                $etalLimit = (int) str_replace('etal', '', $part);
+            } elseif (str_starts_with($part, 'ellipses')) {
+                $ellipsesLimit = (int) str_replace('ellipses', '', $part);
+            } else if (in_array($part, ['eds', 'ed', 'Eds', 'Ed'])) {
+                if ($part === 'Eds' || $part === 'eds') {
+                    $suffix = ' (' . $part . '.)';
+                } elseif ($N == 1) {
+                    $suffix = ' (' . $part . '.)';
+                } else {
+                    $suffix = ' (' . $part . 's.)';
+                }
+            }
+        }
+
+        // format the authors
+        $formatted = [];
+        foreach ($authors as $person) {
+            $first = $person['first'] ?? '';
+            $last = $person['last'] ?? '';
+            $initial = '';
+            $initialDot = '';
+            if ($first) :
+                foreach (preg_split("/(\s+| |-|\.)/u", $first, -1, PREG_SPLIT_DELIM_CAPTURE) as $name) {
+                    if (empty(trim($name)) || $name == '.' || $name == ' ') continue;
+                    if ($name == '-') {
+                        $initial .= '-';
+                        $initialDot .= '-';
+                    } else {
+                        $name = mb_substr($name, 0, 1);
+                        $initial .= "" . $name;
+                        $initialDot .= "" . $name . '.';
+                    }
+                }
+            endif;
+            $author = '';
+            switch ($nameFormat) {
+                case 'last f':
+                    $author = "$last $initial";
+                    break;
+                case 'f last':
+                    $author = "$initial $last";
+                    break;
+                case 'f. last':
+                    $author = "$initialDot $last";
+                    break;
+                case 'last first':
+                    $author = "$last, $first";
+                    break;
+                case 'first last':
+                    $author = "$first $last";
+                    break;
+                case 'last, f.':
+                    $author = "$last, $initialDot";
+                    break;
+                case 'last, f':
+                    $author = "$last, $initial";
+                    break;
+                case 'last, first':
+                    $author = "$last, $first";
+                    break;
+                default:
+                    $author = "$last $initialDot";
+                    break;
+            }
+
+            // markup of affiliated authors
+            if ($aoi_format == 'none') {
+                // do nothing
+            } elseif (($this->highlight === true && ($person['aoi'] ?? false)) || ($person['user'] === $this->highlight)) {
+                if ($this->usecase == 'web') {
+                    if (isset($person['user']) && !empty($person['user'])) {
+                        $author = "<a href='" . ROOTPATH . "/profile/" . $person['user'] . "'>$author</a>";
+                    }
+                } else if ($aoi_format == 'bold') {
+                    $author = "<b>$author</b>";
+                } else if ($aoi_format == 'italic') {
+                    $author = "<i>$author</i>";
+                } else if ($aoi_format == 'bold-underline') {
+                    $author = "<b><u>$author</u></b>";
+                } else if ($aoi_format == 'italic-underline') {
+                    $author = "<i><u>$author</u></i>";
+                } else if ($aoi_format == 'underline') {
+                    $author = "<u>$author</u>";
+                } else if ($aoi_format == 'bold-italic') {
+                    $author = "<b><i>$author</i></b>";
+                }
+            }
+            if ($firstPos > 1 && $person['position'] == 'first') {
+                $author .= "<sup>#</sup>";
+            }
+            if ($lastPos > 1 && $person['position'] == 'last') {
+                $author .= "<sup>*</sup>";
+            }
+            if (isset($person['position']) && $person['position'] == 'corresponding') {
+                $author .= "<sup>§</sup>";
+                $corresponding = true;
+            }
+            $formatted[] = $author;
+        }
+
+
+        if ($firstPos > 1) {
+            if ($this->typeArr['id'] == 'poster' || $this->typeArr['id'] == 'lecture')
+                $this->appendix .= " <sup>#</sup> Presenting authors";
+            else
+                $this->appendix .= " <sup>#</sup> Shared first authors";
+        }
+        if ($lastPos > 1) {
+            $this->appendix .= " <sup>*</sup> Shared last authors";
+        }
+        if ($corresponding) {
+            $this->appendix .= " <sup>§</sup> Corresponding author";
+        }
+
+        if ($etalLimit === null && $this->usecase == 'web') {
+            $etalLimit = 12; // default limit for web use case
+        }
+
+        if ($etalLimit !== null  && $N > $etalLimit) {
+            $formatted = array_slice($formatted, 0, $etalLimit);
+            $result = implode($delimiter, $formatted);
+            $result .=  ' et al.';
+            return $result . $suffix;
+        } else if ($ellipsesLimit !== null && $N > $ellipsesLimit) {
+            $lastAuthor = array_pop($formatted);
+            $formatted = array_slice($formatted, 0, $ellipsesLimit - 1);
+            $result = implode($delimiter, $formatted);
+            $result .= '&period;&period;&period;' . $lastAuthor;
+            return $result . $suffix;
+        }
+        $last = array_pop($formatted);
+        $result = $formatted ? implode($delimiter, $formatted) . $lastSeparator . $last : $last;
+        return $result . $suffix;
+    }
+
+
     public static function getPosition($position)
     {
         $positions = [
@@ -906,160 +1093,6 @@ class Document extends Settings
         if ($default === '' && $this->usecase == 'list') $default = '-';
         if (!array_key_exists($field, $this->doc)) return $default;
         return ($this->doc[$field] ?? '');
-    }
-
-    private function formatAuthorsNew($module)
-    {
-        $isEditors = str_starts_with($module, 'editors-');
-        $isSupervisors = str_starts_with($module, 'supervisors-');
-        $authorKey = $isEditors ? 'editors' : ($isSupervisors ? 'supervisors' : 'authors');
-
-        $authors = DB::doc2Arr($this->getVal($authorKey, []));
-        if (empty($authors)) return '';
-        $N = count($authors);
-
-        $formatParts = explode('-', str_replace(['authors-', 'editors-', 'supervisors-'], '', $module));
-
-        // Default-Werte
-        $nameFormat = 'last f.'; // z. B. last-f, f.-last, etc.
-        $delimiter = ', ';
-        $lastSeparator = ' and ';
-        $etalLimit = null;
-        $ellipsesLimit = null;
-        $suffix = "";
-        $aoi_format = $this->get('affiliation_format', 'bold');
-        if ($this->highlight !== true) {
-            $aoi_format = 'none';
-        }
-
-        $nameparts = ['last f.', 'last f', 'f last', 'f. last', 'last first', 'first last', 'last, f.', 'last, f', 'last, first'];
-        foreach ($formatParts as $part) {
-            if (in_array($part, $nameparts)) {
-                $nameFormat = $part;
-                break;
-            }
-        }
-
-        // format the parts according to the module name
-        foreach ($formatParts as $part) {
-            if ($part === 'amp') {
-                $lastSeparator = ' & ';
-            } elseif ($part === 'amp+comma') {
-                $lastSeparator = ', & ';
-            } elseif ($part === 'semicolon') {
-                $delimiter = '; ';
-            } elseif (str_starts_with($part, 'etal')) {
-                $etalLimit = (int) str_replace('etal', '', $part);
-            } elseif (str_starts_with($part, 'ellipses')) {
-                $ellipsesLimit = (int) str_replace('ellipses', '', $part);
-            } else if (in_array($part, ['eds', 'ed', 'Eds', 'Ed'])) {
-                if ($part === 'Eds' || $part === 'eds') {
-                    $suffix = ' (' . $part . '.)';
-                } elseif ($N == 1) {
-                    $suffix = ' (' . $part . '.)';
-                } else {
-                    $suffix = ' (' . $part . 's.)';
-                }
-            }
-        }
-
-        // format the authors
-        $formatted = [];
-        foreach ($authors as $person) {
-            $first = $person['first'] ?? '';
-            $last = $person['last'] ?? '';
-            // $initial = $first ? mb_substr($first, 0, 1) : '';
-            $initial = '';
-            $initialDot = '';
-            if ($first) :
-                foreach (preg_split("/(\s+| |-|\.)/u", $first, -1, PREG_SPLIT_DELIM_CAPTURE) as $name) {
-                    if (empty(trim($name)) || $name == '.' || $name == ' ') continue;
-                    if ($name == '-') {
-                        $initial .= '-';
-                        $initialDot .= '-';
-                    } else {
-                        $name = mb_substr($name, 0, 1);
-                        $initial .= "" . $name;
-                        $initialDot .= "" . $name . '.';
-                    }
-                }
-            endif;
-            $author = '';
-            switch ($nameFormat) {
-                case 'last f':
-                    $author = "$last $initial";
-                    break;
-                case 'f last':
-                    $author = "$initial $last";
-                    break;
-                case 'f. last':
-                    $author = "$initialDot $last";
-                    break;
-                case 'last first':
-                    $author = "$last, $first";
-                    break;
-                case 'first last':
-                    $author = "$first $last";
-                    break;
-                case 'last, f.':
-                    $author = "$last, $initialDot";
-                    break;
-                case 'last, f':
-                    $author = "$last, $initial";
-                    break;
-                case 'last, first':
-                    $author = "$last, $first";
-                    break;
-                default:
-                    $author = "$last $initialDot";
-                    break;
-            }
-
-            // markup of affiliated authors
-            if ($aoi_format == 'none') {
-                // do nothing
-            } elseif (($this->highlight === true && ($person['aoi'] ?? false)) || ($person['user'] === $this->highlight)) {
-                if ($this->usecase == 'web') {
-                    if (isset($person['user']) && !empty($person['user'])) {
-                        $author = "<a href='" . ROOTPATH . "/profile/" . $person['user'] . "'>$author</a>";
-                    }
-                } else if ($aoi_format == 'bold') {
-                    $author = "<b>$author</b>";
-                } else if ($aoi_format == 'italic') {
-                    $author = "<i>$author</i>";
-                } else if ($aoi_format == 'bold-underline') {
-                    $author = "<b><u>$author</u></b>";
-                } else if ($aoi_format == 'italic-underline') {
-                    $author = "<i><u>$author</u></i>";
-                } else if ($aoi_format == 'underline') {
-                    $author = "<u>$author</u>";
-                } else if ($aoi_format == 'bold-italic') {
-                    $author = "<b><i>$author</i></b>";
-                }
-            }
-
-            $formatted[] = $author;
-        }
-
-        if ($etalLimit === null && $this->usecase == 'web') {
-            $etalLimit = 12; // default limit for web use case
-        }
-
-        if ($etalLimit !== null  && $N > $etalLimit) {
-            $formatted = array_slice($formatted, 0, $etalLimit);
-            $result = implode($delimiter, $formatted);
-            $result .=  ' et al.';
-            return $result . $suffix;
-        } else if ($ellipsesLimit !== null && $N > $ellipsesLimit) {
-            $lastAuthor = array_pop($formatted);
-            $formatted = array_slice($formatted, 0, $ellipsesLimit - 1);
-            $result = implode($delimiter, $formatted);
-            $result .= '&period;&period;&period;' . $lastAuthor;
-            return $result . $suffix;
-        }
-        $last = array_pop($formatted);
-        $result = $formatted ? implode($delimiter, $formatted) . $lastSeparator . $last : $last;
-        return $result . $suffix;
     }
 
     public function get_field($module, $default = '')
