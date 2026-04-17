@@ -1276,7 +1276,9 @@ Route::get('/portfolio/activity/([^/]*)', function ($id) {
     foreach ($connected_activities as $conn) {
         $reverse = ($conn['target_id'] == $id);
         $doc = $osiris->activities->findOne(['_id' => $reverse ? $conn['source_id'] : $conn['target_id']], ['projection' => [
-            'rendered' => 1, 'subtype' => 1, 'hide' => 1
+            'rendered' => 1,
+            'subtype' => 1,
+            'hide' => 1
         ]]);
         $conLabel = $Format->getRelationshipLabel($conn['relationship'], $reverse);
         if (empty($doc) || ($doc['hide'] ?? false) || !in_array($doc['subtype'], $portfolio_types)) {
@@ -1610,8 +1612,34 @@ Route::get('/portfolio/person/([^/]*)', function ($id) {
     if ($person['public_other_activities'] ?? true) {
         $result['numbers']['activities'] = $osiris->activities->count(array_merge($defaultFilter, ['subtype' => ['$in' => $Settings->getActivitiesPortfolio()]]));
     }
+    $person['teaching'] = [];
     if ($person['public_teaching'] ?? true) {
-        $result['numbers']['teaching'] = $osiris->activities->count(array_merge($defaultFilter, ['module_id' => ['$ne' => null]]));
+        $teaching_filter = array_merge($defaultFilter, ['module_id' => ['$ne' => null]]);
+        $result['numbers']['teaching'] = $osiris->activities->count($teaching_filter);
+
+        $teaching = $osiris->activities->aggregate([
+            ['$match' => $teaching_filter],
+            [
+                '$group' => [
+                    '_id' => '$module_id',
+                    'count' => ['$sum' => 1],
+                    // 'doc' => ['$push' => '$$ROOT']
+                ]
+            ],
+            ['$sort' => ['count' => -1]]
+        ])->toArray();
+
+        foreach ($teaching as $t) {
+            $module = $osiris->teaching->findOne(['_id' => DB::to_ObjectID($t['_id'])]);
+            if (empty($module)) continue;
+            $result['teaching'][] = [
+                'id' => strval($module['_id']),
+                'name' => $module['module'],
+                'title' => $module['title'],
+                'affiliation' => $module['affiliation'],
+                'count' => $t['count']
+            ];
+        }
     }
 
     if ($result['numbers']['projects'] > 0) {
@@ -1645,11 +1673,50 @@ Route::get('/portfolio/person/([^/]*)', function ($id) {
         $result['projects'] = $projects;
     }
     $result['numbers']['infrastructures'] = 0;
+    $result['infrastructures'] = [];
     if ($Settings->featureEnabled('infrastructures')) {
+
+        include_once(BASEPATH . '/php/Infrastructure.php');
+        $Infra = new Infrastructure();
+
         $result['numbers']['infrastructures'] = $osiris->infrastructures->count([
             'persons.user' => $person['username'],
             'public' => true,
         ]);
+
+        $data = $osiris->infrastructures->find(
+            [
+                'public' => true,
+                'persons.user' => $person['username']
+            ],
+            [
+                'sort' => ['name' => 1],
+                'projection' => [
+                    'id' => 1,
+                    'name' => 1,
+                    'persons' => 1,
+                ]
+            ]
+        )->toArray();
+
+        foreach ($data as $infrastructure) {
+            $self = [];
+            if (isset($infrastructure['persons'])) {
+                foreach ($infrastructure['persons'] as $p) {
+                    if ($p['user'] == $person['username']) {
+                        $self = $p;
+                        break;
+                    }
+                }
+            }
+            $result['infrastructures'][] = [
+                'id' => $infrastructure['id'],
+                'name' => $infrastructure['name'],
+                'role' => $Infra->getRole($self['role'] ?? null),
+                'start' => $self['start'] ?? '',
+                'end' => $self['end'] ?? '',
+            ];
+        }
     }
 
     // add topic details
