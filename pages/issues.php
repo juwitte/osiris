@@ -198,6 +198,7 @@ if (array_sum($a) === 0) { ?>
         $doc = $DB->getActivity($doc['id']);
         $id = $doc['_id'];
         $type = $doc['type'];
+        if (!isset($doc['rendered'])) continue;
     ?>
         <div id="tr-<?= $id ?>">
             <div class="box padded mt-0" id="<?= $id ?>">
