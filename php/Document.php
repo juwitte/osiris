@@ -619,6 +619,7 @@ class Document extends Settings
 
     private function formatAuthorsNew($module)
     {
+        $this->appendix = '';
         $isEditors = str_starts_with($module, 'editors-');
         $isSupervisors = str_starts_with($module, 'supervisors-');
         $authorKey = $isEditors ? 'editors' : ($isSupervisors ? 'supervisors' : 'authors');
@@ -630,7 +631,7 @@ class Document extends Settings
         $firstPos = 1;
         $lastPos = 1;
         $corresponding = false;
-        if (!empty($authors) && is_array($authors)) {
+        if (!empty($authors) && is_array($authors) && isset($authors[0]['position'])) {
             $pos = array_count_values(array_column($authors, 'position'));
             $firstPos = $pos['first'] ?? 1;
             $lastPos = $pos['last'] ?? 1;
@@ -646,7 +647,7 @@ class Document extends Settings
         $ellipsesLimit = null;
         $suffix = "";
         $aoi_format = $this->get('affiliation_format', 'bold');
-        if ($this->highlight !== true) {
+        if ($this->highlight === false) {
             $aoi_format = 'none';
         }
 
@@ -736,6 +737,7 @@ class Document extends Settings
             if ($aoi_format == 'none') {
                 // do nothing
             } elseif (($this->highlight === true && ($person['aoi'] ?? false)) || ($person['user'] === $this->highlight)) {
+
                 if ($this->usecase == 'web') {
                     if (isset($person['user']) && !empty($person['user'])) {
                         $author = "<a href='" . ROOTPATH . "/profile/" . $person['user'] . "'>$author</a>";
