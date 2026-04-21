@@ -182,6 +182,11 @@
                 <input type="radio" name="format" id="format-word" value="word" checked="checked">
                 <label for="format-word">Word</label>
             </div>
+            
+            <div class="custom-radio d-inline-block ml-10">
+                <input type="radio" name="format" id="format-html" value="html" checked="checked">
+                <label for="format-html">HTML</label>
+            </div>
 
             <div class="custom-radio d-inline-block ml-10">
                 <input type="radio" name="format" id="format-bibtex" value="bibtex">

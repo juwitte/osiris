@@ -175,12 +175,11 @@ Route::post('/download', function () {
 
     $params = $_POST['filter'] ?? array();
 
-
     $timefilter = false;
     $filename = "osiris";
 
     $highlight = false;
-    if ($_POST['format'] == 'word' && isset($_POST['highlight']) && !empty($_POST['highlight'])) {
+    if (($_POST['format'] == 'word' || $_POST['format'] == 'html') && isset($_POST['highlight']) && !empty($_POST['highlight'])) {
         if ($_POST['highlight'] == 'user') {
             $highlight = $_SESSION['username'];
         } elseif ($_POST['highlight'] == 'aoi') {
@@ -188,7 +187,6 @@ Route::post('/download', function () {
         }
     }
     $Format = new Document($highlight, 'word');
-    // $Format->full = true;
 
     $categories = $Categories->categories;
     $order = array_column($categories, 'id');
@@ -328,7 +326,7 @@ Route::post('/download', function () {
 
     $headers = [];
 
-    if ($_POST['format'] == "word") {
+    if ($_POST['format'] == "word" || $_POST['format'] == "html") {
         // Creating the new document...
         \PhpOffice\PhpWord\Settings::setZipClass(\PhpOffice\PhpWord\Settings::PCLZIP);
         \PhpOffice\PhpWord\Settings::setOutputEscapingEnabled(true);
@@ -446,11 +444,9 @@ Route::post('/download', function () {
             return $pos_a - $pos_b;
         });
 
-        // dump($endmonth);
         foreach ($cursor as $doc) {
             // filtering by month is to much effort, so we just do not show activities out
             if ($timefilter && $startyear == $doc['year'] && $startmonth > $doc['month']) continue;
-            // dump($doc['month']);
 
             if ($timefilter && $endyear == $doc['year'] && $endmonth < $doc['month']) continue;
             if (!in_array($doc['type'], $headers)) {
@@ -462,6 +458,13 @@ Route::post('/download', function () {
             $line = $Format->format();
             $line = clean_comment_export($line, false);
             \PhpOffice\PhpWord\Shared\Html::addHtml($paragraph, $line, false, false);
+        }
+
+        if ($_POST['format'] == "html") {
+            header("Content-Type: text/html; charset=utf-8");
+            $objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'HTML');
+            $objWriter->save("php://output");
+            exit;
         }
 
         // Download file
@@ -1252,8 +1255,8 @@ Route::post('/reports/old', function () {
 
     if ($_POST['format'] == 'html') {
         $objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'HTML');
-        $objWriter->save('.data/report.html');
-        include_once '.data/report.html';
+        header('Content-Type: text/html; charset=utf-8');
+        $objWriter->save("php://output");
         die;
     }
 
