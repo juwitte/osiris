@@ -79,3 +79,31 @@ Route::get('/accessibility', function () {
     include BASEPATH . "/pages/accessibility.php";
     include BASEPATH . "/footer.php";
 });
+
+
+Route::get('/image/(.*)', function ($user) {
+    include_once BASEPATH . "/php/init.php";
+    $user = urldecode($user);
+    $img = $osiris->userImages->findOne(['user' => $user]);
+    if (empty($img)) {
+        $img = file_get_contents(BASEPATH . "/img/no-photo.png");
+        $type = 'image/png';
+    } else {
+        $type = $img['ext'];
+        if ($img['ext'] == 'svg') {
+            $type = 'image/svg+xml';
+        } else {
+            $type = 'image/' . $img['ext'];
+        }
+        $img = $img['img']->getData();
+        //if image is base64 encoded
+        // if (str_starts_with($img, '/')) {
+        //     $img = explode(',', $img)[1];
+        // }
+
+        $img = base64_decode($img);
+    }
+    header('Content-Type: ' . $type);
+    echo $img;
+    die;
+});
