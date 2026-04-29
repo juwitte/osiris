@@ -1179,7 +1179,7 @@ class Document extends Settings
             case "city": // ["city"],
                 return $this->getVal('city');
             case "conference": // ["conference"],
-                $val = $this->getVal('conference');
+                return $this->getVal('conference');
             case "correction": // ["correction"],
                 $val = $this->getVal('correction', false);
                 if ($this->usecase == 'list')
