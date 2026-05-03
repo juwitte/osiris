@@ -595,7 +595,6 @@ class Document extends Settings
         $raw_authors = DB::doc2Arr($raw_authors);
         if (!empty($raw_authors) && is_array($raw_authors)) {
             $pos = array_count_values(array_column($raw_authors, 'position'));
-            // dump($pos);
             $first = $pos['first'] ?? 1;
             $last = $pos['last'] ?? 1;
             $corresponding = array_key_exists('corresponding', $pos);
@@ -1152,8 +1151,6 @@ class Document extends Settings
 
     public function get_field($module, $default = '')
     {
-        // dump($module);
-        // dump($this->getVal($module, $default));
         if ($this->usecase == 'list') $default = '-';
         if (str_starts_with($module, 'authors-') || str_starts_with($module, 'editors-') || str_starts_with($module, 'supervisors-')) {
             return $this->formatAuthorsNew($module);
@@ -1655,7 +1652,6 @@ class Document extends Settings
                     return $val ? $label : '';
                 }
                 if (is_array($val)) {
-                    dump($module);
                     return implode(", ", $val);
                 }
                 return $val;
