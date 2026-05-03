@@ -88,7 +88,7 @@ $end = $form['end_date'] ?? '';
                     </td>
                     <td>
                         <select name="persons[<?= $i ?>][role]" id="persons-<?= $i ?>-role" class="form-control role" required>
-                            <?php foreach ($Infra->roles as $role_id => $role) { ?>
+                            <?php foreach ($Infra->getRoles() as $role_id => $role) { ?>
                                 <option value="<?= $role_id ?>" <?= ($con['role'] == $role_id ? 'selected' : '') ?>>
                                     <?= $role ?>
                                 </option>
