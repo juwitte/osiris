@@ -231,6 +231,15 @@ class CommandPalette
                 "priority" => 50
             ],
             [
+                "url" => "/deadlines",
+                "type" => "Navigation",
+                "icon" => "flag",
+                "label" => lang("Deadlines", "Fristen"),
+                "feature" => "deadlines",
+                "keywords" => ["deadlines", "fristen", "deadlines", "fristen"],
+                "priority" => 50
+            ],
+            [
                 "url" => "/teaching",
                 "type" => "Navigation",
                 "icon" => "chalkboard-simple",
