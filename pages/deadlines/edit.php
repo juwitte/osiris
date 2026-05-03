@@ -74,10 +74,10 @@ if (!empty($form ?? []) && isset($form['_id'])) {
             <?php
             $req = $osiris->adminGeneral->findOne(['key' => 'roles']);
             $roles =  DB::doc2Arr($req['value'] ?? array('user', 'scientist', 'admin'));
-
+            $selected = DB::doc2Arr($form['roles'] ?? []);
             foreach ($roles as $role) {
-                $checked = ($form['roles'][$role] ?? false) ? 'checked' : '';
                 if ($role === 'user') continue;
+                $checked = in_array($role, $selected) ? 'checked' : '';
             ?>
                 <div class="pill-checkbox ">
                     <input type="checkbox" id="role-<?= $role ?>" value="1" name="values[roles][<?= $role ?>]" <?= $checked ?>>
