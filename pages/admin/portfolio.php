@@ -36,6 +36,57 @@
             </span>
         </div>
 
+
+        <!-- <h5>
+            <?=lang('Memberships', 'Mitgliedschaften')?> in Portfolio
+        </h5>
+
+        <p>
+            <?= lang('You can specify here, which research activities should be shown under the memberships section in the portfolio page of a person. By default, this section will not be visible.', 'Hier kannst du festlegen, welche Forschungsaktivitäten unter der Rubrik Mitgliedschaften auf der Portfolio-Seite einer Person angezeigt werden sollen. Standardmäßig ist diese Rubrik nicht sichtbar.') ?>
+        </p>
+
+        <p>
+            <i class="ph ph-info"></i>
+            <?=lang('Only activity types that are generally visible in Portfolio and have the "date-range-ongoing" field qualify for memberships.', 'Nur Aktivitätstypen, die generell im Portfolio sichtbar sind und über das Feld "date-range-ongoing" verfügen, kommen für Mitgliedschaften in Frage.')?>
+        </p>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>
+                        <?= lang('Activity Type', 'Aktivitätstyp') ?>
+                    </th>
+                    <th>
+                        <?= lang('Membership Template', 'Mitgliedschafts-Vorlage') ?>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php 
+                $filter = [
+                    'portfolio' => ['$in' => [1, true]], 
+                    '$or' => [
+                        ['fields.id' => 'date-range-ongoing'],
+                        ['modules' => 'date-range-ongoing'],
+                        ['modules' => 'date-range-ongoing*']
+                    ]
+                    ];
+                $activities = $osiris->adminTypes->find($filter, ['sort' => ['parent' => 1, 'order' => 1]]);
+                foreach ($activities as $key) { ?>
+                    <tr>
+                        <td>
+                            <i class="ph ph-<?= $key['icon'] ?> ph-fw text-<?= $key['parent'] ?>"></i>
+                            <?= lang($key['name'], $key['name_de']) ?>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" name="memberships[<?= $key['id'] ?>]" value="<?= $key['membership_template'] ?? '' ?>">
+                        </td>
+                    </tr>
+                <?php } ?>
+                
+            </tbody>
+        </table> -->
+
         <?php if ($Settings->featureEnabled('quality-workflow')) { ?>
             <h5>
                 <?= lang('Portfolio Workflow Visibility', 'Sichtbarkeit im Portfolio-Workflow') ?>
@@ -88,10 +139,12 @@
         </h5>
 
         <ul class="list">
-            <?php foreach ($osiris->adminTypes->find(['portfolio' => 1], ['sort' => ['parent' => 1, 'order' => 1]]) as $type) { ?>
+            <?php foreach ($osiris->adminTypes->find(['portfolio' => ['$in' => [1, true]]], ['sort' => ['parent' => 1, 'order' => 1]]) as $type) { ?>
                 <li>
-                    <i class="ph ph-<?= $type['icon'] ?> ph-fw text-<?= $type['parent'] ?>"></i>
-                    <?= lang($type['name'], $type['name_de']) ?>
+                    <a href="<?= ROOTPATH ?>/admin/types/<?= $type['id'] ?>" class="colorless">
+                        <i class="ph ph-<?= $type['icon'] ?> ph-fw text-<?= $type['parent'] ?>"></i>
+                        <?= lang($type['name'], $type['name_de']) ?>
+                    </a>
                 </li>
             <?php } ?>
         </ul>
