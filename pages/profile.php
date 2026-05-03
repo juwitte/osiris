@@ -770,15 +770,15 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
                         <i class="ph ph-x"></i>
                     </a>
                     <?php
-                        $en = trim($announcement['en'] ?? null);
-                        $de = trim($announcement['de'] ?? null);
-                        if (!empty(strip_tags($en)) && !empty(strip_tags($de))) {
-                            echo  lang($en, $de);
-                        } elseif (!empty(strip_tags($en))) {
-                            echo $en;
-                        } elseif (!empty(strip_tags($de))) {
-                            echo $de;
-                        }                            
+                    $en = trim($announcement['en'] ?? null);
+                    $de = trim($announcement['de'] ?? null);
+                    if (!empty(strip_tags($en)) && !empty(strip_tags($de))) {
+                        echo  lang($en, $de);
+                    } elseif (!empty(strip_tags($en))) {
+                        echo $en;
+                    } elseif (!empty(strip_tags($de))) {
+                        echo $de;
+                    }
                     ?>
                     <button class="btn primary small" onclick="dismissAnnouncement()">
                         <i class="ph ph-x-circle"></i>
@@ -1197,6 +1197,14 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
                                 <?= $user ?>
                             </td>
                         </tr>
+                        <?php if ($Settings->hasPermission('raw-data')) { ?>
+                            <tr>
+                                <td>
+                                    <span class="key"><?= lang('OSIRIS-ID', 'OSIRIS-ID') ?></span>
+                                    <?= $scientist['_id'] ?>
+                                </td>
+                            </tr>
+                        <?php } ?>
                         <?php if ($active('internal_id') && isset($scientist['internal_id'])) { ?>
                             <tr>
                                 <td>
