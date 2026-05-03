@@ -765,15 +765,9 @@ $tagsEnabled = $Settings->featureEnabled('tags');
         dataTable.on('draw', function(e, settings) {
             if (initializing) return;
             var info = dataTable.page.info();
-            var search = settings.oPreviousSearch.sSearch;
-            if (search) {
-                search = encodeURIComponent(search);
-            } else {
-                search = null;
-            }
             writeHash({
                 page: info.page + 1,
-                search: search
+                search: dataTable.search(),
             })
         });
 

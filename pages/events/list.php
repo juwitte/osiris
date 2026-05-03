@@ -457,7 +457,7 @@ $conferences = $osiris->conferences->find(
             
             writeHash({
                 page: info.page + 1,
-                search: settings.oPreviousSearch.sSearch
+                search: dataTable.search(),
             })
         });
 

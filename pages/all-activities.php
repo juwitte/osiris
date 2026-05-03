@@ -868,12 +868,9 @@ $cart = readCart();
         dataTable.on('draw', function(e, settings) {
             if (initializing) return;
             var info = dataTable.page.info();
-            var search = settings.oPreviousSearch.sSearch
-            if (search == null) search = ''
-            console.log(settings.oPreviousSearch.sSearch);
             writeHash({
                 page: info.page + 1,
-                search: search
+                search: dataTable.search(),
             })
         });
 

@@ -343,8 +343,8 @@ $deadlines = $osiris->deadlines->find(
             if (initializing) return;
             var info = dataTable.page.info();
             writeHash({
-                page: info.page + 1,
-                search: settings.oPreviousSearch.sSearch
+                page: info.page + 1,                
+                search: dataTable.search(),
             })
         });
 

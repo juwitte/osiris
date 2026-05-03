@@ -388,11 +388,9 @@ $topicsEnabled = $Settings->featureEnabled('topics') && $osiris->topics->count()
         dataTable.on('draw', function(e, settings) {
             if (initializing) return;
             var info = dataTable.page.info();
-            var search = settings.oPreviousSearch.sSearch;
-            if (search === undefined) search = '';
             writeHash({
                 page: info.page + 1,
-                search: search
+                search: dataTable.search(),
             })
         });
 
