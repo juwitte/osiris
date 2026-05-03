@@ -618,7 +618,7 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
     if ($count_memberships > 0) { ?>
         <a onclick="navigate('memberships')" id="btn-memberships" class="btn">
             <i class="ph ph-user-list" aria-hidden="true"></i>
-            <?= lang('Ongoing works', 'Laufende Arbeiten')  ?>
+            <?= lang('Ongoing activities', 'Laufende Aktivitäten')  ?>
             <span class="index"><?= $count_memberships ?></span>
         </a>
     <?php } ?>
@@ -1601,7 +1601,6 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
 <section id="memberships" style="display:none">
 
     <?php
-
     if ($count_memberships > 0) {
         $memberships = $osiris->activities->find($membership_filter, ['sort' => ["type" => 1, "year" => -1, "month" => -1, "day" => -1]]);
         $ongoing = [];
@@ -1625,7 +1624,7 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
             <?php if (!empty($ongoing)) { ?>
                 <div class="box">
                     <div class="content">
-                        <h4 class="title"><?= lang('Ongoing works', 'Laufende Arbeiten') ?></h4>
+                        <h4 class="title"><?= lang('Ongoing activities', 'Laufende Aktivitäten') ?></h4>
                     </div>
                     <table class="table simple">
                         <tbody>
@@ -1651,32 +1650,34 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
                 </div>
             <?php } ?>
             <?php if (!empty($past)) { ?>
-                <div class="box">
-                    <div class="content">
-                        <h4 class="title"><?= lang('Past works', 'Vergangene Arbeiten') ?></h4>
+                <details class="collapse-panel">
+                    <summary class="collapse-header">
+                        <h4 class="m-0"><?= lang('Past activities', 'Vergangene Tätigkeiten') ?></h4>
+                    </summary>
+                    <div class="collapse-content p-0 pb-5">
+                        <table class="table simple">
+                            <tbody>
+                                <?php
+                                $i = 0;
+                                foreach ($past as $doc) {
+                                    $id = $doc['_id'];
+                                ?>
+                                    <tr id='tr-<?= $id ?>'>
+                                        <td class="w-50"><?= $doc['icon']; ?></td>
+                                        <td>
+                                            <?= $doc['web'] ?>
+                                        </td>
+                                        <td class="unbreakable w-25">
+                                            <a class="btn link square" href="<?= ROOTPATH . "/activities/view/" . $id ?>">
+                                                <i class="ph ph-arrow-fat-line-right"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php } ?>
+                            </tbody>
+                        </table>
                     </div>
-                    <table class="table simple">
-                        <tbody>
-                            <?php
-                            $i = 0;
-                            foreach ($past as $doc) {
-                                $id = $doc['_id'];
-                            ?>
-                                <tr id='tr-<?= $id ?>'>
-                                    <td class="w-50"><?= $doc['icon']; ?></td>
-                                    <td>
-                                        <?= $doc['web'] ?>
-                                    </td>
-                                    <td class="unbreakable w-25">
-                                        <a class="btn link square" href="<?= ROOTPATH . "/activities/view/" . $id ?>">
-                                            <i class="ph ph-arrow-fat-line-right"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            <?php } ?>
-                        </tbody>
-                    </table>
-                </div>
+                </details>
             <?php } ?>
 
         </div>
