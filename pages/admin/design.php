@@ -100,6 +100,21 @@ $design = $Settings->get('design');
                 </td>
             </tr>
 
+
+            <tr>
+                <td>
+                    <label for="color"><?= lang('Link Color', 'Linkfarbe') ?></label>
+                </td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <input type="color" class="form-control w-200" name="general[colors][link]" value="<?= $colors['link'] ?? '#0e7b96' ?>" id="link-color">
+                        <button type="button" class="btn ml-10" onclick="$('#link-color').val('#0e7b96')" data-toggle="tooltip" data-title="<?= lang('Reset to default', 'Auf Standard zurücksetzen') ?>">
+                            <i class="ph ph-arrow-counter-clockwise"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+
             <tr>
                 <th colspan="2">
                     <?= lang('Typography', 'Typografie') ?>

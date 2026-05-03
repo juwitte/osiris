@@ -377,10 +377,12 @@ class Settings
         if (!empty($colors)) {
             $primary = $colors['primary'] ?? '#008083';
             $secondary = $colors['secondary'] ?? '#f78104';
+            $link = $colors['link'] ?? '#0e7b96';
             $primary_hex = sscanf($primary, "#%02x%02x%02x");
             $secondary_hex = sscanf($secondary, "#%02x%02x%02x");
             $root .= "--primary-color: $primary; --primary-color-light: " . adjustBrightness($primary, 20) . "; --primary-color-very-light: " . adjustBrightness($primary, 200) . "; --primary-color-dark: " . adjustBrightness($primary, -20) . "; --primary-color-very-dark: " . adjustBrightness($primary, -200) . "; --primary-color-20: rgba($primary_hex[0], $primary_hex[1], $primary_hex[2], 0.2); --primary-color-30: rgba($primary_hex[0], $primary_hex[1], $primary_hex[2], 0.3); --primary-color-60: rgba($primary_hex[0], $primary_hex[1], $primary_hex[2], 0.6);";
             $root .= "--secondary-color: $secondary; --secondary-color-light: " . adjustBrightness($secondary, 20) . "; --secondary-color-very-light: " . adjustBrightness($secondary, 200) . "; --secondary-color-dark: " . adjustBrightness($secondary, -20) . "; --secondary-color-very-dark: " . adjustBrightness($secondary, -200) . "; --secondary-color-20: rgba($secondary_hex[0], $secondary_hex[1], $secondary_hex[2], 0.2); --secondary-color-30: rgba($secondary_hex[0], $secondary_hex[1], $secondary_hex[2], 0.3); --secondary-color-60: rgba($secondary_hex[0], $secondary_hex[1], $secondary_hex[2], 0.6); ";
+            $root .= "--link-color: $link; --link-color-hover: " . adjustBrightness($link, 20) . ";";
         }
 
         $design = $this->get('design');
