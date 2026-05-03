@@ -76,10 +76,11 @@ if (!empty($form ?? []) && isset($form['_id'])) {
             $roles =  DB::doc2Arr($req['value'] ?? array('user', 'scientist', 'admin'));
 
             foreach ($roles as $role) {
+                $checked = ($form['roles'][$role] ?? false) ? 'checked' : '';
                 if ($role === 'user') continue;
             ?>
                 <div class="pill-checkbox ">
-                    <input type="checkbox" id="role-<?= $role ?>" value="1" name="values[roles][<?= $role ?>]" <?= ($form['roles'][$role] ?? false) ? 'checked' : '' ?>>
+                    <input type="checkbox" id="role-<?= $role ?>" value="1" name="values[roles][<?= $role ?>]" <?= $checked ?>>
                     <label for="role-<?= $role ?>"><?= strtoupper($role) ?></label>
                 </div>
             <?php

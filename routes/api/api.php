@@ -466,22 +466,15 @@ Route::get('/api/(conferences|events|deadlines)', function ($type) {
     error_reporting(E_ERROR | E_PARSE);
     include_once BASEPATH . "/php/init.php";
 
-    if (!apikey_check($_GET['apikey'] ?? null)) {
-        echo return_permission_denied();
-        die;
-    }
+    // if (!apikey_check($_GET['apikey'] ?? null)) {
+    //     echo return_permission_denied();
+    //     die;
+    // }
     $collection = 'conferences';
     $filter = [];
 
     if ($type === 'deadlines') {
         $collection = 'deadlines';
-
-        $roles = $Settings->roles;
-        $filter['$or'] = [
-            ['roles' => ['$in' => $roles]],
-            ['created_by' => $_SESSION['username']]
-        ];
-        // echo "Filter: " . json_encode($filter);
     }
     $events = $osiris->$collection->find(
         $filter,
@@ -490,6 +483,10 @@ Route::get('/api/(conferences|events|deadlines)', function ($type) {
 
     foreach ($events as $i => $row) {
         $events[$i]['id'] = strval($row['_id']);
+        if ($type == 'deadlines') {
+            $roles = DB::doc2Arr($row['roles'] ?? []);
+            $events[$i]['relevant'] = !empty(array_intersect($Settings->roles, $roles));
+        }
     }
 
     echo return_rest($events);

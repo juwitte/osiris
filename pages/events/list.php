@@ -9,6 +9,15 @@ $tagsEnabled = $Settings->featureEnabled('tags');
 
 $deadlinesEnabled = $Settings->featureEnabled('deadlines', false);
 
+$eventTypes = $Vocabulary->getValues('event-type');
+$colors = ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1', '#17a2b8', '#343a40'];
+$typeInfo = [];
+foreach ($eventTypes as $v) {
+    $typeInfo[$v['id']] = [
+        'title' => lang($v['en'], $v['de'] ?? null),
+        'color' => $colors[count($typeInfo) % count($colors)],
+    ];
+}
 ?>
 
 <?php if ($deadlinesEnabled) { ?>
@@ -118,13 +127,12 @@ $conferences = $osiris->conferences->find(
             <div class="filter">
                 <table id="filter-type" class="table small simple">
                     <?php
-                    $vocab = $vocab = $Vocabulary->getValues('event-type');
-                    foreach ($vocab as $v) { ?>
-                        <tr>
+                    foreach ($typeInfo as $i => $info) { ?>
+                        <tr style="--highlight-color: <?= $info['color'] ?>;">
                             <td>
-                                <a data-type="<?= $v['id'] ?>" onclick="filterEvents(this, '<?= $v['id'] ?>', 4)" class="item" id="<?= $v['id'] ?>-btn">
-                                    <span>
-                                        <?= lang($v['en'], $v['de'] ?? null) ?>
+                                <a data-type="<?= $i ?>" onclick="filterEvents(this, '<?= $i ?>', 4)" class="item" id="<?= $i ?>-btn">
+                                    <span style="color: <?= $info['color'] ?>;">
+                                        <?= $info['title'] ?>
                                     </span>
                                 </a>
                             </td>
@@ -446,7 +454,7 @@ $conferences = $osiris->conferences->find(
         dataTable.on('draw', function(e, settings) {
             if (initializing) return;
             var info = dataTable.page.info();
-            console.log(settings.oPreviousSearch.sSearch);
+            
             writeHash({
                 page: info.page + 1,
                 search: settings.oPreviousSearch.sSearch
@@ -509,14 +517,7 @@ $conferences = $osiris->conferences->find(
                     $(selector).html('<div class="content text-muted text-center">' + lang('No activities found for this year.', 'Keine Aktivitäten für dieses Jahr gefunden.') + '</div>');
                     return;
                 }
-                let typeInfo = {}
-                let colors = ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1', '#17a2b8', '#343a40'];
-                for (const type of response.data.types) {
-                    typeInfo[type] = {
-                        title: type,
-                        color: colors[Object.keys(typeInfo).length % colors.length],
-                    }
-                }
+                let typeInfo = JSON.parse(JSON.stringify(<?= json_encode($typeInfo) ?>));
                 timeline(year, 0, typeInfo, events, clickEvent = function(data) {
                     location.href = ROOTPATH + '/conferences/view/' + data.id;
                 });

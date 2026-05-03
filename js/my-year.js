@@ -81,7 +81,8 @@ function timeline(year, quarter, typeInfo, events, clickEvent = false) {
                     if (typeInfo[d.type].icon) {
                         icon = `<i class="ph ph-${typeInfo[d.type].icon}" style="color:${typeInfo[d.type].color}"></i>`
                     } else {
-                        icon = `<b style="color:${typeInfo[d.type].color}"><i class="ph ph-calendar"></i> ${d.type}</b><br>`; // Fallback icon
+                        let t = typeInfo[d.type].title ?? d.type;
+                        icon = `<b style="color:${typeInfo[d.type].color}"><i class="ph ph-calendar"></i> ${t}</b><br>`; // Fallback icon
                     }
                 }
                 return `${icon} ${d.title ?? 'No title available'}`

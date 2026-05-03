@@ -8,6 +8,16 @@ $topicsEnabled = $Settings->featureEnabled('topics') && $osiris->topics->count()
 $tagsEnabled = $Settings->featureEnabled('tags');
 
 $deadlinesEnabled = $Settings->featureEnabled('deadlines', false);
+
+$deadlineTypes = $Vocabulary->getValues('deadline-type');
+$colors = ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1', '#17a2b8', '#343a40'];
+$typeInfo = [];
+foreach ($deadlineTypes as $v) {
+    $typeInfo[$v['id']] = [
+        'title' => lang($v['en'], $v['de'] ?? null),
+        'color' => $colors[count($typeInfo) % count($colors)],
+    ];
+}
 ?>
 
 
@@ -72,6 +82,7 @@ $deadlines = $osiris->deadlines->find(
                     <th><?= lang('Title', 'Titel') ?></th>
                     <th><?= lang('Date', 'Datum') ?></th>
                     <th><?= lang('Type', 'Typ') ?></th>
+                    <th><?= lang('Relevance', 'Relevanz') ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -88,19 +99,36 @@ $deadlines = $osiris->deadlines->find(
 
 
             <h6>
+                <?= lang('By relevance', 'Nach Relevanz') ?>
+                <a class="float-right" onclick="filterEvents('#filter-relevance .active', null, 3)"><i class="ph ph-x"></i></a>
+            </h6>
+            <div class="filter">
+                <table id="filter-relevance" class="table small simple">
+                    <tr>
+                        <td>
+                            <a data-type="relevant" onclick="filterEvents(this, 'relevant', 3)" class="item" id="relevant-btn">
+                                <span>
+                                    <?= lang('Only relevant to your roles', 'Nur relevant für deine Rollen') ?>
+                                </span>
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <h6>
                 <?= lang('By type', 'Nach Typ') ?>
                 <a class="float-right" onclick="filterEvents('#filter-type .active', null, 2)"><i class="ph ph-x"></i></a>
             </h6>
             <div class="filter">
                 <table id="filter-type" class="table small simple">
                     <?php
-                    $vocab = $vocab = $Vocabulary->getValues('deadline-type');
-                    foreach ($vocab as $v) { ?>
-                        <tr>
+                    foreach ($typeInfo as $i => $v) { ?>
+                        <tr style="--highlight-color: <?= $v['color'] ?>;">
                             <td>
-                                <a data-type="<?= $v['id'] ?>" onclick="filterEvents(this, '<?= $v['id'] ?>', 2)" class="item" id="<?= $v['id'] ?>-btn">
-                                    <span>
-                                        <?= lang($v['en'], $v['de'] ?? null) ?>
+                                <a data-type="<?= $i ?>" onclick="filterEvents(this, '<?= $i ?>', 2)" class="item" id="<?= $i ?>-btn">
+                                    <span style="color: <?= $v['color'] ?>;">
+                                        <?= $v['title'] ?>
                                     </span>
                                 </a>
                             </td>
@@ -167,6 +195,10 @@ $deadlines = $osiris->deadlines->find(
             'key': 'type',
             'title': lang('Type', 'Typ')
         },
+            {
+                'key': 'relevance',
+                'title': lang('Relevance', 'Relevanz')
+            },
     ]
 
 
@@ -193,12 +225,7 @@ $deadlines = $osiris->deadlines->find(
             buttons: [{
                 extend: 'excelHtml5',
                 exportOptions: {
-                    columns: [1, 2, 3],
-                    format: {
-                        header: function(html, index, node) {
-                            return headers[index].title ?? '';
-                        }
-                    }
+                    columns: [0, 1, 2, 3],
                 },
                 className: 'btn small',
                 title: function() {
@@ -240,16 +267,18 @@ $deadlines = $osiris->deadlines->find(
                     targets: 2,
                     data: 'type',
                     defaultContent: '',
-                    // render: function(data, type, row) {
-                    //     if (!data) return '';
-
-                    //     var info = typeInfo[data] || {
-                    //         title: data
-                    //     }
-                    //     return `${info.title}`;
-
-                    // },
-                }
+                },
+                {
+                    targets: 3,
+                    data: 'relevant',
+                    render: function(data, type, row) {
+                        if (data) {
+                            return `<span class="hidden">relevant</span><i class="ph ph-check-circle text-success"></i>`;
+                        } else {
+                            return `<i class="ph ph-x-circle text-muted"></i>`;
+                        }
+                    }
+                },
             ],
             "order": [
                 [1, 'desc']
@@ -283,7 +312,7 @@ $deadlines = $osiris->deadlines->find(
                 }
             }
             initializing = false;
-
+            filterEvents(document.getElementById('relevant-btn'), 'relevant', 3)
 
             // count data for the filter and add it to the filter
             let all_filters = {
@@ -313,7 +342,6 @@ $deadlines = $osiris->deadlines->find(
         dataTable.on('draw', function(e, settings) {
             if (initializing) return;
             var info = dataTable.page.info();
-            console.log(settings.oPreviousSearch.sSearch);
             writeHash({
                 page: info.page + 1,
                 search: settings.oPreviousSearch.sSearch
@@ -376,14 +404,8 @@ $deadlines = $osiris->deadlines->find(
                     $(selector).html('<div class="content text-muted text-center">' + lang('No deadlines found for this year.', 'Keine Fristen für dieses Jahr gefunden.') + '</div>');
                     return;
                 }
-                let typeInfo = {}
-                let colors = ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1', '#17a2b8', '#343a40'];
-                for (const type of response.data.types) {
-                    typeInfo[type] = {
-                        title: type,
-                        color: colors[Object.keys(typeInfo).length % colors.length],
-                    }
-                }
+                let typeInfo = JSON.parse(JSON.stringify(<?= json_encode($typeInfo) ?>));
+                console.log(typeInfo);
                 timeline(year, 0, typeInfo, events, clickEvent = function(data) {
                     location.href = ROOTPATH + '/deadlines/view/' + data.id;
                 });
