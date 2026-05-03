@@ -37,7 +37,7 @@ Route::get('/admin/workflows', function () {
     }
 
     $breadcrumb = [
-        ['name' => lang('Content', 'Inhalte'), 'path' => '/admin'],
+        ['name' => lang("Settings", "Einstellungen"), 'path' => '/admin'],
         ['name' => lang("Workflows", "Workflows")]
     ];
     include BASEPATH . "/header.php";
@@ -54,7 +54,7 @@ Route::get('/admin/workflows/new', function () {
 
     $form = [];
     $breadcrumb = [
-        ['name' => lang('Content', 'Inhalte'), 'path' => '/admin'],
+        ['name' => lang("Settings", "Einstellungen"), 'path' => '/admin'],
         ['name' => lang("Workflows", "Workflows"), 'path' => '/admin/workflows'],
         ['name' => lang('New workflow', 'Neuer Workflow')]
     ];
@@ -76,7 +76,7 @@ Route::get('/admin/workflows/(.*)', function ($id) {
     $name = $form['name'] ?? $id;
 
     $breadcrumb = [
-        ['name' => lang('Content', 'Inhalte'), 'path' => '/admin'],
+        ['name' => lang("Settings", "Einstellungen"), 'path' => '/admin'],
         ['name' => lang("Workflows", "Workflows"), 'path' => '/admin/workflows'],
         ['name' => $name]
     ];

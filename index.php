@@ -173,13 +173,13 @@ if (
     include_once BASEPATH . "/routes/activities.php";
     include_once BASEPATH . "/routes/reports.php";
     include_once BASEPATH . "/routes/spectrum.php";
-    include_once BASEPATH . "/routes/admin.php";
     include_once BASEPATH . "/routes/events.php";
     require_once BASEPATH . '/routes/guests.php';
     include_once BASEPATH . "/routes/calendar.php";
     include_once BASEPATH . "/routes/infrastructures.php";
     include_once BASEPATH . "/routes/organizations.php";
     include_once BASEPATH . "/routes/workflows.php";
+    include_once BASEPATH . "/routes/admin.php";
     // include_once BASEPATH . "/routes/adminGeneral.php";
     // include_once BASEPATH . "/routes/adminRoles.php";
 
