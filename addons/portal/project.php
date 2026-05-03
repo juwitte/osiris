@@ -500,7 +500,7 @@
                         <tr>
                             <td>
                                 <span class="key"><?= lang('Funding reference number(s)', 'Förderkennzeichen') ?></span>
-                                <b><?= implode(', ', $data['funding_number'] ?? []) ?></b>
+                                <b><?= is_iterable($data['funding_number'] ?? null) ? implode(', ', $data['funding_number']) : '-' ?></b>
                             </td>
                         </tr>
                     <?php endif; ?>

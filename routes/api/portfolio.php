@@ -1425,7 +1425,7 @@ Route::get('/portfolio/project/([^/]*)', function ($id) {
         'persons' => [],
         'activities' => 0,
         'subprojects' => [],
-        'collaborators' => $result['collaborators'] ?? [],
+        'collaborators' => [],
         'website' => $result['website'] ?? null,
         'img' => null
     ];
@@ -1433,6 +1433,25 @@ Route::get('/portfolio/project/([^/]*)', function ($id) {
         $project[$key] = $Project->printField($key, $result[$key] ?? null, true);
     }
 
+    if (!empty($result['collaborators'])) {
+        foreach ($result['collaborators'] as $c) {
+            $org_id = $c['organization'] ?? null;
+            if (empty($org_id)) continue;
+            $org = $osiris->organizations->findOne(['_id' => $org_id]);
+            if (empty($org)) continue;
+            $project['collaborators'][] = [
+                'id' => strval($org['_id']),
+                'role' => $c['role'] ?? null,
+                'name' => $org['name'],
+                'type' => $org['type'] ?? null,
+                'location' => $org['location'] ?? null,
+                'country' => $org['country'] ?? null,
+                'ror' => $org['ror'] ?? null,
+                'lat' => $org['lat'] ?? null,
+                'lng' => $org['lng'] ?? null,
+            ];
+        }
+    }
 
     if (isset($result['image']) && !empty($result['image'])) {
         $project['img'] = $Settings->getRequestScheme() . '://' . $_SERVER['HTTP_HOST'] . ROOTPATH . '/uploads/' . $result['image'];
@@ -1889,11 +1908,12 @@ Route::get('/portfolio/(unit|project|topic)/([^/]*)/collaborators-map', function
 
         if (DB::is_ObjectID($id)) {
             $mongo_id = $DB->to_ObjectID($id);
-            $project = $osiris->projects->findOne(['_id' => $mongo_id]);
+            $filter = ['_id' => $mongo_id];
         } else {
-            $project = $osiris->projects->findOne(['name' => $id]);
+            $filter = ['name' => $id];
             $id = strval($project['_id'] ?? '');
         }
+        $project = $osiris->projects->findOne($filter);
         if (empty($project)) {
             rest("Project could not be found.", 0, 404);
             exit;
@@ -1912,15 +1932,26 @@ Route::get('/portfolio/(unit|project|topic)/([^/]*)/collaborators-map', function
         } else {
             $result = [];
             // order by role
-            $collabs = DB::doc2Arr($project['collaborators']);
-            usort($collabs, function ($a, $b) {
-                return $b['role'] <=> $a['role'];
-            });
+            $collabs = $project['collaborators'];
+            // usort($collabs, function ($a, $b) {
+            //     return $b['role'] <=> $a['role'];
+            // });
             foreach ($collabs as $c) {
+                $org = $osiris->organizations->findOne(['_id' => $c['organization']]);
+                if (empty($org)) continue;
                 $result[] = [
-                    "_id" => $c['name'],
+                    "_id" => strval($org['_id']),
                     "count" => 1,
-                    "data" => $c
+                    "data" => [
+                        'name' => $org['name'],
+                        'type' => $org['type'] ?? null,
+                        'location' => $org['location'] ?? null,
+                        'country' => $org['country'] ?? null,
+                        'ror' => $org['ror'] ?? null,
+                        'lat' => $org['lat'] ?? null,
+                        'lng' => $org['lng'] ?? null,
+                        'role' => $c['role'] ?? null
+                    ]
                 ];
             }
         }
@@ -1943,7 +1974,7 @@ Route::get('/portfolio/(unit|project|topic)/([^/]*)/collaborators-map', function
             ['$unwind' => '$collaborators'],
             [
                 '$group' => [
-                    '_id' => '$collaborators.name',
+                    '_id' => '$collaborators.organization',
                     'count' => ['$sum' => 1],
                     'public_count' => [
                         '$sum' => [
@@ -1959,6 +1990,27 @@ Route::get('/portfolio/(unit|project|topic)/([^/]*)/collaborators-map', function
                     ]
                 ]
             ],
+            ['$lookup' => [
+                'from' => 'organizations',
+                'localField' => '_id',
+                'foreignField' => '_id',
+                'as' => 'org'
+            ]],
+            ['$unwind' => '$org'],
+             ['$project' => [
+                '_id' => 1,
+                'count' => 1,
+                'public_count' => 1,
+                'data.name' => '$org.name',
+                'data.type' => '$org.type',
+                'data.location' => '$org.location',
+                'data.country' => '$org.country',
+                'data.ror' => '$org.ror',
+                'data.lat' => '$org.lat',
+                'data.lng' => '$org.lng'
+            ]],
+             ['$sort' => ['count' => -1]]
+
         ])->toArray();
 
         // set all roles to 'partner'
@@ -2203,7 +2255,7 @@ Route::get('/portfolio/infrastructure/([^/]*)', function ($id) {
                 $row['img'] = $Settings->printProfilePicture(null, 'profile-img small mr-20');
             }
             $row['id'] = strval($person['_id']);
-            $row['role'] = $Infra->getRole($p['role'] ?? null, $raw=true);
+            $row['role'] = $Infra->getRole($p['role'] ?? null, $raw = true);
             $units = $Groups->getPersonUnit($person, null, true, false);
             if (!empty($units)) {
                 foreach ($units as $u) {
