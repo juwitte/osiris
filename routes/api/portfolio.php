@@ -145,6 +145,8 @@ Route::get('/portfolio/settings', function () {
         ['sort' => ['order' => 1], 'projection' => ['_id' => 0, 'id' => 1, 'en' => '$name', 'de' => '$name_de']]
     )->toArray();
 
+    $result['affiliation'] = $Settings->get('affiliation_details', null);
+
     echo rest($result);
 });
 
@@ -1244,13 +1246,16 @@ Route::get('/portfolio/activity/([^/]*)', function ($id) {
     foreach ($doc['authors'] as $a) {
         if ($a['aoi']) $result['affiliated'] = true;
         $i = null;
+        $orcid = $a['orcid'] ?? null;
         if (!empty($a['user'])) {
             $person = $DB->getPerson($a['user']);
             if (!empty($person) && !($person['hide'] ?? false)) $i = strval($person['_id']);
+            if (empty($orcid) && !empty($person['orcid'])) $orcid = $person['orcid'];
         }
         $result['authors'][] = [
             'id' => $i,
             'name' => ($a['first'] ?? '') . ' ' . ($a['last'] ?? ''),
+            'orcid' => $orcid
         ];
     }
 
@@ -1301,27 +1306,62 @@ Route::get('/portfolio/activity/([^/]*)', function ($id) {
         if (str_ends_with($module, '*')) $module = str_replace('*', '', $module);
         if (in_array($module, $hidden_modules)) continue;
         if ($module == 'teaching-course' && isset($doc['module_id'])) :
-            $module = $DB->getConnected('teaching', $doc['module_id']);
-            $fields[] = [
-                'key_en' => 'Teaching Module',
-                'key_de' => 'Lehrveranstaltung',
-                'value' => $module['module']
-            ];
+            $teaching = $DB->getConnected('teaching', $doc['module_id']);
+            $value = $teaching['module'];
         elseif ($module == 'journal' && isset($doc['journal_id'])) :
             $journal = $DB->getConnected('journal', $doc['journal_id']);
-            $fields[] = [
-                'key_en' => 'Journal',
-                'key_de' => 'Journal',
-                'value' => $journal['journal']
+            $value = $journal['journal'];
+            $result['journal'] = [
+                'id' => strval($journal['_id']),
+                'name' => $journal['journal'],
+                'issn' => $journal['issn'] ?? null
+            ];
+        elseif ($module == 'organizations' || $module == 'organization') :
+            $names = [];
+            $orgs = [];
+            $arr = $module == 'organizations' ? ($doc['organizations'] ?? []) : (isset($doc['organization']) ? [$doc['organization']] : []);
+            foreach ($arr as $o) {
+                $org = $DB->getConnected('organization', $o);
+                if (!empty($org)) {
+                    $names[] = $org['name'];
+                    $orgs[] = [
+                        'id' => strval($org['_id']),
+                        'name' => $org['name'],
+                        'country' => $org['country'] ?? null,
+                        'location' => $org['location'] ?? null,
+                        'synonyms' => $org['synonyms'] ?? [],
+                        'ror' => $org['ror'] ?? null
+                    ];
+                }
+            }
+            $value = implode(', ', $names);
+            $result['organizations'] = $orgs;
+            
+        elseif ($module == 'conference' && isset($doc['conference_id'])) :
+            $conf = $DB->getConnected('conference', $doc['conference_id']);
+            $value = $conf['title'];
+            $result['event'] = [
+                'id' => strval($conf['_id']),
+                'name' => $conf['title'],
+                'title' => $conf['title_full'] ?? null,
+                'location' => $conf['location'] ?? null,
+                'country' => $conf['country'] ?? null,
+                'start' => $conf['start'] ?? null,
+                'end' => $conf['end'] ?? null,
+                'link' => $conf['url'] ?? null
             ];
         elseif ($Format->get_field($module) != '-') :
-            $names = $Modules->all_modules[$module] ?? [];
-            $fields[] = [
-                'key_en' => $names['name'] ?? ucfirst($module),
-                'key_de' => $names['name_de'] ?? ucfirst($module),
-                'value' => $Format->get_field($module)
-            ];
+            $value = $Format->get_field($module);
+        else :
+            continue;
         endif;
+        $names = $Modules->all_modules[$module] ?? [];
+        $fields[] = [
+            'id' => $module,
+            'key_en' => $names['name'] ?? ucfirst($module),
+            'key_de' => $names['name_de'] ?? ucfirst($module),
+            'value' => $value
+        ];
     }
     $result['fields'] = $fields;
 
