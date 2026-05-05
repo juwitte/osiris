@@ -103,11 +103,12 @@ Route::get('/portfolio/settings', function () {
         echo return_permission_denied();
         die;
     }
-    include_once BASEPATH . "/php/Portfolio.php";
-    $Portfolio = new Portfolio();
+    // include_once BASEPATH . "/php/Portfolio.php";
+    // $Portfolio = new Portfolio();
     // get Portfolio settings and other Data for the portfolio overview
 
     $result = [
+        'version' => OSIRIS_VERSION,
         'features' => [
             'projects' => $Settings->featureEnabled('projects'),
             'infrastructures' => $Settings->featureEnabled('infrastructures'),
@@ -1435,6 +1436,7 @@ Route::get('/portfolio/project/([^/]*)', function ($id) {
     header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, Authorization');
     header('Content-Type: application/json');
     $result = $DB->getProject($id);
+    $mongo_id = DB::to_ObjectID($id);
     if (empty($result)) {
         echo rest('Project not found', 0, 404);
         die;
@@ -1577,7 +1579,7 @@ Route::get('/portfolio/project/([^/]*)', function ($id) {
     }
 
     // add subprojects
-    $subprojects = $osiris->projects->find(['parent' => $id], ['projection' => ['name' => 1, 'title' => 1]])->toArray();
+    $subprojects = $osiris->projects->find(['parent_id' => $mongo_id], ['projection' => ['name' => 1, 'title' => 1]])->toArray();
     foreach ($subprojects as $sub) {
         if ($sub['public'] ?? false) continue;
         $project['subprojects'][] = [
@@ -1634,7 +1636,15 @@ Route::get('/portfolio/person/([^/]*)', function ($id) {
         'position_de' => $person['position_de'] ?? null,
         'depts' => [],
         'cv' => $person['cv'] ?? [],
-        'contact' => []
+        'contact' => [],
+        'biography' => [
+            'en' => $person['biography'] ?? null,
+            'de' => $person['biography_de'] ?? null
+        ],
+        'research_profile' => [
+            'en' => $person['research_profile'] ?? null,
+            'de' => $person['research_profile_de'] ?? null
+        ]
     ];
 
     if (!($person['is_active'] ?? true)) {
