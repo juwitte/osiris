@@ -355,6 +355,32 @@ Route::get('/api/dashboard/collaborators', function () {
 });
 
 
+
+Route::get('/api/dashboard/organizations', function () {
+    error_reporting(E_ERROR | E_PARSE);
+    include(BASEPATH . '/php/init.php');
+
+    if (!apikey_check($_GET['apikey'] ?? null)) {
+        echo return_permission_denied();
+        die;
+    }
+    $filter = ['lat' => ['$exists' => 1], 'lng' => ['$exists' => 1]];
+    
+    $result = $osiris->organizations->find($filter)->toArray();
+
+    $institute = $Settings->get('affiliation_details');
+    if (isset($institute['lat']) && isset($institute['lng'])) {
+        $result[] = [
+            '_id' => $institute['ror'] ?? '',
+            'count' => 3,
+            'data' => $institute,
+            'color' => '#f78104'
+        ];
+    }
+    echo return_rest($result, count($result));
+});
+
+
 Route::get('/api/dashboard/author-role', function () {
     error_reporting(E_ERROR | E_PARSE);
     include(BASEPATH . '/php/init.php');
