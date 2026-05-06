@@ -292,6 +292,7 @@ class Report
                     $filter
                 ]
             ];
+        $filter['exclude_from_reports'] = ['$ne' => true];
         // default sorting by type, year, month
         $options = ['sort' => ["type" => 1, "year" => 1, "month" => 1]];
         if (isset($item['sort']) && !empty($item['sort'])) {
