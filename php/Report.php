@@ -43,7 +43,8 @@ class Report
         $startmonth = $this->report['start'] ?? 1;
         $duration = $this->report['duration'] ?? 12;
         $endmonth = $startmonth + $duration - 1;
-        if ($endmonth > 12) {
+        // make sure endmonth does not exceed 12 and adjust endyear accordingly
+        while ($endmonth > 12) {
             $endmonth -= 12;
             $endyear++;
         }
@@ -284,7 +285,12 @@ class Report
 
         // add time limit filter
         if ($timelimit)
-            $filter = array_merge_recursive($this->timefilter, $filter);
+            $filter = [
+                '$and' => [
+                    $this->timefilter,
+                    $filter
+                ]
+            ];
 
         // default sorting by type, year, month
         $options = ['sort' => ["type" => 1, "year" => 1, "month" => 1]];
