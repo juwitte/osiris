@@ -1534,11 +1534,6 @@ Route::get('/portfolio/project/([^/]*)', function ($id) {
         foreach ($persons as $row) {
             $person = $DB->getPerson($row['user']);
             if (empty($person) || ($person['hide'] ?? false)) continue;
-            if ($person['public_image'] ?? false) {
-                $row['img'] = $Settings->printProfilePicture($person['username'], 'profile-img small mr-20');
-            } else {
-                $row['img'] = $Settings->printProfilePicture(null, 'profile-img small mr-20');
-            }
             unset($row['user']);
             $row['id'] = strval($person['_id']);
             $row['role'] = $Project->personRoleRaw($row['role']);
