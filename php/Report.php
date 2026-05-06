@@ -73,13 +73,11 @@ class Report
         // 1) Continuous / long-running activities:
         // Include if they overlap with the selected year range.
         $continuousFilter = [
+            'subtype' => ['$in' => $Settings->continuousTypes],
             'start.year' => ['$lte' => $this->endyear],
             '$or' => [
+                ['end'     => null],
                 ['end.year' => ['$gte' => $this->startyear]],
-                [
-                    'end'     => null,
-                    'subtype' => ['$in' => $Settings->continuousTypes],
-                ],
             ],
         ];
 
@@ -129,6 +127,9 @@ class Report
                 $discreteFilter,
             ],
         ];
+        // dump($this->startmonth . '/'. $this->startyear);
+        // dump($this->endmonth . '/'. $this->endyear);
+        // dump($this->timefilter);
         // OLD code for reference:
         // $this->startmonth = intval($startmonth);
         // $this->endmonth = intval($endmonth);
@@ -291,7 +292,6 @@ class Report
                     $filter
                 ]
             ];
-
         // default sorting by type, year, month
         $options = ['sort' => ["type" => 1, "year" => 1, "month" => 1]];
         if (isset($item['sort']) && !empty($item['sort'])) {
