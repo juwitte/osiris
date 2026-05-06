@@ -43,7 +43,8 @@ class Report
         $startmonth = $this->report['start'] ?? 1;
         $duration = $this->report['duration'] ?? 12;
         $endmonth = $startmonth + $duration - 1;
-        if ($endmonth > 12) {
+        // make sure endmonth does not exceed 12 and adjust endyear accordingly
+        while ($endmonth > 12) {
             $endmonth -= 12;
             $endyear++;
         }
@@ -72,13 +73,11 @@ class Report
         // 1) Continuous / long-running activities:
         // Include if they overlap with the selected year range.
         $continuousFilter = [
+            'subtype' => ['$in' => $Settings->continuousTypes],
             'start.year' => ['$lte' => $this->endyear],
             '$or' => [
+                ['end'     => null],
                 ['end.year' => ['$gte' => $this->startyear]],
-                [
-                    'end'     => null,
-                    'subtype' => ['$in' => $Settings->continuousTypes],
-                ],
             ],
         ];
 
@@ -128,6 +127,9 @@ class Report
                 $discreteFilter,
             ],
         ];
+        // dump($this->startmonth . '/'. $this->startyear);
+        // dump($this->endmonth . '/'. $this->endyear);
+        // dump($this->timefilter);
         // OLD code for reference:
         // $this->startmonth = intval($startmonth);
         // $this->endmonth = intval($endmonth);
@@ -284,8 +286,12 @@ class Report
 
         // add time limit filter
         if ($timelimit)
-            $filter = array_merge_recursive($this->timefilter, $filter);
-
+            $filter = [
+                '$and' => [
+                    $this->timefilter,
+                    $filter
+                ]
+            ];
         $filter['exclude_from_reports'] = ['$ne' => true];
         // default sorting by type, year, month
         $options = ['sort' => ["type" => 1, "year" => 1, "month" => 1]];
@@ -405,7 +411,12 @@ class Report
         }
 
         if ($timelimit)
-            $filter = array_merge_recursive($this->timefilter, $filter);
+            $filter = [
+                '$and' => [
+                    $this->timefilter,
+                    $filter
+                ]
+            ];
 
         $DB = new DB();
         $aggregate = [
