@@ -545,7 +545,7 @@ $fields_sort = array_filter($FIELDS->fields, function ($f) {
                 data.sort.forEach(sortCriterion => {
                     addSortRow($tpl.find('.sort-rows'), sortCriterion);
                 });
-            } 
+            }
             if (data.table_sort && typeof data.table_sort === 'string') {
                 $tpl.find('.step-select').val(data.table_sort);
             }
@@ -576,10 +576,21 @@ $fields_sort = array_filter($FIELDS->fields, function ($f) {
     function duplicateStep(btn) {
         const $orig = $(btn).closest('.step');
         const $clone = $orig.clone(true, true);
+        // assign new id to clone
+        $clone.attr('id', $orig.attr('id') + '-copy-' + templateIndex);
         // re-index names (*) -> n
-        $clone.html($clone.html().replace(/\[\*\]/g, '[' + templateIndex + ']'));
-        templateIndex++;
+        $clone.find('input,select,textarea').each(function() {
+            const name = $(this).attr('name');
+            if (!name) return;
+            $(this).attr('name', name.replace(/\[\d+\]/g, '[' + templateIndex + ']'));
+        });
         $('#report').append($clone);
+        if ($clone.find('.title-editor').length) {
+            $clone.find('.title-editor').attr('id', 'title-editor-' + templateIndex);
+            $clone.find('.title-editor').next().attr('id', 'title-editor-' + templateIndex + '-field');
+            initQuill($clone.find('.title-editor').get(0), 'full');
+        }
+        templateIndex++;
     }
 
     // Add one sort row to the nearest .sort-rows container
@@ -596,6 +607,7 @@ $fields_sort = array_filter($FIELDS->fields, function ($f) {
         <?php foreach ($fields_sort as $f) { ?>
             <option value="<?= e($f['id']) ?>"><?= $f['label'] ?></option>
         <?php } ?>
+        <option value="rendered.plain"><?= lang('Alphabetically', 'Alphabetisch') ?></option>
       </select>
       <select class="form-control small w-150 flex-grow-0" name="${namePrefix}[${idx}][dir]" required>
         <option value="asc">${lang('Ascending', 'Aufsteigend')}</option><option value="desc">${lang('Descending', 'Absteigend')}</option>

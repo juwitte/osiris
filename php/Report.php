@@ -410,7 +410,12 @@ class Report
         }
 
         if ($timelimit)
-            $filter = array_merge_recursive($this->timefilter, $filter);
+            $filter = [
+                '$and' => [
+                    $this->timefilter,
+                    $filter
+                ]
+            ];
 
         $DB = new DB();
         $aggregate = [
