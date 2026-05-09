@@ -874,7 +874,7 @@ class Modules
             "label" => "Course for the following module",
             "label_de" => "Veranstaltung zu folgendem Modul",
             "description" => "A field for selecting a teaching course from the database. If the course does not exist yet, the user will be prompted to add a new one that will be then saved into the database.",
-            "description_de" => "Ein Feld zum Auswählen eines Lehrmoduls aus der Datenbank. Wenn das Modul noch nicht existiert, wird der Benutzer aufgefordert, ein neues hinzuzufügen, das dann in die Datenbank gespeichert wird.",
+            "description_de" => "Ein Feld zum Auswählen einer Lehrveranstaltung aus der Datenbank. Wenn die Veranstaltung noch nicht existiert, wird der Benutzer aufgefordert, eine neue hinzuzufügen, die dann in die Datenbank gespeichert wird.",
             "width" => 12,
             "tags" => ['teaching'],
             "section" => "others",
