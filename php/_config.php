@@ -903,6 +903,8 @@ function socialLogo($type)
             return 'ph-facebook-logo';
         case 'X':
             return 'ph-x-logo';
+        case 'matrix':
+            return 'ph-matrix-logo';
         case 'website':
             return 'ph-browser';
         case 'twitter':

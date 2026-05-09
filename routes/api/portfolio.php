@@ -1509,6 +1509,7 @@ Route::get('/portfolio/person/([^/]*)', function ($id) {
             'orcid',
             'researchgate',
             'google_scholar',
+            'matrix',
             'webpage'
         ] as $key
     ) {
