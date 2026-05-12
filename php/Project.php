@@ -268,6 +268,11 @@ class Project extends Vocabulary
             case 'submission_date':
             case 'approval_date':
             case 'rejection_date':
+                if ($field == 'start' && empty($value)) {
+                    $value = $this->project['start_date'] ?? '';
+                } elseif ($field == 'end' && empty($value)) {
+                    $value = $this->project['end_date'] ?? '';
+                }
                 return Document::format_date($value);
             case 'joint_project':
                 return $this->getJointProject();
