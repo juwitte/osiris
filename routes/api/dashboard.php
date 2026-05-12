@@ -685,6 +685,7 @@ Route::get('/api/dashboard/wordcloud', function () {
     }
 
     $filter = ['type' => 'publication'];
+    $filter = [];
     if (isset($_GET['user'])) {
         $filter['rendered.users'] = $_GET['user'];
     } else if (isset($_GET['units'])) {

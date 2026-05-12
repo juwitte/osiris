@@ -543,7 +543,7 @@ if ($Settings->featureEnabled('spectrum')) {
     <h3 class=""><?= lang('Word cloud') ?></h3>
 
     <p class="text-muted">
-        <?= lang('Based on the title and abstract (if available) of publications in OSIRIS.', 'Basierend auf dem Titel und Abstract (falls verfügbar) von Publikationen in OSIRIS.') ?>
+        <?= lang('Based on the title and abstract (if available) of activities in OSIRIS.', 'Basierend auf dem Titel und Abstract (falls verfügbar) von Aktivitäten in OSIRIS.') ?>
     </p>
     <div id="wordcloud-chart" style="max-width: 80rem" ;></div>
 </section>
