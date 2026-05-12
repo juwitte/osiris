@@ -1117,6 +1117,8 @@ class Modules
     {
         if (!empty($this->fields)) {
             return $this->fields;
+        } else {
+            return array();
         }
     }
 
@@ -2864,9 +2866,9 @@ class Modules
                             <?php if (!empty($this->form) && isset($this->form['journal_id'])) :
                                 $journal = $this->DB->getConnected('journal', $this->form['journal_id']);
                             ?>
-                                <h5 class="m-0"><?= $journal['journal'] ?></h5>
-                                <span class="float-right text-muted"><?= $journal['publisher'] ?></span>
-                                <span class="text-muted">ISSN: <?= print_list($journal['issn']) ?></span>
+                                <h5 class="m-0"><?= $journal['journal'] ?? $this->form['journal'] ?? '' ?></h5>
+                                <span class="float-right text-muted"><?= $journal['publisher'] ?? '' ?></span>
+                                <span class="text-muted">ISSN: <?= print_list($journal['issn'] ?? []) ?></span>
                             <?php else : ?>
                                 <span class="font-weight-bold"><?= lang('Not selected', 'Nichts ausgewählt') ?></span>
                             <?php endif; ?>
