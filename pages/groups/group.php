@@ -85,7 +85,7 @@ if ($Settings->featureEnabled('wordcloud')) {
 }
 ?>
 
-<link rel="stylesheet" href="<?= ROOTPATH ?>/css/usertable.css?v=2">
+<link rel="stylesheet" href="<?= ROOTPATH ?>/css/usertable.css?v=<?= OSIRIS_BUILD ?>">
 
 <!-- all necessary javascript -->
 <script src="<?= ROOTPATH ?>/js/chart.min.js"></script>
