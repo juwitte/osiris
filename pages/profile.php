@@ -371,7 +371,7 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
     if (isset($scientist['new']) && defined('USER_MANAGEMENT') && USER_MANAGEMENT == 'AUTH' && $scientist['username'] == ($_SESSION['realuser'] ?? $_SESSION['username'])) { ?>
         <!-- print message to change password -->
         <div class="alert danger mt-10">
-            <a class="link text-danger" href='<?= ROOTPATH ?>/user/edit/<?= $user ?>#section-account'>
+            <a class="link text-danger" href='<?= ROOTPATH ?>/user/edit/<?= $scientist['_id'] ?>#section-account'>
                 <?= lang(
                     "You have not yet set a password. Please change your password now.",
                     "Du hast noch kein Passwort gesetzt. Bitte ändere jetzt dein Passwort."

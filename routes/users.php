@@ -39,6 +39,19 @@ Route::get('/user/edit/(.*)', function ($user) {
         die;
     }
     // $id = $DB->to_ObjectID($id);
+    if (empty($user)) {
+        header("Location: " . ROOTPATH . "/user/browse");
+        die;
+    }
+    if (DB::is_ObjectID($user)) {
+        $mongo_id = DB::to_ObjectID($user);
+        $scientist = $osiris->persons->findOne(['_id' => $mongo_id]);
+        if (empty($scientist)) {
+            header("Location: " . ROOTPATH . "/user/browse");
+            die;
+        }
+        $user = $scientist['username'];
+    }
 
     $data = $DB->getPerson($user);
     if (empty($data)) {
