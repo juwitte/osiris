@@ -573,23 +573,18 @@ Route::post('/crud/users/update/(.*)', function ($user) {
         $cv = $values['cv'];
         foreach ($values['cv'] as $key => $entry) {
             // add time text to entry
-            $fromto = $entry['from']['month'] . '/' . $entry['from']['year'];
+            $fromto = format_date($entry['from'], 'm/Y');
             $fromto .= " - ";
-            if (empty($entry['to']['year'])) {
+            if (empty($entry['to'])) {
                 $fromto .= "Current";
             } else {
-                if (!empty($entry['to']['month'])) {
-                    $fromto .= $entry['to']['month'] . '/';
-                }
-                $fromto .= $entry['to']['year'];
+                $fromto .= format_date($entry['to'], 'm/Y');
             }
             $cv[$key]['time'] = $fromto;
         }
         // sort cv descending
         usort($cv, function ($a, $b) {
-            $a = $a['from']['year'] . '.' . $a['from']['month'];
-            $b = $b['from']['year'] . '.' . $b['from']['month'];
-            return strnatcmp($b, $a);
+            return strnatcmp($b['from'], $a['from']);
         });
         $person['cv'] = $cv;
     }
