@@ -485,7 +485,7 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
         </div>
 
         <?php if ($Settings->hasPermission('user.edit')) { ?>
-            <a class="btn large text-primary border-primary" href="<?= ROOTPATH ?>/user/edit/<?= $user ?>" data-toggle="tooltip" data-title="<?= lang('Edit user profile', 'Bearbeite Profil') ?>">
+            <a class="btn large text-primary border-primary" href="<?= ROOTPATH ?>/user/edit/<?= $scientist['_id'] ?>" data-toggle="tooltip" data-title="<?= lang('Edit user profile', 'Bearbeite Profil') ?>">
                 <i class="ph ph-edit ph-fw"></i>
             </a>
         <?php } ?>
