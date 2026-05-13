@@ -18,6 +18,7 @@ class Report
     private $endyear = CURRENTYEAR - 1;
     public $fields = array();
     private $variables = array();
+    private $headers = array();
 
     public function __construct($report)
     {
@@ -166,21 +167,36 @@ class Report
 
     public function getReport()
     {
+        $this->headers = [];
         $html = "";
         $steps = $this->report['steps'] ?? array();
         foreach ($steps as $step) {
-            $html .= $this->format($step);
+            $vars = [];
+            if ($step['type'] == 'text' && ($step['level'] == 'h1' || $step['level'] == 'h2')) {
+                $id = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $step['text']));
+                $vars['id'] = $id;
+                $text = $step['text'];
+                if ($step['level'] == 'h2') {
+                    $text = ' <i class="ph ph-caret-right"></i> ' . $text;
+                } 
+                $this->headers[$id] = $text;
+            }
+            $html .= $this->format($step, $vars);
         }
         return $html;
     }
 
+    public function getHeaders()
+    {
+        return $this->headers;
+    }
 
-    public function format($item)
+    public function format($item, $vars = [])
     {
         try {
             switch ($item['type']) {
                 case 'text':
-                    return $this->formatText($item);
+                    return $this->formatText($item, $vars);
                 case 'activities':
                     return $this->formatActivities($item);
                 case 'activities-field':
@@ -219,11 +235,11 @@ class Report
      * @param array $item
      * @return string formatted HTML
      */
-    private function formatText($item)
+    private function formatText($item, $vars = [])
     {
         $level = $item['level'] ?? 'p';
         $text = $this->getText($item);
-        return "<$level>" . $text . "</$level>";
+        return "<$level" . (isset($vars['id']) ? " id=\"" . e($vars['id']) . "\"" : "") . ">" . $text . "</$level>";
     }
 
     private function formatLine()
