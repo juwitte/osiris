@@ -409,7 +409,7 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
         </div>
 
         <div class="btn-group btn-group-lg">
-            <a class="btn primary outline" href="<?= ROOTPATH ?>/user/edit/<?= $user ?>" data-toggle="tooltip" data-title="<?= lang('Edit user profile', 'Bearbeite Profil') ?>">
+            <a class="btn primary outline" href="<?= ROOTPATH ?>/user/edit/<?= $scientist['_id'] ?>" data-toggle="tooltip" data-title="<?= lang('Edit user profile', 'Bearbeite Profil') ?>">
                 <i class="ph-duotone ph-note-pencil ph-fw"></i>
                 <!-- <?= lang('Edit user profile', 'Bearbeite Profil') ?> -->
             </a>
