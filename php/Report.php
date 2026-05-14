@@ -1,6 +1,8 @@
 <?php
 require_once "init.php";
 include_once "activity_fields.php";
+include_once "project_fields.php";
+include_once "event_fields.php";
 
 use Amenadiel\JpGraph\Graph;
 use Amenadiel\JpGraph\Plot;
@@ -19,22 +21,59 @@ class Report
     public $fields = array();
     private $variables = array();
     private $headers = array();
+    private $DB;
+
+    # new constant collections
+    const COLLECTIONS = ['activities', 'projects', 'proposals', 'conferences'];
 
     public function __construct($report)
     {
+
+        $this->DB = new DB();
+
         $this->report = DB::doc2Arr($report);
         $this->steps = DB::doc2Arr($this->report['steps'] ?? array());
 
         // add default variables for year and months
-        $this->variables['startyear'] = $this->startyear;
-        $this->variables['endyear'] = $this->endyear;
-        $this->variables['startmonth'] = $this->startmonth;
-        $this->variables['endmonth'] = $this->endmonth;
+        $this->variables = [
+            'startyear' => $this->startyear,
+            'endyear' => $this->endyear,
+            'startmonth' => $this->startmonth,
+            'endmonth' => $this->endmonth,
+        ];
 
         // we need fields for labels
         $Fields = new ActivityFields();
         // field array with id as key
         $this->fields = array_column($Fields->fields, null, 'id');
+    }
+
+    /**
+     * Load fields for a collection if not present, otherwise return it
+     *
+     * @param string $collection
+     * @return array
+     */
+    private function loadFields(string $collection)
+    {
+        if (isset($this->fields[$collection]) && !empty($this->fields[$collection])) {
+            return $this->fields[$collection];
+        }
+        if (!in_array($collection, self::COLLECTIONS)) {
+            throw new Exception("Invalid collection specified: " . e($collection));
+        }
+
+        if ($collection == 'activities') {
+            $Fields = new ActivityFields();
+            $this->fields[$collection] = array_column($Fields->fields, null, 'id');
+        } elseif ($collection == 'projects' || $collection == 'proposals') {
+            $Fields = new ProjectFields($collection);
+            $this->fields[$collection] = array_column($Fields->fields, null, 'id');
+        } elseif ($collection == 'conferences') {
+            $Fields = new EventFields();
+            $this->fields[$collection] = array_column($Fields->fields, null, 'id');
+        }
+        return $this->fields[$collection] ?? [];
     }
 
     public function setYear($year)
@@ -70,6 +109,15 @@ class Report
         $this->endmonth   = intval($endmonth);
         $this->startyear  = intval($startyear);
         $this->endyear    = intval($endyear);
+
+        // update variables for use in report steps
+        $this->variables['startyear'] = $this->startyear;
+        $this->variables['endyear'] = $this->endyear;
+        $this->variables['startmonth'] = $this->startmonth;
+        $this->variables['endmonth'] = $this->endmonth;
+
+        $isostart = $this->startyear . '-' . str_pad($this->startmonth, 2, '0', STR_PAD_LEFT) . '-01';
+        $isoend = $this->endyear . '-' . str_pad($this->endmonth, 2, '0', STR_PAD_LEFT) . '-31';
 
         // 1) Continuous / long-running activities:
         // Include if they overlap with the selected year range.
@@ -122,47 +170,36 @@ class Report
         }
 
         // 3) Combine both: running OR discrete activities
-        $this->timefilter = [
+        $this->timefilter['activities'] = [
             '$or' => [
                 $continuousFilter,
                 $discreteFilter,
             ],
         ];
-        // dump($this->startmonth . '/'. $this->startyear);
-        // dump($this->endmonth . '/'. $this->endyear);
-        // dump($this->timefilter);
-        // OLD code for reference:
-        // $this->startmonth = intval($startmonth);
-        // $this->endmonth = intval($endmonth);
-        // $this->startyear = intval($startyear);
-        // $this->endyear = intval($endyear);
 
-        // if ($this->startyear == $this->endyear) {
-        //     $this->timefilter = [
-        //         '$and' => [
-        //             ['year' => ['$eq' => $this->startyear]],
-        //             ['month' => ['$gte' => $this->startmonth]],
-        //             ['month' => ['$lte' => $this->endmonth]]
-        //         ]
-        //     ];
-        // } else {
-        //     $this->timefilter = [
-        //         '$or' => [
-        //             [
-        //                 '$and' => [
-        //                     ['year' => ['$eq' => $this->startyear]],
-        //                     ['month' => ['$gte' => $this->startmonth]]
-        //                 ]
-        //             ],
-        //             [
-        //                 '$and' => [
-        //                     ['year' => ['$eq' => $this->endyear]],
-        //                     ['month' => ['$lte' => $this->endmonth]]
-        //                 ]
-        //             ]
-        //         ]
-        //     ];
-        // }
+        // time filter for proposals by submission_date (ISO)
+        $this->timefilter['proposals'] = [
+            '$and' => [
+                ['submission_date' => ['$gte' => $isostart]],
+                ['submission_date' => ['$lte' => $isoend]],
+            ],
+        ];
+
+        // time filter for projects by start_date and end_date (ISO)
+        $this->timefilter['projects'] = [
+            '$and' => [
+                ['start_date' => ['$lte' => $isoend]],
+                ['end_date' => ['$gte' => $isostart]],
+            ],
+        ];
+
+        // for conferences by start and end (ISO)
+        $this->timefilter['conferences'] = [
+            '$and' => [
+                ['start' => ['$gte' => $isostart]],
+                ['end' => ['$lte' => $isoend]],
+            ],
+        ];
     }
 
     public function getReport()
@@ -178,7 +215,7 @@ class Report
                 $text = $step['text'];
                 if ($step['level'] == 'h2') {
                     $text = ' <i class="ph ph-caret-right"></i> ' . $text;
-                } 
+                }
                 $this->headers[$id] = $text;
             }
             $html .= $this->format($step, $vars);
@@ -204,7 +241,9 @@ class Report
                 case 'table':
                     return $this->formatTable($item);
                 case 'line':
-                    return $this->formatLine($item);
+                    return $this->formatLine();
+                case 'list':
+                    return $this->formatList($item);
                 default:
                     throw new Exception("Unknown report type: " . $item['type']);
             }
@@ -302,12 +341,7 @@ class Report
 
         // add time limit filter
         if ($timelimit)
-            $filter = [
-                '$and' => [
-                    $this->timefilter,
-                    $filter
-                ]
-            ];
+            $filter = $this->addTimeFilter($filter);
         $filter['exclude_from_reports'] = ['$ne' => true];
         // default sorting by type, year, month
         $options = ['sort' => ["type" => 1, "year" => 1, "month" => 1]];
@@ -329,8 +363,7 @@ class Report
             $options['projection'][$field] = 1;
         }
 
-        $DB = new DB();
-        $data = $DB->db->activities->find($filter, $options);
+        $data = $this->DB->db->activities->find($filter, $options);
 
         if ($field) {
             return array_map(function ($item) use ($field) {
@@ -352,12 +385,180 @@ class Report
         }
         return $html;
     }
+
+
+    /**
+     * Add time filter to given filter based on report settings. If filter is empty, just return time filter, otherwise combine with AND
+     *
+     * @param array $filter
+     * @param string $collection
+     * @return array
+     */
+    private function addTimeFilter(array $filter, string $collection = 'activities')
+    {
+        if (!isset($this->timefilter[$collection])) {
+            throw new Exception("No time filter defined for collection: " . $collection);
+        }
+        if (empty($filter)) {
+            $filter = $this->timefilter[$collection];
+        } else {
+            $filter = [
+                '$and' => [
+                    $this->timefilter[$collection],
+                    $filter
+                ]
+            ];
+        }
+        return $filter;
+    }
+
+
+    public function getList($item)
+    {
+        // apply variable substitutions
+        $collection = $item['collection'] ?? 'activities';
+        if (!in_array($collection, self::COLLECTIONS)) {
+            throw new Exception("Invalid collection specified in report item: " . e($collection));
+        }
+
+        $defaultProjection = 'rendered.print';
+        if ($collection == 'projects' || $collection == 'proposals') {
+            $defaultProjection = 'title';
+        } elseif ($collection == 'persons') {
+            $defaultProjection = 'displayname';
+        } elseif ($collection == 'conferences') {
+            $defaultProjection = 'title';
+        }
+
+        $filter = json_decode($item['filter'], true);
+        // check for json errors
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new Exception("Invalid JSON filter in report item: " . json_last_error_msg());
+        }
+
+        $timelimit = $item['timelimit'] ?? false;
+
+        // add time limit filter
+        if ($timelimit) {
+            $filter = $this->addTimeFilter($filter, $collection);
+        }
+        $filter['exclude_from_reports'] = ['$ne' => true];
+
+        // default sorting by type, year, month
+        $options = ['sort' => ["type" => 1, "year" => 1, "month" => 1]];
+        if (isset($item['sort']) && !empty($item['sort'])) {
+            $options['sort'] = [];
+            foreach ($item['sort'] as $s) {
+                $dir = ($s['dir'] == 'asc') ? 1 : -1;
+                $options['sort'][$s['field']] = $dir;
+            }
+
+            $options['collation'] = [
+                'locale' => lang('en', 'de'),     // je nach gewünschter Sprache
+                'strength' => 1,
+                'numericOrdering' => true  // optional: "10" > "2"
+            ];
+        }
+        $options['projection'] = ['defaultField' => '$' . $defaultProjection];
+        if ($item['field'] ?? false) {
+            foreach ($item['field'] as $field) {
+                $options['projection'][$field] = 1;
+            }
+        }
+
+        $data = $this->DB->db->$collection->find($filter, $options)->toArray();
+
+        if ($item['field'] ?? false) {
+            return array_map(function ($el) use ($item) {
+                $row = [$el['defaultField'] ?? ''];
+                foreach ($item['field'] as $field) {
+                    $row[] = $el[$field] ?? '';
+                }
+                return $row;
+            }, $data);
+        }
+
+        return array_map(function ($el) {
+            return ($el['defaultField'] ?? '');
+        }, $data);
+    }
+
+    private function formatList($item)
+    {
+        $html = '';
+        $fields = $item['field'] ?? false;
+        $labels = [];
+        $formats = [];
+        $transforms = [];
+        if ($fields) {
+            $fieldsInfo = $this->loadFields($item['collection'] ?? 'activities');
+            foreach ($fields as $n => $field) {
+                $labels[$field] = $fieldsInfo[$field]['label'] ?? $field;
+                $formats[$n] = $fieldsInfo[$field]['type'] ?? 'text';
+                $transforms[$n] = $fieldsInfo[$field]['values'] ?? null;
+                if ($field == 'country' || $field == 'countries') {
+                    $transforms[$n] = $this->DB->getCountries(lang('name', 'name_de'));
+                }
+            }
+        }
+        $data = $this->getList($item);
+        if (count($labels) > 0) {
+            $html .= "<table class='table simple my-20'><thead><tr><th></th>";
+            foreach ($labels as $l) {
+                $html .= "<th>" . $l . "</th>";
+            }
+            $html .= "</tr></thead><tbody>";
+            foreach ($data as $element) {
+                $html .= "<tr>";
+                foreach ($element as $i => $cell) {
+                    $f = $formats[$i - 1] ?? 'text';
+                    $t = $transforms[$i - 1] ?? null;
+                    if ($f == 'datetime' && !empty($cell)) {
+                        $cell = date('d.m.Y', strtotime($cell));
+                    } elseif ($f == 'boolean') {
+                        $cell = $cell ? lang('Yes', 'Ja') : lang('No', 'Nein');
+                    } elseif ($f == 'list' && is_array($cell)) {
+                        $cell = implode(', ', $cell);
+                    } elseif ($f == 'list' && $cell instanceof MongoDB\Model\BSONArray) {
+                        $cell = DB::doc2Arr($cell);
+                        if ($t) {
+                            $cell = array_map(function ($v) use ($t) {
+                                return $t[$v] ?? $v;
+                            }, $cell);
+                        }
+                        $cell = implode(', ', $cell);
+                    } elseif ($t && isset($t[$cell])) {
+                        $cell = $t[$cell];
+                    }
+                    $html .= "<td>" . $cell . "</td>";
+                }
+                $html .= "</tr>";
+            }
+            $html .= "</tbody></table>";
+        } else {
+            foreach ($data as $element) {
+                $html .= "<p>" . $element . "</p>";
+            }
+        }
+
+        return $html;
+    }
+
+
+    /**
+     * Format a list of activities with a specific field in a table, e.g. for showing the distribution of activity types or similar. The field must be specified in the report item and will be used as column in the output table. The first column will always contain the activity description (rendered.print).
+     *
+     * @deprecated 2.0.0
+     * @param array $item
+     * @return string
+     */
     private function formatActivitiesFields($item)
     {
         $field = $item['field'] ?? false;
         $label = $field;
-        if (isset($this->fields[$field]) && !empty($this->fields[$field])) {
-            $f = $this->fields[$field];
+        $fieldsInfo = $this->loadFields($item['collection'] ?? 'activities');
+        if (isset($fieldsInfo[$field]) && !empty($fieldsInfo[$field])) {
+            $f = $fieldsInfo[$field];
             $label = $f['label'] ?? $f['id'];
         }
         $data = $this->getActivities($item, $field);
@@ -380,6 +581,11 @@ class Report
      */
     public function getTable($item)
     {
+        $collection = $item['collection'] ?? 'activities';
+        if (!in_array($collection, self::COLLECTIONS)) {
+            throw new Exception("Invalid collection specified in report item: " . e($collection));
+        }
+        $fieldsInfo = $this->loadFields($collection);
         $filter = json_decode($item['filter'], true);
         $sort = $item['table_sort'] ?? 'count-desc';
         $sortField = 'count';
@@ -402,12 +608,14 @@ class Report
         $label = $group;
         $transform = null;
         $unwind = false;
-        if (isset($this->fields[$group]) && !empty($this->fields[$group])) {
-            $f = $this->fields[$group];
+        if (isset($fieldsInfo[$group]) && !empty($fieldsInfo[$group])) {
+            $f = $fieldsInfo[$group];
             $label = $f['label'] ?? $f['id'];
             // if f value is an associative array, we need to transform the value
             if (isset($f['values']) && is_array($f['values']) && array_keys($f['values']) !== range(0, count($f['values']) - 1)) {
                 $transform = $f['values'];
+            } elseif ($f['id'] == 'country' || $f['id'] == 'countries') {
+                $transform = $this->DB->getCountries(lang('name', 'name_de'));
             }
             if ($f['type'] == 'list') {
                 $unwind = true;
@@ -415,8 +623,8 @@ class Report
         }
         $transform2 = null;
         $unwind2 = false;
-        if (!empty($group2) && isset($this->fields[$group2]) && !empty($this->fields[$group2])) {
-            $f = $this->fields[$group2];
+        if (!empty($group2) && isset($fieldsInfo[$group2]) && !empty($fieldsInfo[$group2])) {
+            $f = $fieldsInfo[$group2];
             // if f value is an associative array, we need to transform the value
             if (isset($f['values']) && is_array($f['values']) && array_keys($f['values']) !== range(0, count($f['values']) - 1)) {
                 $transform2 = $f['values'];
@@ -427,14 +635,9 @@ class Report
         }
 
         if ($timelimit)
-            $filter = [
-                '$and' => [
-                    $this->timefilter,
-                    $filter
-                ]
-            ];
+            $filter = $this->addTimeFilter($filter, $collection);
 
-        $DB = new DB();
+
         $aggregate = [
             ['$match' => $filter],
         ];
@@ -458,7 +661,7 @@ class Report
         $aggregate[] = ['$project' => ['_id' => 0, 'activity' => '$_id', 'count' => 1]];
         $aggregate[] = ['$sort' => [$sortField => $sortDir]];
 
-        $data = $DB->db->activities->aggregate(
+        $data = $this->DB->db->$collection->aggregate(
             $aggregate
         )->toArray();
 
@@ -469,7 +672,13 @@ class Report
             foreach ($data as $row) {
                 $activity = $row['activity'];
                 if (is_iterable($activity)) {
-                    $activity = DB::doc2Arr($activity)[0] ?? '';
+                    $activity = DB::doc2Arr($activity);
+                    if ($transform) {
+                        $activity = array_map(function ($v) use ($transform) {
+                            return $transform[$v] ?? $v;
+                        }, $activity);
+                    }
+                    $activity = implode(', ', $activity);
                 }
                 if (empty($activity)) {
                     $activity = '<em>' . lang('Empty', 'Leer') . '</em>';
