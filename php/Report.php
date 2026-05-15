@@ -7,7 +7,6 @@ include_once "event_fields.php";
 use Amenadiel\JpGraph\Graph;
 use Amenadiel\JpGraph\Plot;
 
-require_once "MyParsedown.php";
 
 class Report
 {
@@ -223,6 +222,40 @@ class Report
         return $html;
     }
 
+
+    public function getTOC()
+    {
+        $toc = [];
+        $steps = $this->report['steps'] ?? array();
+        foreach ($steps as $step) {
+            if ($step['type'] == 'text' && ($step['level'] != 'p')) {
+                $id = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $step['text']));
+                $vars['id'] = $id;
+                $text = $step['text'];
+                $toc[] = ['id' => $id, 'text' => $text, 'level' => str_replace('h', '', $step['level'])];
+            }
+        }
+        return $toc;
+    }
+
+    public function formatTOC()
+    {
+        $toc = $this->getTOC();
+        $html = "<div class='report-toc'><h2>" . lang('Table of contents', 'Inhaltsverzeichnis') . "</h2><ul>";
+        $previousLevel = 1;
+        foreach ($toc as $item) {
+            if ($item['level'] > $previousLevel) {
+                $html .= "<ul>";
+            } elseif ($item['level'] < $previousLevel) {
+                $html .= str_repeat("</ul>", $previousLevel - $item['level']);
+            }
+            $html .= "<li class='toc-" . ($item['level']) . "'><a href='#" . e($item['id']) . "'>" . ($item['text']) . "</a></li>";
+            $previousLevel = $item['level'];
+        }
+        $html .= str_repeat("</ul>", $previousLevel - 1) . "</div>";
+        return $html;
+    }
+
     public function getHeaders()
     {
         return $this->headers;
@@ -244,6 +277,8 @@ class Report
                     return $this->formatLine();
                 case 'list':
                     return $this->formatList($item);
+                case 'toc':
+                    return $this->formatTOC();
                 default:
                     throw new Exception("Unknown report type: " . $item['type']);
             }
@@ -376,6 +411,13 @@ class Report
         }, $data->toArray());
     }
 
+    /**
+     * Format activities as HTML list 
+     *
+     * @deprecated 2.0.0
+     * @param array $item
+     * @return void
+     */
     private function formatActivities($item)
     {
         $data = $this->getActivities($item);
@@ -483,7 +525,8 @@ class Report
         }, $data);
     }
 
-    public function prepareList($item){
+    public function prepareList($item)
+    {
         $result = [];
         $fields = $item['field'] ?? false;
         $labels = [];

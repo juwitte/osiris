@@ -482,6 +482,10 @@ if ($Settings->featureEnabled('projects')) {
                     <b class="text-primary d-block"><?= lang('Table', 'Tabelle') ?></b>
                     <small class="text-muted"><?= lang('Aggregate information as a table containing number of items', 'Aggregiere Informationen in einer Tabelle, die die Anzahl der Elemente enthält') ?></small>
                 </a>
+                <a class="item" onclick="addRow('toc')">
+                    <b class="text-primary d-block"><?= lang('Table of contents', 'Inhaltsverzeichnis') ?></b>
+                    <small class="text-muted"><?= lang('A block that automatically generates a table of contents based on the headings in the report', 'Ein Block, der automatisch ein Inhaltsverzeichnis basierend auf den Überschriften im Bericht generiert') ?></small>
+                </a>
                 <a class="item" onclick="addRow('line')">
                     <b class="text-primary d-block"><?= lang('Line', 'Linie') ?></b>
                     <small class="text-muted"><?= lang('A simple line to divide content', 'Eine einfache Linie zur Trennung von Inhalten') ?></small>
@@ -771,11 +775,28 @@ if ($Settings->featureEnabled('projects')) {
             <hr>
         </div>
 
-        <button type="button" class="btn small link text-danger" onclick="$(this).closest('.step').remove()" title="Delete">
+        <button type="button" class="btn small link text-danger" onclick="$(this).closest('.line-step').remove()" title="Delete">
             <i class="ph ph-trash" aria-label="Delete"></i>
         </button>
         <input type="hidden" class="hidden" name="values[*][type]" value="line">
     </div>
+
+    <div id="toc" class="step ">
+        <i class="ph ph-dots-six-vertical text-muted handle"></i>
+        <div class="d-flex d-align-center gap-10">
+        <i class="ph ph-list ph-fw text-secondary"></i>
+        <span class="step-title"><?= lang('Table of contents', 'Inhaltsverzeichnis') ?></span>
+
+        <button type="button" class="btn small link text-danger" onclick="$(this).closest('.step').remove()" title="Delete">
+            <i class="ph ph-trash" aria-label="Delete"></i>
+        </button>
+    </div>
+    <small class="text-muted">
+    <?= lang('Automatically generates a table of contents based on the headings in the report. You might be asked by Word to update the fields when opening the report. Just confirm with "Yes" and the table of contents will be updated.', 'Generiert automatisch ein Inhaltsverzeichnis basierend auf den Überschriften im Bericht. Beim Öffnen des Berichts könnte Word fragen, ob die Felder aktualisiert werden sollen. Einfach mit "Ja" bestätigen, dann wird das Inhaltsverzeichnis aktualisiert.') ?>
+    </small>
+        <input type="hidden" class="hidden" name="values[*][type]" value="toc">
+    </div>
+
 
     <!-- Hidden template for one variable row -->
     <table id="vars-row-template" class="hidden">
