@@ -483,9 +483,8 @@ class Report
         }, $data);
     }
 
-    private function formatList($item)
-    {
-        $html = '';
+    public function prepareList($item){
+        $result = [];
         $fields = $item['field'] ?? false;
         $labels = [];
         $formats = [];
@@ -503,13 +502,13 @@ class Report
         }
         $data = $this->getList($item);
         if (count($labels) > 0) {
-            $html .= "<table class='table simple my-20'><thead><tr><th></th>";
+            $header = [''];
             foreach ($labels as $l) {
-                $html .= "<th>" . $l . "</th>";
+                $header[] = $l;
             }
-            $html .= "</tr></thead><tbody>";
+            $result[] = $header;
             foreach ($data as $element) {
-                $html .= "<tr>";
+                $row = [];
                 foreach ($element as $i => $cell) {
                     $f = $formats[$i - 1] ?? 'text';
                     $t = $transforms[$i - 1] ?? null;
@@ -530,17 +529,43 @@ class Report
                     } elseif ($t && isset($t[$cell])) {
                         $cell = $t[$cell];
                     }
-                    $html .= "<td>" . $cell . "</td>";
+                    $row[] = $cell;
+                }
+                $result[] = $row;
+            }
+        } else {
+            foreach ($data as $element) {
+                $result[] = [$element];
+            }
+        }
+        return $result;
+    }
+    private function formatList($item)
+    {
+        $html = "";
+        $list = $this->prepareList($item);
+        if (count($list) == 0) {
+            return "<p><em>" . lang('No data available for the selected criteria.', 'Keine Daten für die ausgewählten Kriterien verfügbar.') . "</em></p>";
+        }
+        if (count($list[0]) > 1) {
+            $html .= "<table class='table my-20'><thead><tr>";
+            foreach ($list[0] as $header) {
+                $html .= "<th>" . ($header) . "</th>";
+            }
+            $html .= "</tr></thead><tbody>";
+            for ($i = 1; $i < count($list); $i++) {
+                $html .= "<tr>";
+                foreach ($list[$i] as $cell) {
+                    $html .= "<td>" . ($cell) . "</td>";
                 }
                 $html .= "</tr>";
             }
             $html .= "</tbody></table>";
         } else {
-            foreach ($data as $element) {
-                $html .= "<p>" . $element . "</p>";
+            foreach ($list as $i => $element) {
+                $html .= "<p>" . ($element[0] ?? '') . "</p>";
             }
         }
-
         return $html;
     }
 

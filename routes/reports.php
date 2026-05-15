@@ -239,6 +239,7 @@ Route::post('/reports', function () {
     $phpWord->addTitleStyle(1, ["bold" => true, "size" => 16], ["spaceBefore" => 8, 'numStyle' => 'hNum', 'numLevel' => 0]);
     $phpWord->addTitleStyle(2, ["bold" => true, "size" => 14], ["spaceBefore" => 8, 'numStyle' => 'hNum', 'numLevel' => 1]);
     $phpWord->addTitleStyle(3, ["bold" => true, "size" => 14], ["spaceBefore" => 8, 'numStyle' => 'hNum', 'numLevel' => 2]);
+    $phpWord->addTitleStyle(4, ["bold" => true, "size" => 12], ["spaceBefore" => 8]);
 
     $phpWord->addTableStyle('ReportTable', ['borderSize' => 1, 'borderColor' => 'grey', 'cellMargin' => 80]);
 
@@ -279,16 +280,25 @@ Route::post('/reports', function () {
                     $level = $step['level'] ?? 'p';
                     switch ($level) {
                         case 'h1':
-                            $run = $section->addTextRun(['styleName' => 'Heading1']);
-                            \PhpOffice\PhpWord\Shared\Html::addHtml($run, $text, false, false);
+                            // Add h1 as a heading, not as a paragraph
+                            $textrun = new \PhpOffice\PhpWord\Element\TextRun(['styleName' => 'Heading1']);
+                            \PhpOffice\PhpWord\Shared\Html::addHtml($textrun, $text, false, false);
+                            $section->addTitle($textrun, 1);
                             break;
                         case 'h2':
-                            $run = $section->addTextRun(['styleName' => 'Heading2']);
-                            \PhpOffice\PhpWord\Shared\Html::addHtml($run, $text, false, false);
+                            $textrun = new \PhpOffice\PhpWord\Element\TextRun(['styleName' => 'Heading2']);
+                            \PhpOffice\PhpWord\Shared\Html::addHtml($textrun, $text, false, false);
+                            $section->addTitle($textrun, 2);
                             break;
                         case 'h3':
-                            $run = $section->addTextRun(['styleName' => 'Heading3']);
-                            \PhpOffice\PhpWord\Shared\Html::addHtml($run, $text, false, false);
+                            $textrun = new \PhpOffice\PhpWord\Element\TextRun(['styleName' => 'Heading3']);
+                            \PhpOffice\PhpWord\Shared\Html::addHtml($textrun, $text, false, false);
+                            $section->addTitle($textrun, 3);
+                            break;
+                        case 'h4':
+                            $textrun = new \PhpOffice\PhpWord\Element\TextRun(['styleName' => 'Heading4']);
+                            \PhpOffice\PhpWord\Shared\Html::addHtml($textrun, $text, false, false);
+                            $section->addTitle($textrun, 4);
                             break;
                         default:
                             $run = $section->addTextRun();
@@ -298,6 +308,39 @@ Route::post('/reports', function () {
                     break;
                 case 'line':
                     $section->addTextBreak(1);
+                    break;
+                case 'list':
+                    $list = $Report->prepareList($step);
+                    if (count($list) == 0) {
+                        $section->addText(lang('No data available for the selected criteria.', 'Keine Daten für die ausgewählten Kriterien verfügbar.'), ['italic' => true]);
+                        break;
+                    }
+                    if (count($list[0]) > 1) {
+                        $table = $section->addTable('ReportTable');
+                        // table head
+                        $table->addRow();
+                        foreach ($list[0] as $h) {
+                            $table->addCell(2000, $styleCell)->addText($h, $styleTextBold, $styleParagraph);
+                        }
+                        // table body
+                        foreach (array_slice($list, 1) as $row) {
+                            $table->addRow();
+                            foreach ($row as $cell) {
+                                $style = $styleParagraph;
+                                if (is_numeric($cell)) {
+                                    $style = $styleParagraphRight;
+                                }
+                                $table->addCell(2000, $styleCell)->addText($cell, $styleText, $style);
+                            }
+                        }
+                        break;
+                    } else {
+                        foreach ($list as $element) {
+                            $line = $element[0];
+                            $paragraph = $section->addTextRun();
+                            \PhpOffice\PhpWord\Shared\Html::addHtml($paragraph, $line, false, false);
+                        }
+                    }
                     break;
                 case 'activities':
                     $data = $Report->getActivities($step);
@@ -350,6 +393,8 @@ Route::post('/reports', function () {
                         }
                     }
                     break;
+                default:
+                    $html = "<p><b>" . lang('Unknown step type', 'Unbekannter Schritt-Typ') . ":</b> " . e($step['type'] ?? 'unknown') . "</p>";
             }
         } catch (Exception $e) {
             error_log("Report format error: " . $e->getMessage());
