@@ -78,8 +78,68 @@ if ($Settings->featureEnabled('projects')) {
         border: 2px dashed #e5e7eb;
         border-radius: .5rem;
         padding: 1rem;
-        margin-bottom: 2rem;
+        margin: 2rem 0;
         /* background: #fff; */
+    }
+
+    .preview-content {
+        cursor: pointer;
+    }
+
+    .preview-content h1,
+    .preview-content h2,
+    .preview-content h3,
+    .preview-content h4 {
+        display: flex;
+        align-items: center;
+    }
+
+    .preview-content h1::before,
+    .preview-content h2::before,
+    .preview-content h3::before,
+    .preview-content h4::before {
+        content: "H1";
+        /* font-family: var(--icon-font); */
+        display: inline-block;
+        color: var(--muted-color);
+        margin-right: 1rem;
+        background: var(--gray-color);
+        width: 3rem;
+        text-align: center;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--border-color);
+        font-size: .6em;
+        font-weight: normal;
+        font-family: monospace;
+    }
+
+    .preview-content h1 {
+        font-size: 2.4rem;
+    }
+
+
+    .preview-content h2 {
+        font-size: 2rem;
+    }
+
+    .preview-content h2::before {
+        content: "H2";
+    }
+
+    .preview-content h3 {
+        font-size: 1.6rem;
+    }
+
+    .preview-content h3::before {
+        content: "H3";
+    }
+
+    .preview-content h4 {
+        font-size: 1.4rem;
+    }
+
+    .preview-content h4::before {
+        content: "H4";
     }
 
     .step {
@@ -251,12 +311,32 @@ if ($Settings->featureEnabled('projects')) {
     <input type="hidden" name="id" value="<?= $report_id ?>">
 
     <div style="margin-left: 2.5rem;">
-        <?php if (isset($report['title'])) { ?>
-            <button type="button" class="btn" onclick="$('#report-settings').slideToggle()">
-                <i class="ph ph-edit"></i>
-                <?= lang('Edit report settings', 'Berichtseinstellungen bearbeiten') ?>
+
+        <!-- toolbar -->
+        <div class="d-flex align-items-center gap-5 my-10">
+
+            <?php if (isset($report['title'])) { ?>
+                <button type="button" class="btn" onclick="$('#report-settings').slideToggle()">
+                    <i class="ph ph-edit"></i>
+                    <?= lang('Edit report settings', 'Berichtseinstellungen bearbeiten') ?>
+                </button>
+            <?php } ?>
+            <a href="#variables" class="btn" data-toggle="modal">
+                <i class="ph ph-code-block"></i>
+                <?= lang('Variables', 'Variablen') ?>
+            </a>
+
+            <!-- collapse all -->
+            <button type="button" class="btn ml-auto" onclick="$('#report .step').addClass('is-collapsed')">
+                <i class="ph ph-arrows-in-line-vertical"></i>
+                <?= lang('Collapse all', 'Alle einklappen') ?>
             </button>
-        <?php } ?>
+            <button type="button" class="btn" onclick="$('#report .step').removeClass('is-collapsed')">
+                <i class="ph ph-arrows-out-line-vertical"></i>
+                <?= lang('Expand all', 'Alle ausklappen') ?>
+            </button>
+        </div>
+
 
         <div style="<?= isset($report['title']) ? 'display:none;' : '' ?>" id="report-settings" class="box padded mt-0">
             <h2 class="title">
@@ -374,25 +454,8 @@ if ($Settings->featureEnabled('projects')) {
             </div>
         </div>
 
-        <!-- toolbar -->
-        <div class="d-flex align-items-center gap-5 my-10">
-            <a href="#variables" class="btn primary" data-toggle="modal">
-                <i class="ph ph-code-block"></i>
-                <?= lang('Variables', 'Variablen') ?>
-            </a>
-
-            <!-- collapse all -->
-            <button type="button" class="btn ml-auto" onclick="$('#report .step').addClass('is-collapsed')">
-                <i class="ph ph-arrows-in-line-vertical"></i>
-                <?= lang('Collapse all', 'Alle einklappen') ?>
-            </button>
-            <button type="button" class="btn" onclick="$('#report .step').removeClass('is-collapsed')">
-                <i class="ph ph-arrows-out-line-vertical"></i>
-                <?= lang('Expand all', 'Alle ausklappen') ?>
-            </button>
-        </div>
-
     </div>
+
     <div id="report">
         <!-- steps will be added here -->
     </div>
@@ -411,21 +474,13 @@ if ($Settings->featureEnabled('projects')) {
                     <b class="text-primary d-block"><?= lang('Text', 'Text') ?></b>
                     <small class="text-muted"><?= lang('A block that contains headings or paragraphs', 'Ein Block, der Überschriften oder Absätze enthält') ?></small>
                 </a>
-                <!-- <a class="item" onclick="addRow('activities')">
-                    <b class="text-primary d-block"><?= lang('Activities', 'Aktivitäten') ?></b>
-                    <small class="text-muted"><?= lang('A block that contains a list of activities', 'Ein Block, der eine Liste von Aktivitäten enthält') ?></small>
-                </a>
-                <a class="item" onclick="addRow('activities-field')">
-                    <b class="text-primary d-block"><?= lang('Activities (incl. additional Feld)', 'Aktivitäten (mit weiterem Feld)') ?></b>
-                    <small class="text-muted"><?= lang('A block that contains a table of activities with another field in a seperate column', 'Ein Block, der eine Tabelle von Aktivitäten mit einem weiteren Feld in einer separaten Spalte enthält') ?></small>
-                </a> -->
                 <a class="item" onclick="addRow('list')">
                     <b class="text-primary d-block"><?= lang('List', 'Liste') ?></b>
                     <small class="text-muted"><?= lang('A block that contains a list of items of different types', 'Ein Block, der eine Liste von Elementen unterschiedlicher Typen enthält') ?></small>
                 </a>
                 <a class="item" onclick="addRow('table')">
                     <b class="text-primary d-block"><?= lang('Table', 'Tabelle') ?></b>
-                    <small class="text-muted"><?= lang('A block that contains a table of aggregated activities', 'Ein Block, der eine Tabelle von aggregierten Aktivitäten enthält') ?></small>
+                    <small class="text-muted"><?= lang('Aggregate information as a table containing number of items', 'Aggregiere Informationen in einer Tabelle, die die Anzahl der Elemente enthält') ?></small>
                 </a>
                 <a class="item" onclick="addRow('line')">
                     <b class="text-primary d-block"><?= lang('Line', 'Linie') ?></b>
@@ -453,6 +508,10 @@ if ($Settings->featureEnabled('projects')) {
         gap: 1rem;
     }
 
+    .preview-content {
+        flex-grow: 1;
+    }
+
     .step-container {
         /* margin-bottom: 1rem; */
     }
@@ -471,11 +530,11 @@ if ($Settings->featureEnabled('projects')) {
         <div class="preview">
             <i class="ph ph-dots-six-vertical text-muted handle"></i>
 
-            <div class="preview-content">
+            <div class="preview-content" onclick="openTextEditor(this)">
                 <p><?= lang('Text block without content', 'Textblock ohne Inhalt') ?></p>
             </div>
-            <a data-toggle="modal" onclick="$(this).closest('.step-container').find('.step').slideToggle()">
-                <i class="ph ph-edit"></i>
+            <a data-toggle="modal" onclick="openTextEditor(this)">
+                <i class="ph ph-pencil-simple-line"></i>
             </a>
         </div>
         <div class="step" style="display:none;">
@@ -567,7 +626,7 @@ if ($Settings->featureEnabled('projects')) {
     <div class="step" id="activities">
         <div class="step-header">
             <i class="ph ph-dots-six-vertical text-muted handle"></i>
-            <i class="ph ph-article ph-fw text-secondary"></i>
+            <a onclick="toggleStep(this)"><i class="ph ph-article ph-fw text-secondary"></i></a>
             <span class="step-title"><?= lang('Activities', 'Aktivitäten') ?></span>
             <button type="button" class="btn link btn-icon collapse-btn" onclick="toggleStep(this)" title="Collapse/Expand">
                 <i class="ph ph-arrows-in-line-vertical"></i>
@@ -600,7 +659,7 @@ if ($Settings->featureEnabled('projects')) {
     <div class="step" id="activities-field">
         <div class="step-header">
             <i class="ph ph-dots-six-vertical text-muted handle"></i>
-            <i class="ph ph-columns-plus-right ph-fw text-secondary"></i>
+            <a onclick="toggleStep(this)"><i class="ph ph-columns-plus-right ph-fw text-secondary"></i></a>
             <span class="step-title"><?= lang('Activities (incl. additional Field)', 'Aktivitäten (mit weiterem Feld)') ?></span>
             <button type="button" class="btn link btn-icon collapse-btn" onclick="toggleStep(this)" title="Collapse/Expand">
                 <i class="ph ph-arrows-in-line-vertical"></i>
@@ -1123,9 +1182,15 @@ if ($Settings->featureEnabled('projects')) {
     });
 
 
-    function buildOptions(collection, subset='add', selected = '') {
+    function buildOptions(collection, subset = 'add', selected = '') {
         const FIELDS = <?= json_encode($data_fields) ?>;
         if (!FIELDS[collection]) return '';
         return FIELDS[collection][subset].map(f => `<option value="${f.id}" ${f.id === selected ? 'selected' : ''}>${f.label}</option>`).join('');
+    }
+
+    function openTextEditor(btn) {
+        // toggle editor visibility
+        const $step = $(btn).closest('.step-container');
+        $step.find('.step').slideToggle()
     }
 </script>
