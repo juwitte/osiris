@@ -1074,7 +1074,7 @@ $active = function ($field) use ($data_fields) {
             <!-- ensure to save empty research interests -->
             <input type="hidden" name="values[research]" value="">
             <small class="text-muted">Max. 5</small><br>
-            <table class="table simple">
+            <table class="table">
                 <thead>
                     <tr>
                         <th><label for="research" class="d-flex">English <img src="<?= ROOTPATH ?>/img/gb.svg" alt="EN" class="flag"></label></th>
