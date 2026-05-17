@@ -767,7 +767,7 @@ $active = function ($field) use ($data_fields) {
                 <div class="footer">
                     <div class="input-group small d-inline-flex w-auto">
                         <select class="form-control" id="maintenance-select">
-                            <option value="" disabled selected><?= lang("Add person ...", "Füge Person hinzu ...") ?></option>
+                            <option value="" disabled selected><?= lang("Select a person to share with ...", "Wähle eine Person zum Teilen aus ...") ?></option>
                             <?php
                             $all_users = $osiris->persons->find(['is_active' => ['$ne' => false]], ['sort' => ['last' => 1, 'first' => 1]]);
                             foreach ($all_users as $s) { ?>

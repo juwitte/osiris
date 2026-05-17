@@ -32,17 +32,11 @@ Route::get('/user/browse', function () {
 Route::get('/user/edit/(.*)', function ($user) {
     include_once BASEPATH . "/php/init.php";
     include_once BASEPATH . "/php/Document.php";
-    if (!$Settings->hasPermission('user.edit') && $user != $_SESSION['username']) {
-        $_SESSION['msg'] = lang("You don't have permission to edit users.", "Du hast keine Berechtigung, Benutzer zu bearbeiten.");
-        $_SESSION['msg_type'] = "error";
-        header("Location: " . ROOTPATH . "/profile/$user");
-        die;
-    }
-    // $id = $DB->to_ObjectID($id);
+
     if (empty($user)) {
-        header("Location: " . ROOTPATH . "/user/browse");
-        die;
+        $user = $_SESSION['username'];
     }
+
     if (DB::is_ObjectID($user)) {
         $mongo_id = DB::to_ObjectID($user);
         $scientist = $osiris->persons->findOne(['_id' => $mongo_id]);
@@ -53,6 +47,12 @@ Route::get('/user/edit/(.*)', function ($user) {
         $user = $scientist['username'];
     }
 
+    if (!$Settings->hasPermission('user.edit') && $user != $_SESSION['username']) {
+        $_SESSION['msg'] = lang("You don't have permission to edit users.", "Du hast keine Berechtigung, Benutzer zu bearbeiten.");
+        $_SESSION['msg_type'] = "error";
+        header("Location: " . ROOTPATH . "/profile/$user");
+        die;
+    }
     $data = $DB->getPerson($user);
     if (empty($data)) {
         header("Location: " . ROOTPATH . "/user/browse");

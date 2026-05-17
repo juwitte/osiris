@@ -1613,6 +1613,7 @@ function coauthorNetwork(selector, data = {}) {
                 if (d.dept.id && depts_in_use[d.dept.id] === undefined)
                     depts_in_use[d.dept.id] = d.dept;
             })
+            console.log(labels);
 
             Chords(selector, matrix, labels, colors, data, links, false, DEPTS[CURRENT_USER]['index']);
 

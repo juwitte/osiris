@@ -31,7 +31,7 @@ foreach ($persons as $p) {
         break;
     }
 }
-$edit_perm = ($project['created_by'] == $_SESSION['username'] || $Settings->hasPermission('projects.edit') || ($Settings->hasPermission('projects.edit-own') && $user_project));
+$edit_perm = (($project['created_by'] ?? '') == $_SESSION['username'] || $Settings->hasPermission('projects.edit') || ($Settings->hasPermission('projects.edit-own') && $user_project));
 
 $count_activities = $osiris->activities->count(['projects' => $project['_id']]);
 $count_spectrum = 0;
