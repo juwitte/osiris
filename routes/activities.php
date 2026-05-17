@@ -1578,8 +1578,9 @@ Route::post('/crud/activities/connect', function () {
         die('Error: source or target missing.');
     }
 
+
     $relationship = $_POST['relationship'] ?? 'related';
-    $reverse = isset($_POST['reverse']);
+    $reverse = isset($_POST['reverse']) && $_POST['reverse'] == 1;
     if ($reverse) {
         // swap target and source
         $temp = $target;

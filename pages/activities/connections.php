@@ -1,4 +1,7 @@
 <style>
+    .bottom-buttons {
+        z-index: 90;
+    }
     .collapse-panel {
         margin-bottom: 2rem;
     }
