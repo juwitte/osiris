@@ -22,13 +22,12 @@ foreach ($fields as $field_id) {
     } else {
         $section = $Modules->all_modules[$field_id]['section'] ?? '';
     }
-    if (empty($section)) continue; // if no section is defined, do not show the field
+    if (empty($section)) $section = 'others';
     if (in_array($field_id, $hidden_fields)) continue;
 
-    $names = $Modules->all_modules[$field_id] ?? [];
+    $name = $Modules->get_name($field_id);
     $field = [
-        'key_en' => $names['name'] ?? ucfirst($field_id),
-        'key_de' => $names['name_de'] ?? ucfirst($field_id),
+        'label' => $name,
         'value' => null,
     ];
     if ($field_id == 'teaching-course' && isset($doc['module_id'])) :
@@ -44,7 +43,7 @@ foreach ($fields as $field_id) {
         $field['value'] = $Format->get_field($field_id);
     endif;
     if ($field['value'] === null || $field['value'] === '' || $field['value'] === '-') {
-        $empty_fields[] = $field_id;
+        $empty_fields[] = $name;
         continue;
     }
     $sections[$section][] = $field;
@@ -466,8 +465,7 @@ if ($edit_perm) {
                         if (!empty($doc['abstract']) || ($displayAltmetric)): ?>
                             <hr>
                             <div class="content">
-
-                                <h3 class="section-title"><?= lang("Abstract", "Zusammenfassung"); ?></h3>
+                                <h3 class="section-title"><?= $Modules->get_name('abstract') ?></h3>
                                 <!-- floating container for altmetric badge -->
                                 <?php if ($displayAltmetric) { ?>
                                     <div id="altmetric-container" class="float-right ml-20">
@@ -952,7 +950,7 @@ if ($edit_perm) {
                                 <?php foreach ($sections['key'] as $field) : ?>
                                     <tr>
                                         <td>
-                                            <span class="key"><?= lang($field['key_en'], $field['key_de']); ?></span>
+                                            <span class="key"><?= $field['label'] ?></span>
                                             <span><?= $field['value'] ?></span>
                                         </td>
                                     </tr>
@@ -971,7 +969,7 @@ if ($edit_perm) {
                             'events' => lang('Events', 'Veranstaltungen'),
                             'people' => lang('People and Organizations', 'Personen und Organisationen'),
                             'software' => lang('Software', 'Software'),
-                            'others' => lang('Others', 'Andere')
+                            'others' => lang('Other data', 'Weitere Daten')
                         ] as $section => $section_label
                     ) {
                         if (array_key_exists($section, $sections) && !empty($sections[$section])) { ?>
@@ -982,7 +980,7 @@ if ($edit_perm) {
                                     ?>
                                         <tr>
                                             <td>
-                                                <span class="key"><?= lang($field['key_en'], $field['key_de']); ?></span>
+                                                <span class="key"><?= $field['label'] ?></span>
                                                 <span><?= $field['value']; ?></span>
                                             </td>
                                         </tr>
@@ -999,10 +997,7 @@ if ($edit_perm) {
                             <small>
                                 <?= lang("The following fields are empty: ", "Die folgenden Felder sind leer: ") ?>
                             </small>
-                            <?= implode(", ", array_map(function ($f) use ($Modules) {
-                                $names = $Modules->all_modules[$f] ?? [];
-                                return lang($names['name_en'] ?? ucfirst($f), $names['name_de'] ?? ucfirst($f));
-                            }, $empty_fields)) ?>
+                            <?= implode(", ", $empty_fields) ?>
                         </p>
                     <?php } ?>
                     </table>
