@@ -2629,7 +2629,7 @@ class Modules
                         <option value="long" <?= $this->val('lecture_type') == 'long' ? 'selected' : '' ?>><?= lang('long', 'lang') ?> (> 30 min.)</option>
                         <option value="repetition" <?= $this->val('lecture_type') == 'repetition' || $this->copy === true ? 'selected' : '' ?>><?= lang('repetition', 'Wiederholung') ?></option>
                     </select>
-                    <label class="<?= $labelClass ?> " for="lecture_type"><?= lang('Type of lecture', 'Art des Vortrages') ?></label>
+                    <label class="<?= $labelClass ?> " for="lecture_type"><?= $label ?></label>
                     <?= $this->render_help($help) ?>
                 </div>
             <?php
