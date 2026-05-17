@@ -781,6 +781,7 @@ if ($edit_perm) {
                                 } elseif ($is_favorite) {
                                     $selected_state = 'highlight';
                                 }
+                                $highlighted_by = $osiris->persons->count(['highlighted' => strval($id), 'username' => ['$ne' => $_SESSION['username']]]);
                             ?>
                                 <tr>
                                     <td>
@@ -798,6 +799,10 @@ if ($edit_perm) {
                                                 </button>
                                             <?php } ?>
                                         </div>
+                                        <?php if ($highlighted_by > 0) { ?>
+                                            <span data-toggle="tooltip" data-title="<?= lang('This activity is highlighted by ' . $highlighted_by . ' other person(s).', 'Diese Aktivität wurde von ' . $highlighted_by . ' weiteren Person(en) hervorgehoben.') ?>"><i class="ph ph-star text-signal"></i></span>
+                                        <?php } ?>
+
 
                                         <script>
                                             let visibilityState = '<?= $selected_state ?>';
