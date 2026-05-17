@@ -351,7 +351,7 @@ Route::get('/user/picture/(.*)', function ($user, $cls = 'profile-img') {
 
 // Synchronize users
 
-Route::get('/synchronize-users', function () {
+Route::get('/(synchronize-users)', function () {
     include_once BASEPATH . "/php/init.php";
     include_once BASEPATH . "/php/_login.php";
     include BASEPATH . "/header.php";
@@ -359,11 +359,10 @@ Route::get('/synchronize-users', function () {
     include BASEPATH . "/footer.php";
 });
 
-Route::post('/synchronize-users', function () {
+Route::post('/(synchronize-users|admin/ldap-users)', function ($both) {
     include_once BASEPATH . "/php/init.php";
     if (!$Settings->hasPermission('user.synchronize')) {
-        echo "<p>Permission denied.</p>";
-        die();
+        abortwith(403, lang('You do not have permission to synchronize users.', 'Du hast keine Berechtigung, Nutzende zu synchronisieren.'), '/admin', lang('Go back to settings', 'Zurück zu den Einstellungen'));
     }
     include_once BASEPATH . "/php/_login.php";
     include BASEPATH . "/header.php";

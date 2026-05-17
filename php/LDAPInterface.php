@@ -551,6 +551,11 @@ class LDAPInterface
                 $userData['is_active'] = true;
             }
 
+            if (!empty($userData['last'] ?? null) && !empty($userData['first'] ?? null)) {
+                $userData['displayname'] = "$userData[first] $userData[last]";
+                $userData['formalname'] = "$userData[last], $userData[first]";
+            }
+
             // Update in der Datenbank speichern
             // Beispiel mit MongoDB:
             $osiris->persons->updateOne(
