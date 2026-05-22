@@ -227,6 +227,7 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
         </div>
     </div>
     <div class="col ml-20">
+        <div class="text-muted"><?= $scientist['academic_title'] ?? '' ?></div>
         <h1 class="mt-0"><?= $name ?></h1>
         <h5 class="subtitle">
             <?= lang($scientist['position'] ?? '', $scientist['position_de'] ?? null) ?>
@@ -1011,7 +1012,7 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
                                 $deadlineTypes = $Vocabulary->getValues('deadline-type');
                                 $deadlineTypes = array_column($deadlineTypes, null, 'id');
                                 ?>
-                                <div id="deadline-timeline" class="mt-20 mb-10"></div>
+                                <div id="deadline-timeline" class="mb-10"></div>
                                 <style>
                                     #deadline-timeline {
                                         position: relative;
