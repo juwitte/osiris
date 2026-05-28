@@ -94,6 +94,24 @@ Route::get('/migrate/files', function () {
     include BASEPATH . "/footer.php";
 });
 
+Route::get('/migrate/(.*)', function ($version) {
+    include_once BASEPATH . "/php/init.php";
+    include_once BASEPATH . "/php/Country.php";
+    if (!$Settings->hasPermission('admin.see')) {
+        return abortwith(403);
+    }
+    set_time_limit(6000);
+    include BASEPATH . "/header.php";
+    // check if version file exists
+    if (!file_exists(BASEPATH . "/routes/migration/v$version.php")) {
+        echo "<p>Migration file for version $version not found. Please check if the file <code>v$version.php</code> exists in the <code>routes/migration</code> folder.</p>";
+    } else {
+        include_once BASEPATH . "/routes/migration/v$version.php";
+    }
+    include BASEPATH . "/footer.php";
+});
+
+
 Route::get('/migrate/cv', function () {
     // error_reporting(E_ERROR | E_PARSE);
     set_time_limit(6000);
