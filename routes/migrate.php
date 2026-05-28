@@ -443,6 +443,12 @@ Route::get('/migrate', function () {
         ob_flush();
         $rerender = true;
     }
+    if (version_compare($DBversion, '2.0.0', '<')) {
+        include BASEPATH . "/routes/migration/v2.0.0.php";
+        flush();
+        ob_flush();
+        $rerender = true;
+    }
 
     if ($rerender) {
         echo "<p>Rerender activities, please wait ...</p>";
