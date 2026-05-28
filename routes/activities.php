@@ -355,6 +355,12 @@ Route::get('/activities/view/([a-zA-Z0-9]*)', function ($id) {
 
     $files = $osiris->uploads->find(['type' => 'activities', 'id' => strval($id)])->toArray();
 
+    // check user preference for activity view
+    $activity_view = $_GET['view'] ?? $USER['activity_view'] ?? 'none';
+
+    $no_container = true;
+    include BASEPATH . "/header.php";
+
     $openalex = null;
     $spectrum = [];
     if ($Settings->featureEnabled('spectrum') && isset($doc['doi']) && $doc['type'] == 'publication') {
@@ -371,11 +377,6 @@ Route::get('/activities/view/([a-zA-Z0-9]*)', function ($id) {
         $spectrum = $openalex['topics'] ?? [];
     }
 
-    // check user preference for activity view
-    $activity_view = $_GET['view'] ?? $USER['activity_view'] ?? 'none';
-
-    $no_container = true;
-    include BASEPATH . "/header.php";
     if ($Settings->featureEnabled('quality-workflow', false) && ($user_activity || $Settings->hasPermission('workflows.view'))) {
         include_once BASEPATH . '/pages/activities/activity-workflow.php';
     }
