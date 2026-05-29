@@ -1,4 +1,4 @@
 <?php
 define('OSIRIS_VERSION', '2.0.0');
-define('OSIRIS_BUILD', '260515');
+define('OSIRIS_BUILD', '260529');
 define('OSIRIS_BETA', true);
