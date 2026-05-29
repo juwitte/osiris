@@ -632,40 +632,71 @@ function flatten(array $array)
     return $return;
 }
 
-function time_elapsed_string($datetime, $full = false, $type = 'str')
+function time_elapsed_string(string $datetime, $full = false)
 {
     $now = new DateTime;
-    if ($type == 'str') {
-        $ago = new DateTime($datetime);
-    } else {
-        $ago = new DateTime();
-        $ago->setTimestamp($datetime);
-    }
+    $ago = new DateTime($datetime);
     $diff = $now->diff($ago);
 
-    $diff->w = floor($diff->d / 7);
-    $diff->d -= $diff->w * 7;
-
     $string = array(
-        'y' => lang('year', 'Jahre'),
-        'm' => lang('month', 'Monate'),
+        'y' => lang('year', 'Jahr'),
+        'm' => lang('month', 'Monat'),
         'w' => lang('week', 'Woche'),
-        'd' => lang('day', 'Tage'),
+        'd' => lang('day', 'Tag'),
         'h' => lang('hour', 'Stunde'),
         'i' => lang('minute', 'Minute'),
         's' => lang('second', 'Sekunde'),
     );
     foreach ($string as $k => &$v) {
-        if ($diff->$k) {
-            $v = $diff->$k . ' ' . $v . ($diff->$k > 1 ? lang('s', 'n') : '');
+        $item = ($k == 'w') ? floor($diff->d / 7) : $diff->$k;
+        if ($item) {
+            if ($item > 1) {
+                if ($k == 'm' || $k == 'y' || $k == 'd') {
+                    $v .= lang('s', 'en');
+                } else {
+                    $v .= lang('s', 'n');
+                }
+            }
+            $v = $item . ' ' . $v;
         } else {
             unset($string[$k]);
         }
     }
 
     if (!$full) $string = array_slice($string, 0, 1);
+    if (!$diff->invert) {
+        return $string ? lang('in ', 'in ') . implode(', ', $string) : lang('just now', 'gerade eben');
+    }
     return $string ? lang('', 'vor ') . implode(', ', $string) . lang(' ago', '') : lang('just now', 'gerade eben');
 }
+
+// function time_until($datetime, $full = false, $type = 'str'){
+//     $now = new DateTime;
+//     if ($type == 'str') {
+//         $future = new DateTime($datetime);
+//     } else {
+//         $future = new DateTime();
+//         $future->setTimestamp($datetime);
+//     }
+//     $diff = $now->diff($future);
+
+//     $diff->w = floor($diff->d / 7);
+//     $diff->d -= $diff->w * 7;
+
+//     $string = array(
+//         'y' => lang('year', 'Jahre'),
+//         'm' => lang('month', 'Monate'),
+//         'w' => lang('week', 'Woche'),
+//         'd' => lang('day', 'Tage'),
+//         'h' => lang('hour', 'Stunde'),
+//         'i' => lang('minute', 'Minute'),
+//         's' => lang('second', 'Sekunde'),
+//     );
+
+//     foreach ($string as $k => &$v) {
+//         if ($diff->$k) {
+
+// }
 
 
 function adjustBrightness($hex, $steps)
@@ -977,4 +1008,14 @@ function formatBytes($bytes, $precision = 1)
     $units = ['B', 'KB', 'MB', 'GB', 'TB'];
     $factor = floor((strlen($bytes) - 1) / 3);
     return sprintf("%.{$precision}f", $bytes / pow(1024, $factor)) . ' ' . $units[$factor];
+}
+
+function get_contrast_color($hexcolor)
+{
+    $hexcolor = str_replace('#', '', $hexcolor);
+    $r = hexdec(substr($hexcolor, 0, 2));
+    $g = hexdec(substr($hexcolor, 2, 2));
+    $b = hexdec(substr($hexcolor, 4, 2));
+    $brightness = ($r * 299 + $g * 587 + $b * 114) / 1000;
+    return $brightness > 128 ? '#000000' : '#FFFFFF';
 }

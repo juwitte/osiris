@@ -61,7 +61,7 @@ Route::get('/', function () {
     if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] === false) {
         header("Location: " . ROOTPATH . "/user/login");
     } else {
-        $path = ROOTPATH . "/profile/" . $_SESSION['username'];
+        $path = ROOTPATH . "/home";
         if (!empty($_SERVER['QUERY_STRING'])) $path .= "?" . $_SERVER['QUERY_STRING'];
         header("Location: $path");
     }
@@ -107,7 +107,8 @@ Route::get('/set-preferences', function () {
             'samesite' => 'Lax',
         ]);
         // save language in user profile
-        if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true
+        if (
+            isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true
             && isset($_SESSION['username']) && !empty($_SESSION['username'])
         ) {
             $osiris->persons->updateOne(
@@ -156,6 +157,14 @@ if (
     &&
     isset($_SESSION['username']) && !empty($_SESSION['username'])
 ) {
+
+    Route::get('/home', function () {
+        include_once BASEPATH . "/php/init.php";
+        include BASEPATH . "/header.php";
+        include BASEPATH . "/pages/home.php";
+        include BASEPATH . "/footer.php";
+    });
+
     include_once BASEPATH . "/routes/data.php";
     include_once BASEPATH . "/routes/export.php";
     include_once BASEPATH . "/routes/database.php";
