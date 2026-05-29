@@ -46,12 +46,8 @@ if (
     $hasNews = true;
 }
 ?>
-<!-- <script src="<?= ROOTPATH ?>/js/chart.min.js"></script> -->
-<!-- <script src="<?= ROOTPATH ?>/js/chartjs-plugin-datalabels.min.js"></script> -->
 <script src="<?= ROOTPATH ?>/js/d3.v4.min.js"></script>
 <script src="<?= ROOTPATH ?>/js/popover.js"></script>
-<!-- <script src="<?= ROOTPATH ?>/js/d3-chords.js?v=<?= OSIRIS_BUILD ?>"></script> -->
-<!-- <script src="<?= ROOTPATH ?>/js/d3.layout.cloud.js"></script> -->
 
 
 <style>
@@ -116,7 +112,8 @@ if (
     }
 
     .link-block-title {
-        font-weight: 400;
+        font-weight: 500;
+        font-family: var(--header-font);
         /* shorten */
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -236,16 +233,6 @@ if (
         color: var(--muted-color);
     }
 
-    .conference-title {
-        margin: .2rem 0 .4rem;
-        font-size: 1.4rem;
-        line-height: 1.35;
-    }
-
-    .conference-title a {
-        text-decoration: none;
-    }
-
     .conference-link {
         margin-left: .25rem;
         opacity: .75;
@@ -309,6 +296,53 @@ if (
         display: block;
         margin-top: .25rem;
         color: var(--muted-color);
+    }
+
+
+
+    .notification-list a {
+        display: flex;
+        align-items: center;
+        transition: background-color 0.15s ease;
+        padding: 0.5rem 1rem;
+        background-color: white;
+        border-radius: var(--border-radius);
+        margin: 0 -.5rem;
+    }
+
+    .notification-list a:hover {
+        background-color: var(--blue-color-10);
+    }
+
+    .notification-list a i {
+        display: flex;
+        -ms-flex-align: center;
+        align-items: center;
+        -ms-flex-pack: center;
+        justify-content: center;
+        width: 3rem;
+        height: 3rem;
+        font-size: 2rem;
+        margin-right: 1rem;
+        color: var(--blue-color);
+        background-color: var(--blue-color-20);
+        border: none;
+        border-radius: var(--border-radius);
+        -webkit-transition: box-shadow 0.5s, background-color 0.5s, color 0.5s;
+        transition: box-shadow 0.5s, background-color 0.5s, color 0.5s;
+        flex-shrink: 0;
+    }
+
+    .notification-list a .index {
+        margin-left: auto;
+        background-color: var(--blue-color-20);
+        color: var(--blue-color);
+        border-radius: 999px;
+        padding: 0 6px;
+        font-size: 1.2rem;
+        font-weight: bold;
+        min-width: 2rem;
+        text-align: center;
     }
 </style>
 
@@ -703,51 +737,45 @@ if (
 
             <div class="row row-eq-spacing">
                 <style>
-                    .notification-list a {
+                    .status-cards {
                         display: flex;
-                        align-items: center;
-                        transition: background-color 0.15s ease;
-                        padding: 0.5rem 1rem;
-                        background-color: white;
-                        border-radius: var(--border-radius);
-                        margin: 0 -.5rem;
+                        gap: 1rem;
+                        flex-wrap: wrap;
                     }
 
-                    .notification-list a:hover {
-                        background-color: var(--blue-color-10);
+                    .status-cards a {
+                        flex: 1;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
                     }
 
-                    .notification-list a i {
+                    .status-cards div {
                         display: flex;
-                        -ms-flex-align: center;
                         align-items: center;
-                        -ms-flex-pack: center;
                         justify-content: center;
                         width: 3rem;
                         height: 3rem;
-                        font-size: 2rem;
-                        margin-right: 1rem;
+                        font-size: 1.5rem;
                         color: var(--blue-color);
                         background-color: var(--blue-color-20);
-                        border: none;
                         border-radius: var(--border-radius);
-                        -webkit-transition: box-shadow 0.5s, background-color 0.5s, color 0.5s;
-                        transition: box-shadow 0.5s, background-color 0.5s, color 0.5s;
-                        flex-shrink: 0;
+                        position: relative;
                     }
-
-                    .notification-list a .index {
-                        margin-left: auto;
-                        background-color: var(--blue-color-20);
-                        color: var(--blue-color);
+                    .status-cards .index {
+                        position: absolute;
+                        top: -5px;
+                        right: -5px;
+                        background-color: var(--danger-color);
+                        color: white;
                         border-radius: 999px;
                         padding: 0 6px;
-                        font-size: 1.2rem;
+                        font-size: 1rem;
                         font-weight: bold;
-                        min-width: 2rem;
-                        text-align: center;
                     }
+
                 </style>
+
 
                 <div class="col">
                     <div class="box padded">
@@ -755,17 +783,20 @@ if (
                             <h2>
                                 <i class="ph-duotone ph-clipboard-text"></i>
                                 <?= lang('My tasks', 'Meine Aufgaben') ?>
+                            </h2>
                         </div>
-                        <div class="notification-list">
+                        <div class="status-cards">
                             <?php
                             if ($has_notifications) {
                                 if (isset($notifications['activity'])) {
                                     $n_issues = $notifications['activity']['count'];
                             ?>
                                     <a href="<?= ROOTPATH ?>/issues">
-                                        <i class="ph ph-bell" aria-hidden="true"></i>
+                                        <div>
+                                            <i class="ph ph-bell" aria-hidden="true"></i>
+                                            <span class="index danger issue-counter"><?= $n_issues ?></span>
+                                        </div>
                                         <?= lang('Issues', 'Hinweise') ?>
-                                        <span class="index danger issue-counter"><?= $n_issues ?></span>
                                     </a>
                                 <?php } ?>
 
@@ -773,9 +804,10 @@ if (
                                     $quarter = $notifications['approval']['key'];
                                 ?>
                                     <a href="<?= ROOTPATH ?>/my-year/<?= $_SESSION['username'] ?>?quarter=<?= $quarter ?>">
-                                        <i class="ph ph-calendar-check" aria-hidden="true"></i>
+                                        <div>
+                                            <i class="ph ph-calendar-check" aria-hidden="true"></i>
+                                        </div>
                                         <?= lang('Quarterly approval', 'Quartalsfreigabe') ?>
-                                        <span class="index danger approval-counter">!</span>
                                     </a>
                                 <?php } ?>
 
@@ -783,18 +815,22 @@ if (
                                     $queue = $notifications['queue']['count'];
                                 ?>
                                     <a href="<?= ROOTPATH ?>/queue/user">
-                                        <i class="ph ph-queue" aria-hidden="true"></i>
+                                        <div>
+                                            <i class="ph ph-queue" aria-hidden="true"></i>
+                                            <span class="index queue-counter"><?= $queue ?></span>
+                                        </div>
                                         <?= lang('To review', 'Zu überprüfen') ?>
-                                        <span class="index queue-counter"><?= $queue ?></span>
                                     </a>
                                 <?php } ?>
 
 
                                 <?php if ($notifications['reviews'] > 0) { ?>
                                     <a href="<?= ROOTPATH ?>/workflow-reviews">
-                                        <i class="ph ph-highlighter" aria-hidden="true"></i>
+                                        <div>
+                                            <i class="ph ph-highlighter" aria-hidden="true"></i>
+                                            <span class="index review-counter">0</span>
+                                        </div>
                                         <?= lang('Reviews', 'Überprüfungen') ?>
-                                        <span class="index review-counter">0</span>
                                     </a>
                                 <?php } ?>
 
@@ -802,9 +838,11 @@ if (
                                     $n_messages = count($notifications['messages']);
                                 ?>
                                     <a href="<?= ROOTPATH ?>/messages">
-                                        <i class="ph ph-envelope" aria-hidden="true"></i>
+                                        <div>
+                                            <i class="ph ph-envelope" aria-hidden="true"></i>
+                                            <span class="index info message-counter"><?= $n_messages ?></span>
+                                        </div>
                                         <?= lang('Messages', 'Nachrichten') ?>
-                                        <span class="index info message-counter"><?= $n_messages ?></span>
                                     </a>
                                 <?php } ?>
 
@@ -813,9 +851,8 @@ if (
                                 <?php if (isset($notifications['version'])) {
                                 ?>
                                     <a href="<?= ROOTPATH ?>/new-stuff#version-<?= OSIRIS_VERSION ?>">
-                                        <i class="ph ph-bell-ringing" aria-hidden="true"></i>
+                                        <div><i class="ph ph-bell-ringing" aria-hidden="true"></i></div>
                                         <?= lang('News', 'Neuigkeiten') ?>
-                                        <span class="index info version-counter">!</span>
                                     </a>
                                 <?php } ?>
 
@@ -974,9 +1011,9 @@ if (
                                         </div>
 
                                         <a class="link-block" href="<?= ROOTPATH ?>/conferences/view/<?= $c['_id'] ?>">
-                                            <h5 class="conference-title">
+                                            <div class="link-block-title">
                                                 <?= $c['title'] ?>
-                                            </h5>
+                                            </div>
                                             <div class="conference-meta">
                                                 <span>
                                                     <i class="ph ph-calendar-blank"></i>
@@ -1232,7 +1269,7 @@ if (
                                             <?= $doc['html'] ?>
                                         </div>
                                         <small class="info">
-                                            <?= $doc['icon'] ?> <?= $authorStr ?> &#x2219; <?= format_date($doc['date'], 'M Y') ?> 
+                                            <?= $doc['icon'] ?> <?= $authorStr ?> &#x2219; <?= format_date($doc['date'], 'M Y') ?>
                                         </small>
                                     </a>
                                 <?php } ?>
