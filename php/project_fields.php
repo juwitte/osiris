@@ -659,7 +659,7 @@ class ProjectFields extends Fields
             [
                 "id" => "scholar",
                 "module_of" => $typeModules["scholar"] ?? [],
-                "label" => lang("Scholar", "Forschende Person"),
+                "label" => lang("Scholar", "Stipendiat:in"),
                 'type' => 'string',
                 'usage' => [
                     'filter',
