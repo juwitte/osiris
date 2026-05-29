@@ -957,7 +957,7 @@ Es wurde eine Möglichkeit hinzugefügt, den **Footer** der Seite anzupassen. Di
 - Es wurde ein neues Datenfeld "Schlagworte" hinzugefügt, das ähnlich wie Expertise verwendet werden kann, allerdings mit einem definierten Vokabular arbeitet. Wie genau dieses Datenfeld heißen soll, kann ebenfalls im Admin-Bereich definiert werden.
 - Es kann festgelegt werden, ob sich Nutzer:innen selbst registrieren dürfen oder ob dies nur Admins möglich ist.
 - Die Auswahl von Organisationseinheiten bei der Zuordnung von Personen wurde verbessert.
-- Beim Anlegen einer Person wird jetzt nicht mehr nach dem Passwort gefragt, wenn als User-Management nicht das `AUTH`-Addon ausgewählt ist, z.B. wenn LDAP oder OAUTH2 verwendet wird.
+- Beim Anlegen einer Person wird jetzt nicht mehr nach dem Passwort gefragt, wenn als User-Management nicht das `AUTH`-Addon ausgewählt ist, z.B. wenn LDAP oder OAUTH verwendet wird.
 
 #### <i class="ph ph-cube-transparent"></i> Forschungsinfrastrukturen
 
