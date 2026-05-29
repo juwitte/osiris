@@ -426,12 +426,17 @@ if (
             ?>
 
 
-            <?php if ($Settings->featureEnabled('events', false)) { ?>
+            <?php if ($Settings->featureEnabled('events', false)) { 
+                $title = lang('Upcoming events', 'Kommende Ereignisse');
+                if ($Settings->featureEnabled('deadlines', false)) {
+                    $title = lang('Upcoming events & deadlines', 'Kommende Ereignisse & Fristen');
+                }
+                ?>
                 <div class="box padded">
                     <div class="widget-header">
                         <h2>
                             <i class="ph-duotone ph-calendar"></i>
-                            <?= lang('Upcoming events & deadlines', 'Kommende Ereignisse & Fristen') ?>
+                            <?= $title ?>
                         </h2>
                         <a href="<?= ROOTPATH ?>/events" class="btn small">
                             <?= lang('Show all', 'Zeige alle') ?>
