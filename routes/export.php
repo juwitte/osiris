@@ -622,7 +622,7 @@ function clean_comment_export($subject, $front_addition_text = '')
     $subject = preg_replace('!\s+!', ' ', $subject);
 
     // Strip all tags, except <b><i><strike><u><sub><sup>
-    $subject = strip_tags($subject, '<b><i><u><strike><sub><sup><br>');
+    $subject = strip_tags($subject, '<b><i><u><strike><a><sub><sup><br>');
 
     // Remove any ### at the start
     $subject = rtrim(ltrim($subject, "#"), "#");
