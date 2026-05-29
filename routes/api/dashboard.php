@@ -44,8 +44,7 @@ Route::get('/api/dashboard/timeline', function () {
 
     $result = [
         'info' => $typeInfo,
-        'events' => [],
-        'types' => []
+        'events' => []
     ];
 
     $events = $osiris->activities->find(
@@ -70,6 +69,12 @@ Route::get('/api/dashboard/timeline', function () {
 
     $result['events'] = $events;
 
+    if (!empty($events)) {
+        $types = array_column($events, 'type');
+        $types = array_unique($types);
+        $result['types'] = array_values($types);
+    }
+    
     if (!empty($events)) {
         $types = array_column($events, 'type');
         $types = array_unique($types);
@@ -193,6 +198,93 @@ Route::get('/api/dashboard/deadline-timeline', function () {
     echo return_rest($result, count($events));
 });
 
+
+Route::get('/api/dashboard/upcoming-events', function () {
+    error_reporting(E_ERROR | E_PARSE);
+    include BASEPATH . '/php/init.php';
+    include_once BASEPATH . '/php/Vocabulary.php';
+    $Vocabulary = new Vocabulary();
+
+    $result = [
+        'info' => [],
+        'events' => [],
+        'types' => []
+    ];
+
+    // first get all events that are upcoming or have ended in the last 3 days
+    $events = $osiris->conferences->find(
+        [
+            'end' => ['$gte' => date('Y-m-d', strtotime('-3 days'))],
+            'start' => ['$lte' => date('Y-m-d', strtotime('+6 month'))],
+            'dismissed' => ['$ne' => $_SESSION['username']]
+        ],
+        [
+            'sort' => ['start' => 1, 'end' => 1],
+            'projection' => [
+                '_id' => 0,
+                'title' => '$title',
+                'start_date' => '$start',
+                'end_date' => '$end',
+                'type' => 1,
+                'id' => ['$toString' => '$_id'],
+                'category' => 'event'
+            ]
+        ]
+    )->toArray();
+
+    // Convert ISO date string to timestamp in PHP if needed
+    foreach ($events as &$event) {
+        if (!empty($event['start_date'])) {
+            $event['starting_time'] = strtotime($event['start_date']);
+        }
+        if (!empty($event['end_date'])) {
+            $event['ending_time'] = strtotime($event['end_date']);
+        }
+        unset($event['start_date'], $event['end_date']);
+    }
+
+    $deadlines = $osiris->deadlines->find(
+        [
+            '$and' => [
+                ['date' => ['$gte' => date('Y-m-d', strtotime('-3 days'))]],
+                ['date' => ['$lte' => date('Y-m-d', strtotime('+6 month'))]]
+            ],
+            'roles' => ['$in' => $Settings->roles]
+        ],
+        ['sort' => ['date' => 1], 'projection' => [
+            '_id' => 0,
+            'id' => ['$toString' => '$_id'],
+            'date' => 1,
+            'type' => 1,
+            'title' => 1,
+            'category' => 'deadline'
+        ]]
+    )->toArray();
+
+    // Convert ISO date string to timestamp in PHP if needed
+    foreach ($deadlines as &$deadline) {
+        if (!empty($deadline['date'])) {
+            $deadline['starting_time'] = strtotime($deadline['date']);
+        }
+        unset($deadline['date']);
+    }
+
+    $events = array_merge($events, $deadlines);
+    $result['events'] = $events;
+
+    if (!empty($events)) {
+        $types = array_column($events, 'type');
+        $types = array_unique($types);
+        $result['types'] = array_values($types);
+    }
+    foreach (['event', 'deadline'] as $category) {
+        $types = $Vocabulary->getValues($category . '-type');
+        $types = array_column($types, null, 'id');
+        $result['info'][$category] = $types;
+    }   
+
+    echo return_rest($result, count($events));
+});
 
 Route::get('/api/dashboard/oa-status', function () {
     error_reporting(E_ERROR | E_PARSE);
@@ -352,7 +444,7 @@ Route::get('/api/dashboard/collaborators', function () {
                 'as' => 'org'
             ]],
             ['$unwind' => '$org'],
-             ['$project' => [
+            ['$project' => [
                 '_id' => 1,
                 'count' => 1,
                 'public_count' => 1,
@@ -364,7 +456,7 @@ Route::get('/api/dashboard/collaborators', function () {
                 'data.lat' => '$org.lat',
                 'data.lng' => '$org.lng'
             ]],
-             ['$sort' => ['count' => -1]]
+            ['$sort' => ['count' => -1]]
 
         ])->toArray();
 
@@ -398,7 +490,7 @@ Route::get('/api/dashboard/organizations', function () {
         die;
     }
     $filter = ['lat' => ['$exists' => 1], 'lng' => ['$exists' => 1]];
-    
+
     $result = $osiris->organizations->find($filter)->toArray();
 
     $institute = $Settings->get('affiliation_details');

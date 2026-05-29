@@ -219,7 +219,7 @@ $cart = readCart();
                         <a href="<?= ROOTPATH ?>/workflow-reviews" class="with-icon <?= $pageactive('workflow-reviews') ?>" id="workflow-reviews-link">
                             <i class="ph ph-highlighter" aria-hidden="true"></i>
                             <?= lang('Reviews', 'Überprüfungen') ?>
-                            <span class="sidebar-index" id="review-counter">0</span>
+                            <span class="sidebar-index review-counter">0</span>
                         </a>
 
                         <script>
@@ -227,7 +227,7 @@ $cart = readCart();
                             $(document).ready(function() {
                                 $.getJSON('<?= ROOTPATH ?>/api/workflow-reviews/count', function(data) {
                                     if (data.count > 0) {
-                                        $('#review-counter').text(data.count);
+                                        $('.review-counter').text(data.count);
                                     }
                                 });
                             });

@@ -61,7 +61,6 @@ Route::get('/', function () {
     if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] === false) {
         header("Location: " . ROOTPATH . "/user/login");
     } else {
-        // $path = ROOTPATH . "/profile/" . $_SESSION['username'];
         $path = ROOTPATH . "/home";
         if (!empty($_SERVER['QUERY_STRING'])) $path .= "?" . $_SERVER['QUERY_STRING'];
         header("Location: $path");
