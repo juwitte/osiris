@@ -426,12 +426,12 @@ if (
             ?>
 
 
-            <?php if ($Settings->featureEnabled('events', false)) { 
+            <?php if ($Settings->featureEnabled('events', false)) {
                 $title = lang('Upcoming events', 'Kommende Ereignisse');
                 if ($Settings->featureEnabled('deadlines', false)) {
                     $title = lang('Upcoming events & deadlines', 'Kommende Ereignisse & Fristen');
                 }
-                ?>
+            ?>
                 <div class="box padded">
                     <div class="widget-header">
                         <h2>
@@ -767,6 +767,7 @@ if (
                         border-radius: var(--border-radius);
                         position: relative;
                     }
+
                     .status-cards .index {
                         position: absolute;
                         top: -5px;
@@ -778,7 +779,6 @@ if (
                         font-size: 1rem;
                         font-weight: bold;
                     }
-
                 </style>
 
 
@@ -1205,8 +1205,10 @@ if (
                                         <?= $colleague['displayname'] ?? $colleague['username'] ?>
                                     </div>
                                     <small class="info">
-                                        <?= lang($colleague['position'] ?? '', $colleague['position_de'] ?? null) ?>
-                                        &#x2219;
+                                        <?php if (!empty($colleague['position'] ?? null) || !empty($colleague['position_de'] ?? null)) { ?>
+                                            <?= lang($colleague['position'] ?? '', $colleague['position_de'] ?? null) ?>
+                                            &#x2219;
+                                        <?php } ?>
                                         <?= lang('added ', 'hinzugefügt ') . time_elapsed_string($colleague['created']) ?>
                                     </small>
                                 </div>
