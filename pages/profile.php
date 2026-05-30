@@ -1560,6 +1560,14 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
         <p class="text-muted">
             <?= lang('Based on the title and abstract (if available) of activities in OSIRIS.', 'Basierend auf dem Titel und Abstract (falls verfügbar) von Aktivitäten in OSIRIS.') ?>
         </p>
+        <div class="btn-group mt-20">
+            <button class="btn small" id="toggle-wordcloud-activities" disabled>
+                <?= lang('All activities', 'Alle Aktivitäten') ?>
+            </button>
+            <button class="btn small" id="toggle-wordcloud-publications">
+                <?= lang('Only publications', 'Nur Publikationen') ?>
+            </button>
+        </div>
         <div id="wordcloud-chart" style="max-width: 80rem" ;></div>
     </section>
 <?php } ?>

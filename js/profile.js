@@ -105,6 +105,20 @@ $(document).ready(function () {
         $('#toggle-show-5').attr('disabled', false)
     });
 
+    $("#toggle-wordcloud-activities").click(function () {
+        $('#wordcloud-chart').empty()
+        wordcloud('#wordcloud-chart', { user: CURRENT_USER })
+        $(this).attr('disabled', true)
+        $('#toggle-wordcloud-publications').attr('disabled', false)
+    });
+
+    $("#toggle-wordcloud-publications").click(function () {
+        $('#wordcloud-chart').empty()
+        wordcloud('#wordcloud-chart', { user: CURRENT_USER, type: 'publication' })
+        $(this).attr('disabled', true)
+        $('#toggle-wordcloud-activities').attr('disabled', false)
+    });
+
 });
 
 function conferenceToggle(el, id, type = 'interests') {
