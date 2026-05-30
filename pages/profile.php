@@ -1383,8 +1383,11 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
         <i class="ph ph-graph" aria-hidden="true"></i>
         <?= lang('Coauthor network of', 'Koautoren-Netzwerk von') ?> <?= $scientist['displayname'] ?>
     </h2>
-    <p class="text-muted">
+    <p class="text-muted" id="coauthor-network-info-5">
         <?= lang('Based on publications within the past 5 years.', 'Basierend auf Publikationen aus den vergangenen 5 Jahren.') ?>
+    </p>
+    <p class="text-muted" id="coauthor-network-info-all" style="display:none">
+        <?= lang('Based on all publications.', 'Basierend auf allen Publikationen.') ?>
     </p>
     <div class="box">
         <div class="row">
@@ -1392,6 +1395,14 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
                 <div id="chord"></div>
             </div>
             <div class="col-md-4">
+                <div class="btn-group mt-20">
+                    <button class="btn small" id="toggle-show-5" disabled>
+                        <?= lang('Last 5 years', 'Letzte 5 Jahre') ?>
+                    </button>
+                    <button class="btn small" id="toggle-show-all">
+                        <?= lang('All years', 'Alle Jahre') ?>
+                    </button>
+                </div>
                 <div id="legend"></div>
             </div>
         </div>

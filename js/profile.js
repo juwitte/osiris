@@ -83,8 +83,29 @@ $(document).ready(function () {
             navigate(hash);
         }
     }
-});
 
+
+    $("#toggle-show-5").click(function () {
+        $('#chord').empty()
+        $('#legend').empty()
+        coauthorNetwork('#chord', { user: CURRENT_USER })
+        $('#coauthor-network-info-5').show()
+        $('#coauthor-network-info-all').hide()
+        $(this).attr('disabled', true)
+        $('#toggle-show-all').attr('disabled', false)
+    });
+
+    $("#toggle-show-all").click(function () {
+        $('#chord').empty()
+        $('#legend').empty()
+        coauthorNetwork('#chord', { user: CURRENT_USER, all: true })
+        $('#coauthor-network-info-5').hide()
+        $('#coauthor-network-info-all').show()
+        $(this).attr('disabled', true)
+        $('#toggle-show-5').attr('disabled', false)
+    });
+
+});
 
 function conferenceToggle(el, id, type = 'interests') {
     // ajax call to update user's conference interests
