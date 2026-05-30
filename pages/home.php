@@ -77,6 +77,18 @@ if (
         margin-top: 0;
     }
 
+    .link-sm {
+        font-size: 1.2rem;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .link-sm::after {
+        content: '\E13A';
+        font-family: var(--icon-font);
+        font-size: 1.2em;
+        margin-left: 0.25rem;
+    }
 
     .widget-header {
         display: flex;
@@ -371,7 +383,7 @@ if (
             $announcement_active = $Settings->isAnnouncementActive();
             if ($announcement_active) {
                 $announcement = $Settings->get('announcement'); ?>
-                <section class="">
+                <section>
                     <div class="box position-relative" id="announcement" data-announcement-version="<?= strtotime($announcement['updated_at'] ?? 'now') ?>">
                         <?php
                         $en = trim($announcement['en'] ?? null);
@@ -438,8 +450,8 @@ if (
                             <i class="ph-duotone ph-calendar"></i>
                             <?= $title ?>
                         </h2>
-                        <a href="<?= ROOTPATH ?>/events" class="btn small">
-                            <?= lang('Show all', 'Zeige alle') ?>
+                        <a href="<?= ROOTPATH ?>/events" class="link-sm">
+                            <?= lang('View all', 'Zeige alle') ?>
                         </a>
                     </div>
                     <div id="timeline"></div>
@@ -889,12 +901,12 @@ if (
                             </a>
                             <?php if ($Settings->featureEnabled('projects') && $Settings->hasPermission('projects.add')) { ?>
                                 <?php if ($Settings->canProposalsBeCreated()) { ?>
-                                    <a href="<?= ROOTPATH ?>/proposals/new" class="">
+                                    <a href="<?= ROOTPATH ?>/proposals/new">
                                         <i class="ph ph-tree-structure"></i>
                                         <?= lang('Add project proposal', 'Projektantrag hinzuf.') ?>
                                     </a>
                                 <?php } else if ($Settings->canProjectsBeCreated()) { ?>
-                                    <a href="<?= ROOTPATH ?>/projects/new" class="">
+                                    <a href="<?= ROOTPATH ?>/projects/new">
                                         <i class="ph ph-tree-structure"></i>
                                         <?= lang('Add project', 'Projekt hinzufügen') ?>
                                     </a>
@@ -939,8 +951,8 @@ if (
                                     <i class="ph-duotone ph-calendar-dots"></i>
                                     <?= lang('Events', 'Veranstaltungen') ?>
                                 </h2>
-                                <a href="<?= ROOTPATH ?>/conferences" class="btn small">
-                                    <?= lang('Show all', 'Zeige alle') ?>
+                                <a href="<?= ROOTPATH ?>/conferences" class="link-sm">
+                                    <?= lang('View all', 'Zeige alle') ?>
                                 </a>
                             </div>
 
@@ -1086,8 +1098,8 @@ if (
                                         <i class="ph-duotone ph-flag"></i>
                                         <?= lang('Upcoming Deadlines', 'Bevorstehende Fristen') ?>
                                     </h2>
-                                    <a href="<?= ROOTPATH ?>/deadlines" class="btn small">
-                                        <?= lang('Show all', 'Zeige alle') ?>
+                                    <a href="<?= ROOTPATH ?>/deadlines" class="link-sm">
+                                        <?= lang('View all', 'Zeige alle') ?>
                                     </a>
                                 </div>
                                 <?php
@@ -1183,8 +1195,8 @@ if (
                                 <i class="ph-duotone ph-user"></i>
                                 <?= lang('New Colleagues', 'Neue Kolleg:innen') ?>
                             </h2>
-                            <a href="<?= ROOTPATH ?>/user/browse" class="btn small">
-                                <?= lang('Show all', 'Zeige alle') ?>
+                            <a href="<?= ROOTPATH ?>/user/browse" class="link-sm">
+                                <?= lang('View all', 'Zeige alle') ?>
                             </a>
                         </div>
                         <?php
@@ -1229,8 +1241,8 @@ if (
                                     <i class="ph-duotone ph-newspaper"></i>
                                     <?= lang('Newest publications', 'Neueste Veröffentlichungen') ?>
                                 </h2>
-                                <a href="<?= ROOTPATH ?>/activities#type=publication" class="btn small">
-                                    <?= lang('Show all', 'Zeige alle') ?>
+                                <a href="<?= ROOTPATH ?>/activities#type=publication" class="link-sm">
+                                    <?= lang('View all', 'Zeige alle') ?>
                                 </a>
                             </div>
                             <?php
