@@ -1,7 +1,4 @@
 <?php
-
-include_once BASEPATH . "/php/Render.php";
-
 $coll = $osiris->persons;
 
 $bulkSize = 500;
@@ -56,11 +53,21 @@ if (!empty($ops)) {
     $res = $coll->bulkWrite($ops);
     $updated += $res->getModifiedCount();
 }
-echo "<p>Done. Updated documents: {$updated}</p>\n";
+
+migrationCard(
+    'Person search index updated',
+    'Personen-Suchindex aktualisiert',
+    'Search text fields for persons were rebuilt where necessary. This improves person search and command palette results.',
+    'Suchtexte für Personen wurden bei Bedarf neu aufgebaut. Das verbessert die Personensuche und die Treffer in der Command Palette.',
+    $updated,
+    'person records updated',
+    'Personendatensätze aktualisiert'
+);
 
 
 // migrate cv dates
 $users = $osiris->persons->find(['cv' => ['$exists' => true]])->toArray();
+$cvUpdated = 0;
 foreach ($users as $user) {
     $cv = $user['cv'];
     if (empty($cv)) continue;
@@ -85,10 +92,20 @@ foreach ($users as $user) {
         ['_id' => $user['_id']],
         ['$set' => ['cv' => $cv]]
     );
+    $cvUpdated++;
 }
-echo lang('CV dates migrated successfully.', 'CV-Daten wurden erfolgreich migriert.');
+migrationCard(
+    'CV date format migrated',
+    'CV-Datumsformat migriert',
+    'CV date entries were converted to the current OSIRIS format where needed.',
+    'CV-Datumseinträge wurden bei Bedarf in das aktuelle OSIRIS-Format überführt.',
+    $cvUpdated,
+    'person records checked and updated',
+    'Personendatensätze geprüft und aktualisiert'
+);
 
 
+# Migrate updated and updated_by fields based on history entries
 $activities = $osiris->activities->find(['history' => ['$exists' => true]], ['projection' => ['history' => 1]]);
 $N = 0;
 foreach ($activities as $activity) {
@@ -113,8 +130,16 @@ foreach ($activities as $activity) {
     );
     $N++;
 }
-echo "<p>" . lang('Added updated and updated_by to', 'updated und updated_by hinzugefügt zu') . " $N " . lang('activities', 'Aktivitäten') . ".</p>\n";
 
+migrationCard(
+    'Activity update metadata restored',
+    'Aktualisierungsmetadaten für Aktivitäten wiederhergestellt',
+    'The fields updated and updated_by were reconstructed from existing activity history entries.',
+    'Die Felder updated und updated_by wurden aus bestehenden Änderungshistorien der Aktivitäten rekonstruiert.',
+    $N,
+    'activities updated',
+    'Aktivitäten aktualisiert'
+);
 
 // Migrate OpenAlex IDs from 'openalex' field to 'openalex_id' and create indexes for command palette search
 $activities = $osiris->activities->find(['openalex' => ['$exists' => true]], ['projection' => ['openalex' => 1]]);
@@ -127,13 +152,20 @@ foreach ($activities as $activity) {
     );
     $N++;
 }
-echo "<p>Migrated OpenAlex IDs for $N activities.</p>\n";
+migrationCard(
+    'OpenAlex IDs migrated',
+    'OpenAlex-IDs migriert',
+    'OpenAlex identifiers were moved to the new openalex_id field to make them consistent with the new data model.',
+    'OpenAlex-IDs wurden in das neue Feld openalex_id verschoben, um sie mit dem neuen Datenmodell konsistent zu machen.',
+    $N,
+    'activities updated',
+    'Aktivitäten aktualisiert'
+);
 
 /* Create an index if it doesn't already exist. */
 function ensureIndex($collection, array $keys, array $options = [])
 {
     try {
-        // Provide a deterministic name so we can manage it later
         if (empty($options['name'])) {
             $parts = [];
             foreach ($keys as $k => $v) $parts[] = $k . '_' . $v;
@@ -141,13 +173,28 @@ function ensureIndex($collection, array $keys, array $options = [])
         }
 
         $name = $collection->createIndex($keys, $options);
-        echo "<p>OK  {$collection->getCollectionName()} -> {$name}</p>";
+
+        echo '<li class="migration-ok">✓ ';
+        echo e($collection->getCollectionName()) . ' → <code>' . e($name) . '</code>';
+        echo '</li>';
+
+        return true;
     } catch (Throwable $e) {
-        echo "<p>ERR {$collection->getCollectionName()} -> " . $e->getMessage() . "</p>";
+        echo '<li class="migration-error">✗ ';
+        echo e($collection->getCollectionName()) . ' → ' . e($e->getMessage());
+        echo '</li>';
+
+        return false;
     }
 }
 
-echo "<p>Creating indexes for command palette search...</p>\n\n";
+echo '<div class="migration-card">';
+echo '<h3>' . lang('Command palette search indexes', 'Suchindizes für die Command Palette') . '</h3>';
+echo '<p class="migration-muted">' . lang(
+    'OSIRIS is creating or confirming the indexes required for fast command palette search.',
+    'OSIRIS erstellt oder bestätigt die Indizes, die für eine schnelle Suche in der Command Palette benötigt werden.'
+) . '</p>';
+echo '<ul class="migration-index-list">';
 
 /* persons */
 ensureIndex($osiris->persons, ['search_text' => 1]);
@@ -179,4 +226,16 @@ ensureIndex($osiris->groups, ['name_de' => 1]);
 ensureIndex($osiris->organizations, ['name' => 1]);
 ensureIndex($osiris->organizations, ['synonyms' => 1]); // multikey index (array)
 
-echo "<p>Done.</p>\n";
+
+echo '</ul>';
+echo '</div>';
+
+
+echo '<div class="migration-card success">';
+echo '<h3 class="migration-ok">✓ ' . lang('Migration completed', 'Migration abgeschlossen') . '</h3>';
+echo '<p>' . lang(
+    'All required migration steps have finished. OSIRIS is ready to use with the updated database structure.',
+    'Alle notwendigen Migrationsschritte wurden abgeschlossen. OSIRIS kann mit der aktualisierten Datenbankstruktur verwendet werden.'
+) . '</p>';
+echo '</div>';
+echo '</div>';
