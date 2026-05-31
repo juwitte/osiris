@@ -795,7 +795,52 @@ Route::post('/crud/users/inactivate/(.*)', function ($user) {
         ['$set' => $arr]
     );
 
+    // end person "end" in projects
+    $today = date('Y-m-d');
 
+    $running_projects = $osiris->projects->updateMany(
+        [
+            'persons' => ['$elemMatch' => ['user' => $user, '$or' => [['end' => null], ['end' => ['$gt' => date('Y-m-d')]]]]],
+            'end_date' => ['$gt' => date('Y-m-d')]
+        ],
+        [
+            '$set' => [
+                'persons.$[elem].end' => $today
+            ]
+        ],
+        [
+            'arrayFilters' => [
+                [
+                    'elem.user' => $user,
+                    'elem.end' => ['$gt' => $today]
+                ]
+            ]
+        ]
+    );
+
+    // set end_date for activities where user is author to today
+    $ongoing_activities = $osiris->activities->updateMany(
+        [
+            'subtype' => ['$in' => $Settings->continuousTypes],
+            'rendered.users' => $user,
+            // has only one user
+            'authors' => ['$size' => 1],
+            '$or' => [
+                ['end_date' => null],
+                ['end_date' => ['$gt' => $today]]
+            ]
+        ],
+        ['$set' => ['end_date' => $today, 'end' => ['year' => date('Y'), 'month' => date('m'), 'day' => date('d')]]]
+    );
+    // we need to rerender all activities where user is author, because they might have a different end date now
+    include_once BASEPATH . "/php/Render.php";
+    renderActivities([
+        'subtype' => ['$in' => $Settings->continuousTypes],
+        'rendered.users' => $user,
+        // has only one user
+        'authors' => ['$size' => 1],
+        'end_date' => $today
+    ]);
 
     if (file_exists(BASEPATH . "/img/users/$user.jpg")) {
         unlink(BASEPATH . "/img/users/$user.jpg");
