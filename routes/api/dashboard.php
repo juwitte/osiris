@@ -74,7 +74,7 @@ Route::get('/api/dashboard/timeline', function () {
         $types = array_unique($types);
         $result['types'] = array_values($types);
     }
-    
+
     if (!empty($events)) {
         $types = array_column($events, 'type');
         $types = array_unique($types);
@@ -281,7 +281,7 @@ Route::get('/api/dashboard/upcoming-events', function () {
         $types = $Vocabulary->getValues($category . '-type');
         $types = array_column($types, null, 'id');
         $result['info'][$category] = $types;
-    }   
+    }
 
     echo return_rest($result, count($events));
 });
@@ -776,8 +776,10 @@ Route::get('/api/dashboard/wordcloud', function () {
         return $ret;
     }
 
-    $filter = ['type' => 'publication'];
     $filter = [];
+    if (isset($_GET['type'])) {
+        $filter['type'] = $_GET['type'];
+    }
     if (isset($_GET['user'])) {
         $filter['rendered.users'] = $_GET['user'];
     } else if (isset($_GET['units'])) {
@@ -1125,6 +1127,8 @@ Route::get('/api/dashboard/author-network', function () {
 
     if (isset($_GET['year'])) {
         $filter['year'] = $_GET['year'];
+    } else if (isset($_GET['all']) && $_GET['all'] == 'true') {
+        // no year filter
     } else {
         // past 5 years is default
         $filter['year'] = ['$gte' => CURRENTYEAR - 4];

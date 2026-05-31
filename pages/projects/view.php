@@ -738,7 +738,7 @@ if ($topicsEnabled) {
 
                             <div class="custom-radio ml-10">
                                 <input type="radio" name="format" id="format-bibtex" value="bibtex">
-                                <label for="format-bibtex">BibTex</label>
+                                <label for="format-bibtex">BibTeX</label>
                             </div>
 
                         </div>
