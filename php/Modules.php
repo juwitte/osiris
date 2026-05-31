@@ -2156,7 +2156,9 @@ class Modules
 
             case "event-select":
                 $events = $this->DB->db->conferences->find(
-                    ['end' => ['$lte' => date('Y-m-d', strtotime('+5 days'))]],
+                    [
+                        // 'end' => ['$lte' => date('Y-m-d', strtotime('+5 days'))]
+                    ],
                     ['sort' => ['start' => -1], 'projection' => ['title' => 1, 'start' => 1, 'end' => 1, 'location' => 1, 'country' => 1]]
                     // ['sort' => ['start' => -1], 'limit' => 10]
                 );
