@@ -39,7 +39,7 @@ $currentuser = $user == $_SESSION['username'];
 $hasNews = false;
 if (
     $Settings->featureEnabled('new-publications', true)
-    || $Settings->featureEnabled('news', true)
+    || $Settings->featureEnabled('news', false)
     || ($Settings->featureEnabled('quarterly-reporting', true) && isset($notifications['approval']))
     || $Settings->featureEnabled('new-colleagues', true)
 ) {
@@ -171,11 +171,14 @@ if (
     }
 
     .empty-state img {
-        max-height: 15rem;
+        max-height: 12rem;
+        opacity: 0.8;
     }
 
     .empty-state p {
         margin: 0;
+        color: var(--muted-color);
+        font-size: small;
     }
 
     #announcement .dismiss-btn {
@@ -802,12 +805,13 @@ if (
                                 <?= lang('My tasks', 'Meine Aufgaben') ?>
                             </h2>
                         </div>
-                        <div class="status-cards">
-                            <?php
-                            if ($has_notifications) {
+                        <?php
+                        if ($has_notifications) { ?>
+                            <div class="status-cards">
+                                <?php
                                 if (isset($notifications['activity'])) {
                                     $n_issues = $notifications['activity']['count'];
-                            ?>
+                                ?>
                                     <a href="<?= ROOTPATH ?>/issues">
                                         <div>
                                             <i class="ph ph-bell" aria-hidden="true"></i>
@@ -873,17 +877,17 @@ if (
                                     </a>
                                 <?php } ?>
 
+                            </div>
 
-                            <?php } else { ?>
-                                <div class="empty-state">
-                                    <div class="text-center">
-                                        <img src="<?= ROOTPATH ?>/img/sophie/sophie-no-tasks.png" alt="" class="sophie-img" style="opacity: 0.8;">
-                                        <p><?= lang('Here is currently nothing that requires your attention. Great work!', 'Hier gibt es momentan nichts, was deine Aufmerksamkeit erfordert. Großartige Arbeit!') ?></p>
-                                    </div>
+                        <?php } else { ?>
+                            <div class="empty-state">
+                                <div class="text-center">
+                                    <img src="<?= ROOTPATH ?>/img/sophie/sophie-no-tasks.png" alt="" class="sophie-img">
+                                    <p><?= lang('Here is currently nothing that requires your attention. Great work!', 'Hier gibt es momentan nichts, was deine Aufmerksamkeit erfordert. Großartige Arbeit!') ?></p>
                                 </div>
-                            <?php } ?>
+                            </div>
+                        <?php } ?>
 
-                        </div>
                     </div>
 
                     <div class="box padded">
@@ -977,7 +981,7 @@ if (
                             if (count($conferences) == 0) { ?>
                                 <div class="empty-state">
                                     <div class="text-center">
-                                        <img src="<?= ROOTPATH ?>/img/sophie/sophie-no-events.png" alt="" class="sophie-img" style="opacity: 0.8;">
+                                        <img src="<?= ROOTPATH ?>/img/sophie/sophie-no-events.png" alt="" class="sophie-img">
                                         <p><?= lang('Currently there are no upcoming events. Check back later!', 'Aktuell gibt es keine bevorstehenden Veranstaltungen. Schau später wieder vorbei!') ?></p>
                                     </div>
                                 </div>
@@ -1126,7 +1130,7 @@ if (
                                 if (count($deadlines) == 0) { ?>
                                     <div class="empty-state">
                                         <div class="text-center">
-                                            <img src="<?= ROOTPATH ?>/img/sophie/sophie-no-deadlines.png" alt="" class="sophie-img" style="opacity: 0.8;">
+                                            <img src="<?= ROOTPATH ?>/img/sophie/sophie-no-deadlines.png" alt="" class="sophie-img">
                                             <p><?= lang('Currently there are no upcoming deadlines. Check back later!', 'Aktuell gibt es keine bevorstehenden Fristen. Schau später wieder vorbei!') ?></p>
                                         </div>
                                     </div>
