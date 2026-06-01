@@ -181,6 +181,40 @@ if (!$user) {
         </ul>
     <?php } ?>
 
+    <?php
+    // ongoing infrastructures
+    $ongoing_infrastructures = $osiris->infrastructures->find(
+        [
+            'persons' => ['$elemMatch' => ['user' => $user, '$or' => [['end' => null], ['end' => ['$gt' => date('Y-m-d')]]]]],
+            '$or' => [
+                ['end_date' => null],
+                ['end_date' => ['$gt' => date('Y-m-d')]]
+            ]
+        ],
+        ['projection' => ['name' => 1]]
+    )->toArray();
+    if (count($ongoing_infrastructures) > 0) { ?>
+        <h5>
+            <?= lang('Ongoing Infrastructures', 'Laufende Infrastrukturen') ?>
+        </h5>
+        <p>
+            <?= lang(
+                'The user is involved in the following <b>ongoing infrastructures</b>. Inactivating the user will not remove them from the infrastructures but end the association.',
+                'Die Person ist an den folgenden <b>laufenden Infrastrukturen</b> beteiligt. Das Inaktivieren der Person wird sie nicht aus den Infrastrukturen entfernen, sondern die Zuordnung beenden.'
+            ) ?>
+        </p>
+        <ul class="list">
+            <?php foreach ($ongoing_infrastructures as $infrastructure) { ?>
+                <li>
+                    <a href="<?= ROOTPATH ?>/infrastructures/view/<?= $infrastructure['_id'] ?>">
+                        <?= $infrastructure['name'] ?? 'No name' ?>
+                    </a>
+                </li>
+            <?php } ?>
+        </ul>
+    <?php } ?>
+
+
 
 
     <p>

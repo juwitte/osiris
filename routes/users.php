@@ -811,8 +811,7 @@ Route::post('/crud/users/inactivate/(.*)', function ($user) {
         [
             'arrayFilters' => [
                 [
-                    'elem.user' => $user,
-                    'elem.end' => ['$gt' => $today]
+                    'elem.user' => $user
                 ]
             ]
         ]
@@ -831,6 +830,28 @@ Route::post('/crud/users/inactivate/(.*)', function ($user) {
             ]
         ],
         ['$set' => ['end_date' => $today, 'end' => ['year' => date('Y'), 'month' => date('m'), 'day' => date('d')]]]
+    );
+
+    $ongoing_infrastructures = $osiris->infrastructures->updateMany(
+        [
+            'persons' => ['$elemMatch' => ['user' => $user, '$or' => [['end' => null], ['end' => ['$gt' => date('Y-m-d')]]]]],
+            '$or' => [
+                ['end_date' => null],
+                ['end_date' => ['$gt' => date('Y-m-d')]]
+            ]
+        ],
+        [
+            '$set' => [
+                'persons.$[elem].end' => $today
+            ]
+        ],
+        [
+            'arrayFilters' => [
+                [
+                    'elem.user' => $user
+                ]
+            ]
+        ]
     );
     // we need to rerender all activities where user is author, because they might have a different end date now
     include_once BASEPATH . "/php/Render.php";
