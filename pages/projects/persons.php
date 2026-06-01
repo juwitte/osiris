@@ -9,6 +9,8 @@ $all_users = $osiris->persons->find(['username' => ['$ne' => null], 'last' => ['
 
 include_once BASEPATH . "/php/Vocabulary.php";
 $Vocabulary = new Vocabulary();
+
+$user_in_project = false;
 ?>
 
 <?php include_once BASEPATH . '/header-editor.php'; ?>
@@ -70,7 +72,9 @@ $Vocabulary = new Vocabulary();
                 </tr>
             </thead>
             <tbody id="project-list">
-                <?php foreach ($persons as $i => $con) { ?>
+                <?php foreach ($persons as $i => $con) {
+                    if ($con['user'] == $_SESSION['username']) $user_in_project = true;
+                ?>
                     <tr>
                         <td class="w-50">
                             <i class="ph ph-dots-six-vertical text-muted handle"></i>
@@ -138,22 +142,25 @@ $Vocabulary = new Vocabulary();
             </tbody>
             <tfoot>
                 <tr id="last-row">
+                    <td></td>
                     <td colspan="6">
-                        <!-- <label for="person-select">
-                            <?= lang('Add a new person', 'Füge eine weitere Person hinzu') ?>
-                        </label> -->
-                        <div class="input-group w-400 mw-full">
-                            <select id="person-select" class="form-control person">
-                                <?php
-                                foreach ($all_users as $s) { ?>
-                                    <option value="<?= $s['username'] ?>">
-                                        <?= "$s[last], $s[first] ($s[username])" ?>
-                                    </option>
-                                <?php } ?>
-                            </select>
-                            <div class="input-group-append">
-                                <button class="btn" type="button" onclick="addProjectRow()"><i class="ph ph-user-plus"></i> <?= lang('Add person', 'Person hinzufügen') ?></button>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="input-group w-400 mw-full">
+                                <select id="person-select" class="form-control person">
+                                    <?php
+                                    foreach ($all_users as $s) { ?>
+                                        <option value="<?= $s['username'] ?>">
+                                            <?= "$s[last], $s[first] ($s[username])" ?>
+                                        </option>
+                                    <?php } ?>
+                                </select>
+                                <div class="input-group-append">
+                                    <button class="btn" type="button" onclick="addProjectRow()"><i class="ph ph-user-plus"></i> <?= lang('Add person', 'Person hinzufügen') ?></button>
+                                </div>
                             </div>
+                            <?php if (!$user_in_project) { ?>
+                                <button class="btn primary" id="self-add-btn" type="button" onclick="addProjectRow(true)"><i class="ph ph-user-plus"></i> <?= lang('Add yourself to the project', 'Füge dich selbst zum Projekt hinzu') ?></button>
+                            <?php } ?>
                         </div>
                     </td>
                 </tr>
@@ -179,10 +186,10 @@ $Vocabulary = new Vocabulary();
     const start = '<?= $start ?>';
     const end = '<?= $end ?>';
 
-    function addProjectRow() {
+    function addProjectRow(self_add = false) {
         const id = Date.now(); // unique ID based on timestamp
         const personSelect = $('#person-select');
-        const username = personSelect.val();
+        const username = self_add ? '<?= $_SESSION['username'] ?>' : personSelect.val();
         if (!username) {
             toastError('<?= lang('Please select a person', 'Bitte wähle eine Person aus') ?>');
             return;
@@ -231,6 +238,13 @@ $Vocabulary = new Vocabulary();
             </tr>
         `;
             $('#project-list').append(newRow);
+
+            if (self_add) {
+                $('#self-add-btn').remove();
+            } else {
+                // remove the added user from the select options to prevent adding the same user multiple times
+                personSelect.find(`option[value="${username}"]`).remove();
+            }
         }).fail(function() {
             toastError('<?= lang('Failed to fetch user data', 'Fehler beim Abrufen der Nutzerdaten') ?>');
         });

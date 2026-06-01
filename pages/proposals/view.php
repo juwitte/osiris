@@ -155,7 +155,7 @@ if ($nagoyaRelevant) {
     <?php if ($edit_perm && ($status == 'approved' && (empty($connected_project) || !$connected_project))) {
         // if project is not connected yet
     ?>
-        <div class="box signal padded mt-0">
+        <div class="box signal padded mt-0" style="background-color: var(--signal-color-10);">
             <?= lang('This proposal has been approved but is not yet converted to a project. Please convert it into a project to manage it further.', 'Dieser Antrag wurde bewilligt, ist aber noch nicht in ein Projekt umgewandelt worden. Bitte wandle ihn in ein Projekt um, um dieses weiter zu verwalten.') ?>
             <br>
             <a href="<?= ROOTPATH ?>/projects/create-from-proposal/<?= $id ?>" class="btn signal">

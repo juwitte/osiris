@@ -74,22 +74,6 @@ if (defined('USER_MANAGEMENT') && strtoupper(USER_MANAGEMENT) == 'AUTH') {
 
 include_once BASEPATH . "/routes/login.php";
 
-// Route::get('/test', function () {
-//     include_once BASEPATH . "/php/init.php";
-//     include_once BASEPATH . "/php/LDAPInterface.php";
-
-//     include BASEPATH . "/header.php";
-
-//     $LDAP = new LDAPInterface();
-//     // $LDAP->attributes = [];
-//     // $user = $LDAP->fetchUser('juk20');
-//     // echo $LDAP->convertObjectGUID($user['objectguid'][0]);
-//     $user = $LDAP->newUser('ironman');
-//     dump($user, true);
-
-//     include BASEPATH . "/footer.php";
-// });
-
 
 // route for language setting
 Route::get('/set-preferences', function () {
