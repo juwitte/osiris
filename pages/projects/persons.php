@@ -11,6 +11,8 @@ include_once BASEPATH . "/php/Vocabulary.php";
 $Vocabulary = new Vocabulary();
 ?>
 
+<?php include_once BASEPATH . '/header-editor.php'; ?>
+
 <div id="person-blanks" class="hidden">
     <select class="form-control role" required id="person-role">
         <?php
@@ -34,6 +36,7 @@ $Vocabulary = new Vocabulary();
         <table class="table">
             <thead>
                 <tr>
+                    <th></th>
                     <th>
                         <?= lang('Person', 'Person') ?><br>
                         <span class="badge kdsf m-0">
@@ -69,6 +72,9 @@ $Vocabulary = new Vocabulary();
             <tbody id="project-list">
                 <?php foreach ($persons as $i => $con) { ?>
                     <tr>
+                        <td class="w-50">
+                            <i class="ph ph-dots-six-vertical text-muted handle"></i>
+                        </td>
                         <td>
                             <input type="hidden" name="persons[<?= $i ?>][user]" id="persons-<?= $i ?>" required readonly value="<?= $con['user'] ?>">
                             <?= $DB->getNameFromId($con['user']) ?>
@@ -189,6 +195,9 @@ $Vocabulary = new Vocabulary();
             const name = data.name || username;
             const newRow = `
             <tr>
+                <td class="w-50">
+                    <i class="ph ph-dots-six-vertical text-muted handle"></i>
+                </td>
                 <td>
                     <input type="hidden" name="persons[${id}][user]" value="${username}" required readonly>
                     ${name}
@@ -231,4 +240,11 @@ $Vocabulary = new Vocabulary();
         // make sure that at least one row is left
         $(btn).closest('tr').remove()
     }
+
+    $(document).ready(function() {
+        $('#project-list').sortable({
+            handle: ".handle",
+            // change: function( event, ui ) {}
+        });
+    })
 </script>
