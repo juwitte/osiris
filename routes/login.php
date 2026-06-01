@@ -254,6 +254,29 @@ Route::post('/user/login', function () {
             $_SESSION['username'] = $USER['username'];
             $_SESSION['name'] = $USER['displayname'];
 
+            if (!empty($_POST['stay_logged_in'])) {
+                $selector = bin2hex(random_bytes(12));
+                $token = bin2hex(random_bytes(32));
+
+                $expires = time() + (86400 * 30);
+
+                $osiris->rememberTokens->insertOne([
+                    'selector' => $selector,
+                    'token_hash' => password_hash($token, PASSWORD_DEFAULT),
+                    'username' => $USER['username'],
+                    'expires' => date('Y-m-d H:i:s', $expires),
+                    'created' => date('Y-m-d H:i:s'),
+                ]);
+
+                setcookie('osiris-remember', $selector . ':' . $token, [
+                    'expires' => $expires,
+                    'path' => ROOTPATH . '/',
+                    'secure' => !empty($_SERVER['HTTPS']),
+                    'httponly' => true,
+                    'samesite' => 'Lax',
+                ]);
+            }
+
             if (isset($_POST['redirect']) && !str_contains($_POST['redirect'], "//")) {
                 header("Location: " . $_POST['redirect']);
                 die();
@@ -281,10 +304,27 @@ Route::post('/user/login', function () {
 
 
 Route::get('/user/logout', function () {
+    include_once BASEPATH . "/php/init.php";
     unset($_SESSION["username"]);
     unset($_SESSION["name"]);
     unset($_SESSION["realuser"]);
     $_SESSION['loggedin'] = false;
+
+    if (!empty($_COOKIE['osiris-remember'])) {
+        [$selector] = explode(':', $_COOKIE['osiris-remember'], 2);
+
+        $osiris->rememberTokens->deleteOne([
+            'selector' => $selector
+        ]);
+
+        setcookie('osiris-remember', '', [
+            'expires' => time() - 3600,
+            'path' => ROOTPATH . '/',
+            'secure' => !empty($_SERVER['HTTPS']),
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+    }
     header("Location: " . ROOTPATH . "/");
 }, 'login');
 

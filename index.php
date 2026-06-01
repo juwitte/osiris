@@ -46,10 +46,6 @@ function lang($en, $de = null)
     return $lang == 'de' ? $de : $en;
 }
 
-// $_SESSION['loggedin'] = true;
-// $_SESSION['username'] = 'jko'; // default user for testing purposes
-
-
 include_once BASEPATH . "/php/Route.php";
 
 Route::get('/', function () {
@@ -74,6 +70,32 @@ if (defined('USER_MANAGEMENT') && strtoupper(USER_MANAGEMENT) == 'AUTH') {
 
 include_once BASEPATH . "/routes/login.php";
 
+// check if user 
+if (empty($_SESSION['loggedin']) && !empty($_COOKIE['osiris-remember'])) {
+    include_once BASEPATH . "/php/DB.php";
+    $DB = new DB();
+    $osiris = $DB->db;
+    [$selector, $token] = explode(':', $_COOKIE['osiris-remember'], 2) + [null, null];
+
+    if ($selector && $token) {
+        $remember = $osiris->rememberTokens->findOne([
+            'selector' => $selector,
+            'expires' => ['$gt' => date('Y-m-d H:i:s')]
+        ]);
+
+        if ($remember && password_verify($token, $remember['token_hash'])) {
+            $USER = $osiris->persons->findOne(['username' => $remember['username']]);
+
+            if ($USER) {
+                $_SESSION['loggedin'] = true;
+                $_SESSION['username'] = $USER['username'];
+                $_SESSION['name'] = $USER['displayname'];
+            }
+        }
+    }
+    // clean up expired tokens
+    $osiris->rememberTokens->deleteMany(['expires' => ['$lte' => date('Y-m-d H:i:s')]]);
+}
 
 // route for language setting
 Route::get('/set-preferences', function () {

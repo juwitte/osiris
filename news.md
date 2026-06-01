@@ -8,67 +8,13 @@ Es bringt eine neue Startseite, eine grundlegende Überarbeitung der Aktivitäts
 
 Hier die wichtigsten Neuerungen:
 
-### <i class="ph-duotone ph-lightbulb"></i> Forschungs-Spektrum
-
-Das neue Forschungs-Spektrum basiert auf thematischen Zuordnungen von OpenAlex.
-
-Für jede Publikation werden automatisch die bis zu drei dominantesten thematischen Schwerpunkte berücksichtigt. Diese werden in OSIRIS strukturiert übernommen und hierarchisch dargestellt.
-
-- Vier Analyse-Ebenen: Domain, Field, Subfield und Schwerpunkt (Topic)
-- Farbkodierte Domains für eine klare visuelle Orientierung
-- Filter nach Zeitraum und Domain
-- Relative Stärke: zeigt die strukturelle Ausprägung eines Schwerpunkts im Vergleich zum stärksten Schwerpunkt innerhalb der aktuellen Auswahl
-- Eigene Detailseiten für jeden Schwerpunkt mit:
-  - Publikationsentwicklung
-  - Beteiligten Personen
-  - Beteiligten Organisationseinheiten
-  - Vollständiger Publikationsliste
-- Außerdem gibt es zwei mächtige Visualisierungstools:
-  - Ein Sunburst-Diagramm, das die hierarchische Struktur der Themen zeigt und die relative Verteilung der Publikationen innerhalb der Themenbereiche visualisiert. Hier lässt sich auch nach Zeitraum filtern und die verschiedenen Ebenen lassen sich interaktiv erkunden.
-  - Ein Evolution-Chart, das zeigt, wie sich die thematische Struktur der Publikationen im Zeitverlauf verändert. Es werden nur die 20 häufigsten Themen gezeigt, um die Übersicht zu bewahren. Hier ist die Visualisierung als Stacked Area Chart umgesetzt, um die Entwicklung der Themenanteile über die Zeit hinweg zu verdeutlichen. Außerdem gibt es eine Heatmap, die die Stärke der einzelnen Themen in den verschiedenen Jahren zeigt.
-
-Das Forschungs-Spektrum kann für verschiedene Objekte berechnet werden:
-
-- gesamtes Institut
-- Organisationseinheiten
-- Forschungsbereiche
-- Personen
-- Projekte
-- Externe Organisationen
-
-Die Themen sind hierarchisch aufgebaut:
-
-- Domain (4 übergeordnete Bereiche)
-- Field
-- Subfield
-- Schwerpunkt
-
-Über Tabs kann ausgewählt werden, auf welcher Ebene die Analyse erfolgen soll.
-Damit wird sowohl eine grobe strategische Einordnung als auch eine feingranulare Betrachtung möglich.
-
-Das Forschungs-Spektrum basiert vollständig auf extern berechneten Themenclustern von OpenAlex.
-
-**Wichtige Punkte:**
-
-- Pro Publikation werden maximal drei dominante Themen berücksichtigt.
-- Die Zuordnung erfolgt algorithmisch.
-- Es handelt sich nicht um eine Bewertungsmatrix.
-- Zitationszahlen sind alters- und feldabhängig.
-- Alle relativen Werte sind filterabhängig (z. B. Zeitraum).
-
-Auf der Übersichtsseite steht eine ausführliche Infobox zur Verfügung.
-
-### <i class="ph-duotone ph-quotes"></i> Integration von Zitationsdaten
-
-Zusätzlich zur Anzahl der Publikationen werden nun auch Zitationsdaten (OpenAlex) integriert. Auf den Schwerpunkt-Seiten werden die durchschnittlichen Zitationszahlen pro Publikation dargestellt. In Publikationen mit Zitationsdaten wird die Anzahl der Zitationen angezeigt, zusammen mit einem Zeitstempel der letzten Aktualisierung.
-
 ### <i class="ph-duotone ph-house"></i> Neue Startseite
 
 Anstatt das eigene Profil zu zeigen, begrüßt die Startseite nun alle Nutzer:innen mit einer übersichtlichen Dashboard-Ansicht. Hier werden relevante Informationen und Aktionen gebündelt, um einen schnellen Überblick über anstehende Aufgaben, bevorstehende Events und Fristen, Benachrichtigungen und weitere wichtige Informationen zu bieten. Die Startseite ist in verschiedene Bereiche unterteilt, die je nach Rolle und Berechtigungen unterschiedliche Inhalte anzeigen können.
 
 Die Informationen, die zuvor im eigenen Profil im Tab "News" angezeigt wurden, sind jetzt hier zu finden, wurden aber übersichtlicher strukturiert und um weitere relevante Informationen ergänzt. So werden z.B. anstehende Events und Deadlines in einer kompakten Timeline dargestellt, die es ermöglicht, auf einen Blick zu erkennen, welche Fristen bald anstehen und welche noch weiter in der Zukunft liegen. Benachrichtigungen und Aufgaben werden ebenfalls übersichtlich dargestellt, um eine schnelle Orientierung zu ermöglichen. Der Schnellzugriff enthält neben den Favoriten auch Links aus dem Footer.
 
-Weitere Möglichkeiten, die Startseite individuell anzupassen sowie weitere Widgets sind bereits in Planung.
+Neue Möglichkeiten, die Startseite individuell anzupassen sowie weitere Widgets sind bereits in Planung.
 
 ### <i class="ph-duotone ph-sparkle"></i> Neue Aktivitätsansicht
 
@@ -191,9 +137,9 @@ In den Benutzereinstellungen können bis zu fünf Navigationselemente ausgewähl
 
 Damit kombiniert OSIRIS eine stabile Grundstruktur mit persönlicher Anpassbarkeit.
 
-### <i class="ph-duotone ph-megaphone"></i> Ankündigungen im Profil
+### <i class="ph-duotone ph-megaphone"></i> Ankündigungen
 
-Mit Version 2.0 können Administrator:innen zentrale Ankündigungen erstellen, die im News-Bereich der persönlichen Profile aller Nutzer:innen erscheinen.
+Mit Version 2.0 können Administrator:innen zentrale Ankündigungen erstellen, die auf der neuen Startseite aller Nutzer:innen erscheinen.
 
 Die Ankündigungen eignen sich z. B. für:
 
@@ -248,6 +194,61 @@ Die kleine ägyptische Eule Sophie erscheint überall dort, wo Orientierung wich
 
 Sophie ist mehr als ein Maskottchen – sie ist ein integraler Bestandteil der Nutzererfahrung, die OSIRIS menschlicher und zugänglicher macht.
 
+### <i class="ph-duotone ph-lightbulb"></i> Forschungs-Spektrum
+
+Das neue Forschungs-Spektrum basiert auf thematischen Zuordnungen von OpenAlex.
+
+Für jede Publikation werden automatisch die bis zu drei dominantesten thematischen Schwerpunkte berücksichtigt. Diese werden in OSIRIS strukturiert übernommen und hierarchisch dargestellt.
+
+- Vier Analyse-Ebenen: Domain, Field, Subfield und Schwerpunkt (Topic)
+- Farbkodierte Domains für eine klare visuelle Orientierung
+- Filter nach Zeitraum und Domain
+- Relative Stärke: zeigt die strukturelle Ausprägung eines Schwerpunkts im Vergleich zum stärksten Schwerpunkt innerhalb der aktuellen Auswahl
+- Eigene Detailseiten für jeden Schwerpunkt mit:
+  - Publikationsentwicklung
+  - Beteiligten Personen
+  - Beteiligten Organisationseinheiten
+  - Vollständiger Publikationsliste
+- Außerdem gibt es zwei mächtige Visualisierungstools:
+  - Ein Sunburst-Diagramm, das die hierarchische Struktur der Themen zeigt und die relative Verteilung der Publikationen innerhalb der Themenbereiche visualisiert. Hier lässt sich auch nach Zeitraum filtern und die verschiedenen Ebenen lassen sich interaktiv erkunden.
+  - Ein Evolution-Chart, das zeigt, wie sich die thematische Struktur der Publikationen im Zeitverlauf verändert. Es werden nur die 20 häufigsten Themen gezeigt, um die Übersicht zu bewahren. Hier ist die Visualisierung als Stacked Area Chart umgesetzt, um die Entwicklung der Themenanteile über die Zeit hinweg zu verdeutlichen. Außerdem gibt es eine Heatmap, die die Stärke der einzelnen Themen in den verschiedenen Jahren zeigt.
+
+Das Forschungs-Spektrum kann für verschiedene Objekte berechnet werden:
+
+- gesamtes Institut
+- Organisationseinheiten
+- Forschungsbereiche
+- Personen
+- Projekte
+- Externe Organisationen
+
+Die Themen sind hierarchisch aufgebaut:
+
+- Domain (4 übergeordnete Bereiche)
+- Field
+- Subfield
+- Schwerpunkt
+
+Über Tabs kann ausgewählt werden, auf welcher Ebene die Analyse erfolgen soll.
+Damit wird sowohl eine grobe strategische Einordnung als auch eine feingranulare Betrachtung möglich.
+
+Das Forschungs-Spektrum basiert vollständig auf extern berechneten Themenclustern von OpenAlex.
+
+**Wichtige Punkte:**
+
+- Pro Publikation werden maximal drei dominante Themen berücksichtigt.
+- Die Zuordnung erfolgt algorithmisch.
+- Es handelt sich nicht um eine Bewertungsmatrix.
+- Zitationszahlen sind alters- und feldabhängig.
+- Alle relativen Werte sind filterabhängig (z. B. Zeitraum).
+
+Auf der Übersichtsseite steht eine ausführliche Infobox zur Verfügung.
+
+### <i class="ph-duotone ph-quotes"></i> Integration von Zitationszahlen
+
+Zusätzlich zur Anzahl der Publikationen werden nun auch Zitationsdaten (OpenAlex) integriert. Auf den Schwerpunkt-Seiten werden die durchschnittlichen Zitationszahlen pro Publikation dargestellt. In Publikationen mit Zitationsdaten wird die Anzahl der Zitationen angezeigt, zusammen mit einem Zeitstempel der letzten Aktualisierung.
+
+
 ### <i class="ph-duotone ph-bell"></i> Mitteilungen, Hinweise und Texte
 
 Mit Version 2.0 wurden zahlreiche Texte, Hinweise und Bestätigungsdialoge überarbeitet:
@@ -293,7 +294,6 @@ Diese Überarbeitung sorgt für mehr Sicherheit, Klarheit und Konsistenz in der 
 - DOI-Werte werden immer als lowercase gespeichert für konsistente Datensätze.
 - Smart-Render-CRON-Route wurde sichergestellt, dass immer korrekte Initialisierung geladen wird.
 - CSS-Variable für Affiliations-Klasse immer korrekt zitiert (gültiges CSS).
-- Profilseite: Kalendereintrag-Link aktualisiert auf richtigen Endpunkt.
 - Template-Feld-Checks im Backend leicht gelockert für mehr Flexibilität.
 - Bilddaten im Portfolio werden nicht doppelt kodiert — effizientere Darstellung.
 - Neues /activity-fields API-Endpoint ergänzt — liefert alle Aktivitäts-Felder für Frontend-Use-Cases.
