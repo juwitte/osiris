@@ -245,17 +245,6 @@ $cart = readCart();
                     <?php } ?>
 
 
-
-                    <?php if (isset($notifications['version'])) {
-                    ?>
-                        <a href="<?= ROOTPATH ?>/new-stuff#version-<?= OSIRIS_VERSION ?>" class="with-icon <?= $pageactive('new-stuff') ?>">
-                            <i class="ph ph-bell-ringing" aria-hidden="true"></i>
-                            <?= lang('News', 'Neuigkeiten') ?>
-                            <span class="sidebar-index info" id="version-counter">!</span>
-                        </a>
-                    <?php } ?>
-
-
                 <?php } else { ?>
                     <div class="no-tasks">
                         <i class="ph ph-coffee" aria-hidden="true"></i>

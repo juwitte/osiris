@@ -346,6 +346,15 @@
             </div>
         </details>
 
+        <!-- News cannot be added here, the activity has to be connected through the news section -->
+        <?php if ($Settings->featureEnabled('news', true)) { ?>
+            <p class="text-muted font-size-12">
+                <i class="ph ph-info"></i>
+                <?= lang('Note: news cannot be connected here. To connect news, please go to the news section and connect the activity there.', 'Bemerkung: News können hier nicht verknüpft werden. Um News zu verknüpfen, gehe bitte in den News-Bereich und verbinde die Aktivität dort.') ?>
+            </p>
+        <?php } ?>
+        
+
         <div class="bottom-buttons">
             <button id="save-button" type="submit" class="btn large success">
                 <i class="ph ph-floppy-disk"></i>

@@ -1,4 +1,4 @@
-<time datetime="2026-02-28">28.02.2026</time>
+<time datetime="2026-06-01">01.06.2026</time>
 <a class="anchor" href="#version-2.0.0" id="version-2.0.0"></a>
 
 ## Version 2.0.0
@@ -158,6 +158,18 @@ Nutzer:innen können Ankündigungen vorübergehend schließen oder dauerhaft fü
 Wird der Inhalt einer Ankündigung aktualisiert, erscheint sie erneut – so wird sichergestellt, dass wichtige Änderungen nicht übersehen werden.
 
 Damit steht eine einfache, zentrale Möglichkeit zur Verfügung, alle Nutzer:innen direkt innerhalb von OSIRIS zu informieren.
+
+### <i class="ph-duotone ph-megaphone"></i> Neue News
+
+Zu den Ankündigungen gesellt sich eine weitere Möglichkeit, wichtige Informationen zentral zu kommunizieren: die News. Im Gegensatz zu Ankündigungen, die auf der Startseite erscheinen und von der es nur eine einzige geben kann, die nach einem Zeitpunkt ablaufen kann, haben News einen eigenen Bereich und können auch in einem News-Feed auf der Startseite angezeigt werden. Sie eignen sich z. B. für:
+- Informationen zu neuen Funktionen
+- organisatorische Mitteilungen
+- Erfolge und Meilensteine
+- Hinweise auf Veranstaltungen oder Fristen
+- besonders hervorzuhebende Forschung
+- und vieles mehr
+
+Die News können in verschiedene Kategorien eingeteilt werden, die im Vokabular verwaltet werden. Außerdem können sie als öffentlich oder intern markiert werden, um die Sichtbarkeit in der Portfolio-API zu steuern. 
 
 ### <i class="ph-duotone ph-flag"></i> Deadlines
 

@@ -632,42 +632,93 @@ function flatten(array $array)
     return $return;
 }
 
-function time_elapsed_string(string $datetime, $full = false)
+// function time_elapsed_string(string $datetime, $full = false)
+// {
+//     $now = new DateTime;
+//     $ago = new DateTime($datetime);
+//     $diff = $now->diff($ago);
+
+//     $string = array(
+//         'y' => lang('year', 'Jahr'),
+//         'm' => lang('month', 'Monat'),
+//         'w' => lang('week', 'Woche'),
+//         'd' => lang('day', 'Tag'),
+//         'h' => lang('hour', 'Stunde'),
+//         'i' => lang('minute', 'Minute'),
+//         's' => lang('second', 'Sekunde'),
+//     );
+//     foreach ($string as $k => &$v) {
+//         $item = ($k == 'w') ? floor($diff->d / 7) : $diff->$k;
+//         if ($item) {
+//             if ($item > 1) {
+//                 if ($k == 'm' || $k == 'y' || $k == 'd') {
+//                     $v .= lang('s', 'en');
+//                 } else {
+//                     $v .= lang('s', 'n');
+//                 }
+//             }
+//             $v = $item . ' ' . $v;
+//         } else {
+//             unset($string[$k]);
+//         }
+//     }
+
+//     if (!$full) $string = array_slice($string, 0, 1);
+//     if (!$diff->invert) {
+//         return $string ? lang('in ', 'in ') . implode(', ', $string) : lang('just now', 'gerade eben');
+//     }
+//     return $string ? lang('', 'vor ') . implode(', ', $string) . lang(' ago', '') : lang('just now', 'gerade eben');
+// }
+function time_elapsed_string(string $date): string
 {
-    $now = new DateTime;
-    $ago = new DateTime($datetime);
-    $diff = $now->diff($ago);
+    $today = new DateTime('today');
+    $given = new DateTime($date);
+    $given->setTime(0, 0, 0);
 
-    $string = array(
-        'y' => lang('year', 'Jahr'),
-        'm' => lang('month', 'Monat'),
-        'w' => lang('week', 'Woche'),
-        'd' => lang('day', 'Tag'),
-        'h' => lang('hour', 'Stunde'),
-        'i' => lang('minute', 'Minute'),
-        's' => lang('second', 'Sekunde'),
-    );
-    foreach ($string as $k => &$v) {
-        $item = ($k == 'w') ? floor($diff->d / 7) : $diff->$k;
-        if ($item) {
-            if ($item > 1) {
-                if ($k == 'm' || $k == 'y' || $k == 'd') {
-                    $v .= lang('s', 'en');
-                } else {
-                    $v .= lang('s', 'n');
-                }
-            }
-            $v = $item . ' ' . $v;
-        } else {
-            unset($string[$k]);
-        }
+    $diff = $today->diff($given);
+    $days = (int) $diff->format('%r%a');
+
+    if ($days === 0) {
+        return lang('today', 'heute');
     }
 
-    if (!$full) $string = array_slice($string, 0, 1);
-    if (!$diff->invert) {
-        return $string ? lang('in ', 'in ') . implode(', ', $string) : lang('just now', 'gerade eben');
+    if ($days === -1) {
+        return lang('yesterday', 'gestern');
     }
-    return $string ? lang('', 'vor ') . implode(', ', $string) . lang(' ago', '') : lang('just now', 'gerade eben');
+
+    if ($days === 1) {
+        return lang('tomorrow', 'morgen');
+    }
+
+    $units = [
+        'y' => [lang('year', 'Jahr'), lang('years', 'Jahre')],
+        'm' => [lang('month', 'Monat'), lang('months', 'Monaten')],
+        'w' => [lang('week', 'Woche'), lang('weeks', 'Wochen')],
+        'd' => [lang('day', 'Tag'), lang('days', 'Tage')],
+    ];
+
+    $value = null;
+    $label = null;
+
+    if ($diff->y > 0) {
+        $value = $diff->y;
+        $label = $units['y'][$value > 1 ? 1 : 0];
+    } elseif ($diff->m > 0) {
+        $value = $diff->m;
+        $label = $units['m'][$value > 1 ? 1 : 0];
+    } elseif ($diff->d >= 7) {
+        $value = floor($diff->d / 7);
+        $label = $units['w'][$value > 1 ? 1 : 0];
+    } else {
+        $value = $diff->d;
+        $label = $units['d'][$value > 1 ? 1 : 0];
+    }
+
+    if ($days > 0) {
+        return lang('in ', 'in ') . $value . ' ' . $label;
+    }
+
+    return lang('', 'vor ') . $value . ' ' . $label . lang(' ago', '');
 }
 
 // function time_until($datetime, $full = false, $type = 'str'){
@@ -721,6 +772,92 @@ function adjustBrightness($hex, $steps)
     }
 
     return $return;
+}
+/**
+ * Generate a very light background color from a given hex color.
+ * The resulting color keeps the hue, but is much brighter and less saturated.
+ *
+ * @param string $hex
+ * @return string
+ */
+function lightBackgroundColor(string $hex, $brightness=0.95): string
+{
+    $hex = ltrim($hex, '#');
+
+    if (strlen($hex) === 3) {
+        $hex = preg_replace('/(.)/', '$1$1', $hex);
+    }
+
+    $r = hexdec(substr($hex, 0, 2));
+    $g = hexdec(substr($hex, 2, 2));
+    $b = hexdec(substr($hex, 4, 2));
+
+    // RGB -> HSL
+    $r /= 255;
+    $g /= 255;
+    $b /= 255;
+
+    $max = max($r, $g, $b);
+    $min = min($r, $g, $b);
+    $l = ($max + $min) / 2;
+
+    if ($max === $min) {
+        $h = $s = 0;
+    } else {
+        $d = $max - $min;
+
+        $s = $l > 0.5
+            ? $d / (2 - $max - $min)
+            : $d / ($max + $min);
+
+        switch ($max) {
+            case $r:
+                $h = (($g - $b) / $d) + ($g < $b ? 6 : 0);
+                break;
+            case $g:
+                $h = (($b - $r) / $d) + 2;
+                break;
+            default:
+                $h = (($r - $g) / $d) + 4;
+        }
+
+        $h /= 6;
+    }
+
+    // Make color lighter and less saturated
+    $l = $brightness;
+    $s *= 0.25;
+
+    // HSL -> RGB
+    if ($s == 0) {
+        $r = $g = $b = $l;
+    } else {
+        $q = $l < 0.5
+            ? $l * (1 + $s)
+            : $l + $s - $l * $s;
+
+        $p = 2 * $l - $q;
+
+        $hue2rgb = function ($p, $q, $t) {
+            if ($t < 0) $t += 1;
+            if ($t > 1) $t -= 1;
+            if ($t < 1/6) return $p + ($q - $p) * 6 * $t;
+            if ($t < 1/2) return $q;
+            if ($t < 2/3) return $p + ($q - $p) * (2/3 - $t) * 6;
+            return $p;
+        };
+
+        $r = $hue2rgb($p, $q, $h + 1/3);
+        $g = $hue2rgb($p, $q, $h);
+        $b = $hue2rgb($p, $q, $h - 1/3);
+    }
+
+    return sprintf(
+        '#%02X%02X%02X',
+        round($r * 255),
+        round($g * 255),
+        round($b * 255)
+    );
 }
 
 function getFileIcon($type)

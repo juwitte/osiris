@@ -39,12 +39,17 @@ $currentuser = $user == $_SESSION['username'];
 $hasNews = false;
 if (
     $Settings->featureEnabled('new-publications', true)
-    || $Settings->featureEnabled('news', false)
+    || $Settings->featureEnabled('news', true)
     || ($Settings->featureEnabled('quarterly-reporting', true) && isset($notifications['approval']))
     || $Settings->featureEnabled('new-colleagues', true)
 ) {
     $hasNews = true;
 }
+
+$hasEvents = $Settings->featureEnabled('events', false);
+
+include_once BASEPATH . "/php/Vocabulary.php";
+$Vocabulary = new Vocabulary();
 ?>
 <script src="<?= ROOTPATH ?>/js/d3.v4.min.js"></script>
 <script src="<?= ROOTPATH ?>/js/popover.js"></script>
@@ -306,11 +311,12 @@ if (
         background: rgba(0, 114, 188, .08);
     }
 
-    small.info {
+    .link-block .info {
         line-height: 1.2;
         display: block;
         margin-top: .25rem;
         color: var(--muted-color);
+        font-size: 1.2rem;
     }
 
 
@@ -359,9 +365,34 @@ if (
         min-width: 2rem;
         text-align: center;
     }
+
+    .news-item .badge.type {
+        font-size: 1rem;
+        font-weight: bold;
+        /* float: right; */
+    }
+
+    <?php foreach ($Vocabulary->getValues('news-category') as $key => $val) {
+        echo '.news-item .type.' . e($val['id']) . ' {
+        background-color: ' . DB::$colors[$key] . '20;
+        color: ' . DB::$colors[$key] . ';
+    }
+    ';
+    } ?>.news-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        justify-content: space-between;
+    }
+
+    .img-teaser {
+        width: 7rem;
+        height: 7rem;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-top: .5rem;
+    }
 </style>
-
-
 
 <main id="home">
 
@@ -867,16 +898,6 @@ if (
                                     </a>
                                 <?php } ?>
 
-
-
-                                <?php if (isset($notifications['version'])) {
-                                ?>
-                                    <a href="<?= ROOTPATH ?>/new-stuff#version-<?= OSIRIS_VERSION ?>">
-                                        <div><i class="ph ph-bell-ringing" aria-hidden="true"></i></div>
-                                        <?= lang('News', 'Neuigkeiten') ?>
-                                    </a>
-                                <?php } ?>
-
                             </div>
 
                         <?php } else { ?>
@@ -1091,8 +1112,6 @@ if (
                         </div>
 
                         <?php if ($Settings->featureEnabled('deadlines', false)) {
-                            include_once BASEPATH . '/php/Vocabulary.php';
-                            $Vocabulary = new Vocabulary();
                         ?>
 
                             <div class="box padded">
@@ -1143,11 +1162,11 @@ if (
                                                 <?= $d['title'] ?>
                                             </div>
                                             <?php if ($typeInfo) { ?>
-                                                <small class="info">
+                                                <div class="info">
                                                     <?= time_elapsed_string($d['date']) ?>
                                                     &#x2219;
                                                     <?= lang($typeInfo['en'] ?? $d['type'], $typeInfo['de'] ?? null) ?>
-                                                </small>
+                                                </div>
                                             <?php } ?>
                                         </a>
                                     <?php } ?>
@@ -1191,6 +1210,50 @@ if (
                     </section>
                 <?php } ?>
 
+                <?php if ($Settings->featureEnabled('news', true)) { ?>
+                    <div class="box padded">
+                        <div class="widget-header">
+                            <h2>
+                                <i class="ph-duotone ph-megaphone"></i>
+                                <?= lang('News', 'News') ?>
+                            </h2>
+                            <a href="<?= ROOTPATH ?>/news" class="link-sm">
+                                <?= lang('View all', 'Zeige alle') ?>
+                            </a>
+                        </div>
+                        <?php foreach ($osiris->news->find(['date' => ['$lte' => date('Y-m-d')]], ['sort' => ['date' => -1], 'limit' => 4]) as $news) { ?>
+                            <a href="<?= ROOTPATH ?>/news/view/<?= e($news['_id']) ?>" class="link-block news-item">
+                                <div>
+                                    <div class="badge type <?= $news['type'] ?? 'other' ?>"><?= $Vocabulary->getValue('news-category', $news['type'] ?? 'other') ?></div>
+                                    <div class="link-block-title">
+                                        <?= e(lang($news['title'] ?? '', $news['title_de'] ?? null)) ?>
+                                    </div>
+
+                                    <div class="info">
+                                        <?php if (!empty($news['created_by'] ?? null)) { ?>
+                                            <span class="mr-10">
+                                                <i class="ph ph-user"></i>
+                                                <?= $DB->getNameFromId($news['created_by']) ?>
+                                            </span>
+                                        <?php } ?>
+                                        <span>
+                                            <i class="ph ph-calendar-blank"></i>
+                                            <?= time_elapsed_string($news['date']) ?>
+                                        </span>
+                                    </div>
+                                </div>
+                                <?php if (!empty($news['image'])) { ?>
+                                    <div>
+                                        <?php DB::printLogo($news, 'news-image img-teaser') ?>
+                                    </div>
+                                <?php } ?>
+
+                            </a>
+                        <?php } ?>
+                    </div>
+                <?php } ?>
+
+
                 <?php if ($Settings->featureEnabled('new-colleagues')) { ?>
                     <!-- Show new users -->
                     <div class="box padded">
@@ -1220,17 +1283,15 @@ if (
                                     <div class="link-block-title">
                                         <?= $colleague['displayname'] ?? $colleague['username'] ?>
                                     </div>
-                                    <small class="info">
+                                    <div class="info">
                                         <?php if (!empty($colleague['position'] ?? null) || !empty($colleague['position_de'] ?? null)) { ?>
                                             <?= lang($colleague['position'] ?? '', $colleague['position_de'] ?? null) ?>
                                             &#x2219;
                                         <?php } ?>
                                         <?= lang('added ', 'hinzugefügt ') . time_elapsed_string($colleague['created']) ?>
-                                    </small>
+                                    </div>
                                 </div>
                             </a>
-                            </td>
-                            </tr>
                         <?php } ?>
                         </table>
                     </div>
@@ -1250,8 +1311,6 @@ if (
                                 </a>
                             </div>
                             <?php
-                            // include_once BASEPATH . '/php/Document.php';
-                            // $Document = new Document($osiris);
                             $pubs = $osiris->activities->find(
                                 ['authors.aoi' => true, 'type' => 'publication'],
                                 [
@@ -1291,9 +1350,9 @@ if (
                                         <div class="link-block-title">
                                             <?= $doc['html'] ?>
                                         </div>
-                                        <small class="info">
+                                        <div class="info">
                                             <?= $doc['icon'] ?> <?= $authorStr ?> &#x2219; <?= format_date($doc['date'], 'M Y') ?>
-                                        </small>
+                                        </div>
                                     </a>
                                 <?php } ?>
 

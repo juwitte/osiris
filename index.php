@@ -190,6 +190,7 @@ if (
     include_once BASEPATH . "/routes/spectrum.php";
     include_once BASEPATH . "/routes/events.php";
     require_once BASEPATH . '/routes/guests.php';
+    require_once BASEPATH . '/routes/news.php';
     include_once BASEPATH . "/routes/calendar.php";
     include_once BASEPATH . "/routes/infrastructures.php";
     include_once BASEPATH . "/routes/organizations.php";

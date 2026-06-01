@@ -971,7 +971,7 @@ if ($topicsEnabled) {
                             console.log(data);
                             data.data.forEach(function(d) {
                                 $('#activity-suggest .suggestions').append(
-                                    `<a onclick="selectActivity(this)" data-id="${d.id.toString()}">${d.details.icon} ${d.details.plain}</a>`
+                                    `<a  data-id="${d.id.toString()}">${d.details.icon} ${d.details.plain}</a>`
                                 )
                             })
                             $('#activity-suggest .suggestions a')

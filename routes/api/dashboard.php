@@ -1522,13 +1522,26 @@ Route::get('/api/activities-suggest/(.*)', function ($term) {
     error_reporting(E_ERROR | E_PARSE);
     include_once BASEPATH . "/php/init.php";
 
-    // if (!apikey_check($_GET['apikey'] ?? null)) {
-    //     echo return_permission_denied();
-    //     die;
-    // }
+    if (!apikey_check($_GET['apikey'] ?? null)) {
+        echo return_permission_denied();
+        die;
+    }
 
     $filter = ['$text' => ['$search' => $term]];
+    $options = [
+        'projection' => ['score' => ['$meta' => 'textScore'], 'details' => '$rendered', 'id' => ['$toString' => '$_id']],
+        'sort' => ['score' => ['$meta' => 'textScore']],
+        'limit' => 10
+    ];
 
+    // check if term contains a DOI
+    if (preg_match('/(10.\d{4,9}\/[-._;()\/:A-Z0-9]+)/i', $term, $matches)) {
+        $doi = $matches[0];
+        $filter = ['doi' => $doi];
+        $options = [
+            'projection' => ['details' => '$rendered', 'id' => ['$toString' => '$_id']],
+        ];
+    }
     // exclude project id
     if (isset($_GET['exclude-project'])) {
         $exclude = DB::to_ObjectID($_GET['exclude-project']);
@@ -1542,15 +1555,9 @@ Route::get('/api/activities-suggest/(.*)', function ($term) {
         $filter['units'] = ['$in' => explode(',', $_GET['unit'])];
     }
 
-    // $osiris->activities->createIndex(['rendered.plain' => 'text']);
-
     $result = $osiris->activities->find(
         $filter,
-        [
-            'projection' => ['score' => ['$meta' => 'textScore'], 'details' => '$rendered', 'id' => ['$toString' => '$_id']],
-            'sort' => ['score' => ['$meta' => 'textScore']],
-            'limit' => 10
-        ]
+        $options
     )->toArray();
 
 

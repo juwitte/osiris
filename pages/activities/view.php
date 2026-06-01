@@ -607,6 +607,7 @@ if ($edit_perm) {
                                 $connections['infrastructures'] = count($infrastructures);
                             }
                             $connections['activities'] = count($connected_activities);
+                            $connections['news'] = count($connected_news ?? []);
                             $count_connections = array_sum($connections);
                             ?>
                             <h3 class="section-title">
@@ -649,6 +650,9 @@ if ($edit_perm) {
                                         <span class="badge infrastructure-badge"><i class="ph ph-cube-transparent"></i> <?= lang('Infrastructures', 'Infrastrukturen') ?> <b><?= $connections['infrastructures'] ?></b></span>
                                     <?php } ?>
                                     <span class="badge activity-badge"><i class="ph ph-folder"></i> <?= lang('Activities', 'Aktivitäten') ?> <b><?= $connections['activities'] ?></b></span>
+                                    <?php if (isset($connections['news'])) { ?>
+                                        <span class="badge news-badge"><i class="ph ph-newspaper"></i> <?= lang('News', 'News') ?> <b><?= $connections['news'] ?></b></span>
+                                    <?php } ?>
                                 </p>
                             <?php } ?>
 
@@ -697,6 +701,21 @@ if ($edit_perm) {
                                             <span class="badge activity-badge"><?= $activity['rendered']['icon'] ?> <?= lang("Activity", "Aktivität") ?></span>
                                             <div><?= lang($conLabel['en'], $conLabel['de']) ?></div>
                                             <?= $activity['rendered']['web'] ?? '' ?>
+                                        </div>
+                                    <?php } ?>
+                                <?php endif; ?>
+
+                                <?php if (!empty($connected_news)) : ?>
+                                    <?php foreach ($connected_news as $news) { ?>
+                                        <div class="connection">
+                                            <span class="badge news-badge"><i class="ph ph-newspaper"></i> <?= lang("News", "News") ?></span>
+                                            <h5>
+                                                <a href="<?= ROOTPATH ?>/news/view/<?= $news['_id']; ?>"> <?= $news['title']; ?> </a>
+                                            </h5>
+                                            <ul class="horizontal">
+                                                <li><?= date('d.m.Y', strtotime($news['published'] ?? $news['created'])) ?></li>
+                                            </ul>
+                                            <p><?= $news['teaser'] ?? '' ?></p>
                                         </div>
                                     <?php } ?>
                                 <?php endif; ?>
