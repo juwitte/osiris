@@ -1222,7 +1222,7 @@ if ($edit_perm) {
                                                         <?php endif; ?>
 
                                                         <?php if ($hasUser): ?>
-                                                            <?php if ($author['approved']) { ?>
+                                                            <?php if ($author['approved'] ?? false) { ?>
                                                                 <span class="author-chip neutral"
                                                                     data-toggle="tooltip"
                                                                     data-title="<?= lang('Author approved this activity', 'Autor hat die Aktivität bestätigt') ?>">
