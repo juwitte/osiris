@@ -32,7 +32,8 @@ Route::get('/user/oauth', function () {
     include_once BASEPATH . "/php/init.php";
 
     $provider = defined('OAUTH') ? OAUTH : 'microsoft';
-    switch (strtolower($provider)) {
+    $provider = strtolower($provider);
+    switch ($provider) {
         case 'keycloak':
         case 'generic':
             $authorizationEndpoint = AUTHORITY . '/auth';
