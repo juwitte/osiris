@@ -65,14 +65,14 @@ Route::get('/user/oauth-callback', function () {
     include_once BASEPATH . "/php/init.php";
 
     $provider = defined('OAUTH') ? OAUTH : 'microsoft';
-
+    $provider = strtolower($provider);
     if (!isset($_GET['code'])) {
         die("No authorization code returned.");
     }
 
     $code = $_GET['code'];
 
-    switch (strtolower($provider)) {
+    switch ($provider) {
         case 'keycloak':
         case 'generic':
             $tokenUrl = AUTHORITY . '/token';
@@ -117,6 +117,7 @@ Route::get('/user/oauth-callback', function () {
     curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer $accessToken"]);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     $userInfoResponse = curl_exec($ch);
+    curl_close($ch);
 
     $user = json_decode($userInfoResponse, true);
 
