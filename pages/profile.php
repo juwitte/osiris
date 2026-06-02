@@ -610,11 +610,21 @@ if ($currentuser || $Settings->hasPermission('user.image')) { ?>
         'subtype' => ['$in' => $Settings->continuousTypes]
     ];
     $count_memberships = $osiris->activities->count($membership_filter);
-    if ($count_memberships > 0) { ?>
+    if ($count_memberships > 0) {
+        // count ongoing memberships
+        $count_memberships_ongoing = $osiris->activities->count([
+            'rendered.users' => $user,
+            'subtype' => ['$in' => $Settings->continuousTypes],
+            '$or' => [
+                ['end' => null],
+                ['end' => ['$gt' => date('Y-m-d')]]
+            ]
+        ]);
+    ?>
         <a onclick="navigate('memberships')" id="btn-memberships" class="btn">
             <i class="ph ph-user-list" aria-hidden="true"></i>
             <?= lang('Ongoing activities', 'Laufende Aktivitäten')  ?>
-            <span class="index"><?= $count_memberships ?></span>
+            <span class="index"><?= $count_memberships_ongoing ?></span>
         </a>
     <?php } ?>
 
