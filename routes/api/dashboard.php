@@ -243,33 +243,35 @@ Route::get('/api/dashboard/upcoming-events', function () {
         unset($event['start_date'], $event['end_date']);
     }
 
-    $deadlines = $osiris->deadlines->find(
-        [
-            '$and' => [
-                ['date' => ['$gte' => date('Y-m-d', strtotime('-3 days'))]],
-                ['date' => ['$lte' => date('Y-m-d', strtotime('+6 month'))]]
+    if ($Settings->featureEnabled('deadlines')) {
+        $deadlines = $osiris->deadlines->find(
+            [
+                '$and' => [
+                    ['date' => ['$gte' => date('Y-m-d', strtotime('-3 days'))]],
+                    ['date' => ['$lte' => date('Y-m-d', strtotime('+6 month'))]]
+                ],
+                'roles' => ['$in' => $Settings->roles]
             ],
-            'roles' => ['$in' => $Settings->roles]
-        ],
-        ['sort' => ['date' => 1], 'projection' => [
-            '_id' => 0,
-            'id' => ['$toString' => '$_id'],
-            'date' => 1,
-            'type' => 1,
-            'title' => 1,
-            'category' => 'deadline'
-        ]]
-    )->toArray();
+            ['sort' => ['date' => 1], 'projection' => [
+                '_id' => 0,
+                'id' => ['$toString' => '$_id'],
+                'date' => 1,
+                'type' => 1,
+                'title' => 1,
+                'category' => 'deadline'
+            ]]
+        )->toArray();
 
-    // Convert ISO date string to timestamp in PHP if needed
-    foreach ($deadlines as &$deadline) {
-        if (!empty($deadline['date'])) {
-            $deadline['starting_time'] = strtotime($deadline['date']);
+        // Convert ISO date string to timestamp in PHP if needed
+        foreach ($deadlines as &$deadline) {
+            if (!empty($deadline['date'])) {
+                $deadline['starting_time'] = strtotime($deadline['date']);
+            }
+            unset($deadline['date']);
         }
-        unset($deadline['date']);
+        $events = array_merge($events, $deadlines);
     }
 
-    $events = array_merge($events, $deadlines);
     $result['events'] = $events;
 
     if (!empty($events)) {
