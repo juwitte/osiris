@@ -2154,6 +2154,67 @@ Route::get('/api/command-palette/search', function () {
             ];
         }
     }
+
+    if ($Settings->featureEnabled('deadlines')){
+        $pipeline = [
+            [
+                '$match' => [
+                    '$or' => [
+                        ['title' => ['$regex' => $rxContain, '$options' => 'i']],
+                    ]
+                ]
+            ],
+            [
+                '$addFields' => [
+                    '_cp_prefix' => [
+                        '$cond' => [['$regexMatch' => ['input' => '$title', 'regex' => $rxPrefix, 'options' => 'i']], 1, 0]
+                    ],
+                    '_cp_contain' => [
+                        '$cond' => [['$regexMatch' => ['input' => '$title', 'regex' => $rxContain, 'options' => 'i']], 1, 0]
+                    ],
+                ]
+            ],
+            [
+                '$addFields' => [
+                    '_cp_score' => [
+                        '$add' => [
+                            ['$multiply' => ['$_cp_prefix', 40]],
+                            ['$multiply' => ['$_cp_contain', 10]],
+                        ]
+                    ]
+                ]
+            ],
+            ['$sort' => ['_cp_score' => -1, 'title' => 1]],
+            ['$limit' => 6],
+            ['$project' => ['_id' => 1, 'title' => 1, '_cp_score' => 1]]
+        ];
+
+        $cursor = $osiris->deadlines->aggregate($pipeline);
+        $items = [];
+
+        foreach ($cursor as $doc) {
+            $id = (string)$doc->_id;
+
+            $items[] = [
+                'id' => 'deadline:' . $id,
+                'type' => lang('Entity', 'Entität'),
+                'entity' => 'deadline',
+                'label' => $doc->title ?? $id,
+                'url' => '/deadlines/view/' . $id,
+                'icon' => 'flag',
+                'priority' => (int)$doc->_cp_score,
+            ];
+        }
+
+        if ($items) {
+            $groups[] = [
+                'id' => 'deadlines',
+                'label' => lang('Deadlines', 'Fristen'),
+                'items' => $items
+            ];
+        }
+    }
+
     // --- Groups / Units
     $pipeline = [
         [
