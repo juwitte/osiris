@@ -621,7 +621,7 @@ $Vocabulary = new Vocabulary();
                             .style('cursor', 'pointer')
                             .on('mouseover', mouseover)
                             .on('mouseout', mouseout)
-                            .on('click', (event, d) => {
+                            .on('click', (d) => {
                                 window.location.href = d.category === 'event' ?
                                     `/conferences/view/${d.id}` :
                                     `/deadlines/view/${d.id}`;
@@ -943,7 +943,7 @@ $Vocabulary = new Vocabulary();
                         </div>
                         <?php
                         $links = $Settings->get('footer_links');
-                        if (!empty($links)) { ?>
+                        if (is_countable($links) && count($links) > 0) { ?>
                             <hr>
                             <div class="widget-header">
                                 <h2>
@@ -974,7 +974,7 @@ $Vocabulary = new Vocabulary();
                             <div class="widget-header">
                                 <h2>
                                     <i class="ph-duotone ph-calendar-dots"></i>
-                                    <?= lang('Events', 'Veranstaltungen') ?>
+                                    <?= lang('Events', 'Events') ?>
                                 </h2>
                                 <a href="<?= ROOTPATH ?>/conferences" class="link-sm">
                                     <?= lang('View all', 'Zeige alle') ?>
@@ -1003,13 +1003,12 @@ $Vocabulary = new Vocabulary();
                                 <div class="empty-state">
                                     <div class="text-center">
                                         <img src="<?= ROOTPATH ?>/img/sophie/sophie-no-events.png" alt="" class="sophie-img">
-                                        <p><?= lang('Currently there are no upcoming events. Check back later!', 'Aktuell gibt es keine bevorstehenden Veranstaltungen. Schau später wieder vorbei!') ?></p>
+                                        <p><?= lang('Currently there are no upcoming events. Check back later!', 'Aktuell gibt es keine bevorstehenden Events. Schau später wieder vorbei!') ?></p>
                                     </div>
                                 </div>
                             <?php } else {
-                            ?>
-
-                                <?php foreach ($conferences as $n => $c) {
+                                $n_events = count($conferences);
+                                foreach ($conferences as $n => $c) {
                                     $future = strtotime($c['end']) > time();
 
                                     $interests = DB::doc2Arr($c['interests'] ?? []);
@@ -1027,7 +1026,7 @@ $Vocabulary = new Vocabulary();
                                         : lang('Click to show participation', 'Klicken um Teilnahme zu zeigen');
                                 ?>
 
-                                    <div class="conference-item">
+                                    <div class="conference-item <?= $n > 3 ? 'hidden' : '' ?>">
 
                                         <div class="conference-header">
                                             <div>
@@ -1107,6 +1106,14 @@ $Vocabulary = new Vocabulary();
 
                                 <?php } ?>
 
+                                <?php if ($n_events > 4) { ?>
+                                    <div class="text-center mt-10">
+                                        <a onclick="$('.conference-item.hidden').removeClass('hidden'); $(this).parent().remove();" class="font-size-12">
+                                            <?= lang('View all', 'Alle anzeigen') ?> (<?= $n_events - 4 ?> <?=lang('more', 'weitere')?>)
+                                        </a>
+                                    </div>
+                                    <?php } ?>
+
                             <?php } ?>
 
                         </div>
@@ -1145,19 +1152,21 @@ $Vocabulary = new Vocabulary();
                                 )->toArray();
                                 $deadlineTypes = $Vocabulary->getValues('deadline-type');
                                 $deadlineTypes = array_column($deadlineTypes, null, 'id');
+                                
+                                $n_deadlines = count($deadlines);
 
-                                if (count($deadlines) == 0) { ?>
+                                if ($n_deadlines == 0) { ?>
                                     <div class="empty-state">
                                         <div class="text-center">
                                             <img src="<?= ROOTPATH ?>/img/sophie/sophie-no-deadlines.png" alt="" class="sophie-img">
                                             <p><?= lang('Currently there are no upcoming deadlines. Check back later!', 'Aktuell gibt es keine bevorstehenden Fristen. Schau später wieder vorbei!') ?></p>
                                         </div>
                                     </div>
-                                <?php } else { ?>
-                                    <?php foreach ($deadlines as $d) {
+                                <?php } else { 
+                                    foreach ($deadlines as $n => $d) {
                                         $typeInfo = $deadlineTypes[$d['type']] ?? null;
                                     ?>
-                                        <a href="<?= ROOTPATH ?>/deadlines/view/<?= $d['id'] ?>" class="link-block">
+                                        <a href="<?= ROOTPATH ?>/deadlines/view/<?= $d['id'] ?>" class="link-block deadline <?= $n > 5 ? 'hidden': '' ?>">
                                             <div class="link-block-title">
                                                 <?= $d['title'] ?>
                                             </div>
@@ -1170,6 +1179,14 @@ $Vocabulary = new Vocabulary();
                                             <?php } ?>
                                         </a>
                                     <?php } ?>
+
+                                    <?php if ($n_deadlines > 6) { ?>
+                                        <div class="text-center mt-10">
+                                            <a onclick="$('.deadline.hidden').removeClass('hidden'); $(this).parent().remove();" class="font-size-12">
+                                                <?= lang('View all', 'Alle anzeigen') ?> (<?= $n_deadlines - 6 ?> <?=lang('more', 'weitere')?>)
+                                            </a>
+                                        </div>
+                                        <?php } ?>
 
                                 <?php } ?>
                             </div>
