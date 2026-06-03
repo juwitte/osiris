@@ -14,14 +14,18 @@ if ($hour < 10) {
 }
 // random welcome message
 $welcome_messages = [
-    lang('It\'s great to have you here.', 'Schön, dass du hier bist.'),
-    lang('Hope you have a productive day!', 'Ich hoffe, du hast einen produktiven Tag!'),
-    lang('Let\'s make today a great day!', 'Lass uns heute zu einem großartigen Tag machen!'),
-    lang('Welcome back! Let\'s get to work!', 'Willkommen zurück! Lass es uns anpacken!'),
-    lang('Ready to achieve great things today?', 'Bereit, heute Großartiges zu erreichen?'),
-    lang('Let\'s make today amazing!', 'Lass uns heute großartig machen!'),
-    lang('Nice to see you again! Let\'s have a productive day!', 'Schön, dich wiederzusehen! Lass uns einen produktiven Tag haben!'),
-    lang('Here is what\'s happening in OSIRIS.', 'Schau dir an, was in OSIRIS los ist.'),
+    lang('Welcome back.', 'Willkommen zurück.'),
+    lang('Good to see you again.', 'Schön, dich wiederzusehen.'),
+    lang('Here is an overview of your research activities.', 'Hier findest du eine Übersicht deiner Forschungsaktivitäten.'),
+    lang('Let\'s see what\'s new.', 'Schauen wir, was es Neues gibt.'),
+    lang('Your dashboard is ready.', 'Dein Dashboard ist bereit.'),
+    lang('Everything important at a glance.', 'Alles Wichtige auf einen Blick.'),
+    lang('Here is what\'s happening in OSIRIS.', 'Hier siehst du, was in OSIRIS passiert.'),
+    lang('Take a look at the current research activities.', 'Wirf einen Blick auf die aktuellen Forschungsaktivitäten.'),
+    lang('Stay up to date with your research information.', 'Bleibe über deine Forschungsinformationen auf dem Laufenden.'),
+    lang('Your latest updates are waiting for you.', 'Deine neuesten Aktualisierungen warten auf dich.'),
+    lang('Let\'s continue where you left off.', 'Mach dort weiter, wo du aufgehört hast.'),
+    lang('Welcome to your research dashboard.', 'Willkommen auf deinem Forschungs-Dashboard.'),
 ];
 $welcome = $welcome_messages[array_rand($welcome_messages)];
 
