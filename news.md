@@ -310,6 +310,7 @@ Diese Überarbeitung sorgt für mehr Sicherheit, Klarheit und Konsistenz in der 
 - Bilddaten im Portfolio werden nicht doppelt kodiert — effizientere Darstellung.
 - Neues /activity-fields API-Endpoint ergänzt — liefert alle Aktivitäts-Felder für Frontend-Use-Cases.
 - Teaching-API gibt nun immer eine String-ID zurück und löst zugehörige Organisationsnamen auf, für klare API-Antworten.
+- Es ist nun möglich, die Reihenfolge der Forschungsinteressen von Organisationseinheiten zu ändern. Ebenso die damit assoziierten Aktivitäten.
 
 Plus zahlreiche weitere kleinere Verbesserungen, Fehlerbehebungen und Optimierungen, die das Nutzererlebnis insgesamt ruhiger, klarer und konsistenter machen.
 
