@@ -270,6 +270,11 @@ Es ist nun möglich, Keycloak und andere generische Dienste als externe Authenti
 
 Zusätzlich zur Anzahl der Publikationen werden nun auch Zitationsdaten (OpenAlex) integriert. Auf den Schwerpunkt-Seiten werden die durchschnittlichen Zitationszahlen pro Publikation dargestellt. In Publikationen mit Zitationsdaten wird die Anzahl der Zitationen angezeigt, zusammen mit einem Zeitstempel der letzten Aktualisierung.
 
+### <i class="ph-duotone ph-globe"></i> Support für Portfolio 2.0
+
+OSIRIS Portfolio wurde ebenfalls komplett überarbeitet, läuft stabiler und bietet viele neue Funktionen. Die neue Version von Portfolio ist nur mit OSIRIS 2.0 aufwärts kompatibel, da sie von einigen neuen Funktionen und Datenstrukturen in OSIRIS 2.0 profitiert. Daher ist die Unterstützung für Portfolio 2.0 ein wichtiger Bestandteil dieses Updates.
+
+Disclaimer: OSIRIS Portfolio ist eine separat lizenzierbare Erweiterung, die nicht automatisch mit OSIRIS 2.0 installiert wird. Bitte kontaktiert uns, wenn ihr Interesse an OSIRIS Portfolio habt oder mehr darüber erfahren möchtet. 
 
 ### <i class="ph-duotone ph-bell"></i> Mitteilungen, Hinweise und Texte
 
