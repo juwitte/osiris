@@ -214,7 +214,7 @@ Route::get('/api/dashboard/upcoming-events', function () {
     // first get all events that are upcoming or have ended in the last 3 days
     $events = $osiris->conferences->find(
         [
-            'end' => ['$gte' => date('Y-m-d', strtotime('-3 days'))],
+            'end' => ['$gte' => date('Y-m-d', strtotime('today'))],
             'start' => ['$lte' => date('Y-m-d', strtotime('+6 month'))],
             'dismissed' => ['$ne' => $_SESSION['username']]
         ],
@@ -247,7 +247,7 @@ Route::get('/api/dashboard/upcoming-events', function () {
         $deadlines = $osiris->deadlines->find(
             [
                 '$and' => [
-                    ['date' => ['$gte' => date('Y-m-d', strtotime('-3 days'))]],
+                    ['date' => ['$gte' => date('Y-m-d', strtotime('today'))]],
                     ['date' => ['$lte' => date('Y-m-d', strtotime('+6 month'))]]
                 ],
                 'roles' => ['$in' => $Settings->roles]
@@ -2155,7 +2155,7 @@ Route::get('/api/command-palette/search', function () {
         }
     }
 
-    if ($Settings->featureEnabled('deadlines')){
+    if ($Settings->featureEnabled('deadlines')) {
         $pipeline = [
             [
                 '$match' => [

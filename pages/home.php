@@ -1,5 +1,4 @@
 <?php
-$user = $_SESSION['username'] ?? null;
 // say good morning or good afternoon or good evening depending on the time of day
 $hour = date('H');
 if ($hour < 10) {
@@ -38,22 +37,6 @@ if ($Q < 1) {
 }
 $lastquarter = $Y . "Q" . $Q;
 
-$currentuser = $user == $_SESSION['username'];
-
-$hasNews = false;
-if (
-    $Settings->featureEnabled('new-publications', true)
-    || $Settings->featureEnabled('news', true)
-    || ($Settings->featureEnabled('quarterly-reporting', true) && isset($notifications['approval']))
-    || $Settings->featureEnabled('new-colleagues', true)
-) {
-    $hasNews = true;
-}
-
-$hasEvents = $Settings->featureEnabled('events', false);
-
-include_once BASEPATH . "/php/Vocabulary.php";
-$Vocabulary = new Vocabulary();
 ?>
 <script src="<?= ROOTPATH ?>/js/d3.v4.min.js"></script>
 <script src="<?= ROOTPATH ?>/js/popover.js"></script>
