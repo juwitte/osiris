@@ -5,7 +5,7 @@ FROM php:8.1-fpm-alpine AS composer
 RUN apk add --no-cache git unzip
 
 # Install Composer
-COPY --from=composer /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Set workdir
 WORKDIR /app
