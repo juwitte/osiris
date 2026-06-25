@@ -1254,11 +1254,11 @@ $active = function ($field) use ($data_fields) {
                                 <div class="input-group-prepend">
                                     <span class="input-group-text"><?= lang('From', 'Von') ?>*</span>
                                 </div>
-                                <input type="month" name="values[cv][<?= $i ?>][from]" id="from-<?= $i ?>" value="<?= $con['from'] ?? '' ?>" class="form-control month-field" placeholder="month *" required>
+                                <input type="month" name="values[cv][<?= $i ?>][from]" id="from-<?= $i ?>" value="<?= $con['from'] ?? '' ?>" class="form-control month-field" placeholder="<?= lang('YYYY-MM', 'JJJJ-MM') ?> *" required>
                                 <div class="input-group-prepend">
                                     <span class="input-group-text"><?= lang('to', 'bis') ?></span>
                                 </div>
-                                <input type="month" name="values[cv][<?= $i ?>][to]" id="to-<?= $i ?>" value="<?= $con['to'] ?? '' ?>" class="form-control month-field" placeholder="month">
+                                <input type="month" name="values[cv][<?= $i ?>][to]" id="to-<?= $i ?>" value="<?= $con['to'] ?? '' ?>" class="form-control month-field" placeholder="<?= lang('YYYY-MM', 'JJJJ-MM') ?>">
                             </div>
 
                             <div class="form-group mb-10">
@@ -1300,11 +1300,11 @@ $active = function ($field) use ($data_fields) {
                         <div class="input-group-prepend">
                             <span class="input-group-text">${lang('From', 'Von')}*</span>
                         </div>
-                        <input type="month" name="values[cv][${i}][from]" class="form-control" placeholder="month *" required>
+                        <input type="month" name="values[cv][${i}][from]" class="form-control" placeholder="<?= lang('YYYY-MM', 'JJJJ-MM') ?> *" required>
                         <div class="input-group-prepend">
                             <span class="input-group-text">${lang('to', 'bis')}</span>
                         </div>
-                        <input type="month" name="values[cv][${i}][to]" class="form-control" placeholder="month">
+                        <input type="month" name="values[cv][${i}][to]" class="form-control" placeholder="<?= lang('YYYY-MM', 'JJJJ-MM') ?>">
                     </div>
 
                     <div class="form-group mb-10">
