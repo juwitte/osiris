@@ -1323,11 +1323,24 @@ $active = function ($field) use ($data_fields) {
                     $(parent).prepend(el);
                 }
 
+                function areAllMonthValid() {
+                    let allValid = true;
+                    $('.month-field').each(function() {
+                        const value = $(this).val();
+
+                        if (value.length > 0 && !/^\d{4}-\d{2}$/.test(value)) {
+                            allValid = false;
+                            return false; // break the loop
+                        }
+                    });
+                    return allValid;
+                }
+
                 function validateFeedback(item = null, pass = false) {
                     if (item !== null) {
                         $(item).toggleClass('is-invalid', !pass);
                     }
-                    $('.btn[type="submit"]').prop('disabled', !pass);
+                    $('.btn[type="submit"]').prop('disabled', !areAllMonthValid());
                 }
 
                 // when month field is blurred, check if month is correctly formatted, if not, try to fix it, otherwise give an error
