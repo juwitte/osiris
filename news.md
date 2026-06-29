@@ -541,7 +541,7 @@ Hier die Highlights:
 - **Geteilte Notizen:** Für Kommunikation zwischen Projektteam und ABS-Compliance-Team.
 - **Dashboard für ABS-Teams:** Überblick über offene Bewertungen, fehlende Scopes, offene Permits und eingereichte Unterlagen.
 
-Mehr Infos zum Nagoya-Modul findet ihr in unserem [Wiki](https://wiki.osiris-app.de/topics/nagoya/).
+Mehr Infos zum Nagoya-Modul findet ihr in unserem [Wiki](https://wiki.osiris-app.de/latest/topics/nagoya/).
 
 ### Erweiterte Suche für fast alles
 
