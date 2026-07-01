@@ -63,6 +63,19 @@ if (str_ends_with($_SERVER['REQUEST_URI'], '/install')) {
         header('Location: ' . ROOTPATH . '/migration-needed');
         die;
     }
+} elseif (version_compare($version['value'], OSIRIS_VERSION, '<')) {
+    # if version including patch level is lower, update the version in the database
+    $osiris->system->updateOne(
+        ['key' => 'version'],
+        ['$set' => ['value' => OSIRIS_VERSION]],
+        ['upsert' => true]
+    );
+
+    $osiris->system->updateOne(
+        ['key' => 'last_update'],
+        ['$set' => ['value' => date('Y-m-d')]],
+        ['upsert' => true]
+    );
 }
 
 
