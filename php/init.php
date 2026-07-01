@@ -21,7 +21,7 @@ if (!defined('OSIRIS_VERSION')) {
 $version = $osiris->system->findOne(['key' => 'version']);
 if (str_ends_with($_SERVER['REQUEST_URI'], '/install')) {
     // just let the install script run
-} elseif (empty($version)) { ?>
+} elseif (!isset($version['value']) || !is_string($version['value'])) { ?>
     <!-- include css -->
     <link rel="stylesheet" href="<?= ROOTPATH ?>/css/main.css">
     <link href="<?= ROOTPATH ?>/css/phosphoricons/regular/style.css?v=<?= OSIRIS_BUILD ?>" rel="stylesheet" />
