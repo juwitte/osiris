@@ -48,7 +48,8 @@ if (str_ends_with($_SERVER['REQUEST_URI'], '/install')) {
     </div>
 <?php
     die;
-} elseif (version_compare($version['value'], OSIRIS_VERSION, '<')) {
+} elseif (version_compare(implode('.', array_slice(explode('.', $version['value']), 0, 2)), implode('.', array_slice(explode('.', OSIRIS_VERSION), 0, 2)), '<')) {
+    # compare if major.minor version is lower, ignore patch level
     $allowed_routes = [
         ROOTPATH . '/migrate',
         ROOTPATH . '/migration-needed',
