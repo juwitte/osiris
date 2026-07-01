@@ -3,7 +3,7 @@
 
 ## Patch 2.0.1
 
-Dieser Patch bringt einige kleinere Bugfixes.
+Dieser Patch bringt einige kleinere Bugfixes und Verbesserungen.
 
 ### CVs:
   - Wenn User neue Einträge in ihren CVs anlege, wird nun in den Feldern `Von`/`Bis` anstelle von `month` nun das korrekte Format `YYYY-MM` bzw. `JJJJ-MM` angezeigt. Danke für den Hinweis in [#516](https://github.com/OSIRIS-Solutions/osiris/issues/408)
@@ -16,6 +16,7 @@ Das OSIRIS Wiki wird ab sofort versioniert veröffentlicht. Das führt dazu, das
 ### Weiteres
   - In `composer.lock` wurden die Build-Dependencies geupdatet
   - Die Container Namen und Ports in `docker-compose.dev.yml` wurden geändert, damit die Dev und Prod Umgebungen parallel laufen können
+  - Es wird bei neuen Patches das Migrations-Tool nicht mehr aktiviert
 
 ----
 
