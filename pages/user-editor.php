@@ -614,7 +614,7 @@ $active = function ($field) use ($data_fields) {
                                     <?= ucfirst($t) ?>
                                 </span>
                             </div>
-                            <input type="text" name="values[socials][<?= $t ?>]" class="form-control" value="<?= $url ?>" placeholder="<?= lang('URL', 'URL') ?>">
+                            <input type="text" name="values[socials][<?= $t ?>]" class="form-control need-validation" data-validator="social" value="<?= $url ?>" placeholder="<?= lang('URL', 'URL') ?>">
                             <div class="input-group-append">
                                 <a class="btn text-danger" onclick="$(this).closest('.input-group').remove();">×</a>
                             </div>
@@ -656,7 +656,7 @@ $active = function ($field) use ($data_fields) {
                         ${type.toUpperCase()}
                     </span>
                 </div>
-                <input type="text" name="values[socials][${type}]" class="form-control" value="" placeholder="URL">
+                <input type="text" name="values[socials][${type}]" class="form-control need-validation" data-validator="social" value="" placeholder="URL">
                 <div class="input-group-append">
                     <a class="btn text-danger" onclick="$(this).closest('.input-group').remove();">×</a>
                 </div>
@@ -667,7 +667,7 @@ $active = function ($field) use ($data_fields) {
 
                 // validate social media urls
                 $(document).on('blur', '#socials input', function() {
-                    validate_social(this);
+                    validateSocial(this);
                 });
 
             </script>
@@ -1456,7 +1456,7 @@ $active = function ($field) use ($data_fields) {
 
 
     <br>
-    <button type="submit" class="btn secondary">
+    <button type="submit" class="btn secondary" onclick="return validateUserForm(event, this.form);">
         Update
     </button>
 

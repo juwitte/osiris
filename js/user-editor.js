@@ -225,43 +225,86 @@ const socialHostRules = {
     website: [] // personal website: allow any valid URL
 };
 
-function validate_social(element){
+function validateSocial(element){
+    let msg = '';
     const name = $(element).attr('name') || '';
     const match = name.match(/\[socials\]\[([^\]]+)\]/i);
-    if (!match) return true;
+    if (!match) return [true, msg];
 
     const type = match[1].toLowerCase();
     const url = String($(element).val() || '').trim();
 
     if (url === '') {
         $(element).toggleClass('is-invalid', false);
-        return true
+        return [true, msg];
     }
 
+    
     let parsedUrl;
     try {
         parsedUrl = new URL(url);
     } catch (e) {
-        toastError(`Socials: ${type}: please enter a valid URL.`);
+        msg = lang(`Socials: ${type} - please enter a valid URL.`, `Soziale Medien: ${type} - bitte geben Sie eine gültige URL ein.`);
         $(element).toggleClass('is-invalid', true);
-        return false;
+        return [false, msg];
     }
 
     if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
-        toastError(`Socials: ${type}: URL must start with http:// or https://`);
+        msg = lang(`Socials: ${type} - URL must start with http:// or https://`, `Soziale Medien: ${type} - URL muss mit http:// oder https:// beginnen`);
         $(element).toggleClass('is-invalid', true);
-        return false;
+        return [false, msg];
     }
 
     if (socialHostRules[type] && socialHostRules[type].length > 0) {
         const hostname = parsedUrl.hostname;
         if (!socialHostRules[type].includes(hostname)) {
-            toastError(`Socials: ${type}: URL must point to ${socialHostRules[type].join(', ')}`);
+            msg = lang(`Socials: ${type} - URL must point to ${socialHostRules[type].join(', ')}`, `Soziale Medien: ${type} - URL muss auf ${socialHostRules[type].join(', ')} zeigen`);
             $(element).toggleClass('is-invalid', true);
-            return false;
+            return [false, msg];
         };
     }
 
     $(element).toggleClass('is-invalid', false);
-    return true;
+    return [true, msg];
+}
+
+const validators = {
+    social: validateSocial
+}
+
+
+function validateUserForm(event, form) {
+    let valid = true;
+    let firstInvalidElement = null;
+    
+    $('.need-validation').each(function() {
+        const validatorName = $(this).data('validator');
+        const validator = validators[validatorName];
+        if (validator) {
+            const [isValid, msg] = validator(this);
+            if (!isValid){
+                valid = false;
+                toastError(msg);
+                $(this).toggleClass('is-invalid', true);
+                if (!firstInvalidElement) {
+                    firstInvalidElement = this;
+                }
+            }
+            else {
+                $(this).toggleClass('is-invalid', false);
+            }
+        }
+    });
+   
+    if (!valid) {
+        event.preventDefault();
+        toastError(lang('Please correct the errors in the form.', 'Bitte korrigieren Sie die Fehler im Formular.'));
+        if (firstInvalidElement) {
+            const tabName = $(firstInvalidElement).closest('section').attr('id');
+            if (tabName) {
+                navigate(tabName);
+            }
+            firstInvalidElement.focus();
+        }
+    }
 }
