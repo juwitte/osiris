@@ -684,8 +684,20 @@ $active = function ($field) use ($data_fields) {
             <div class="form-row row-eq-spacing">
                 <div class="col-sm-6">
                     <label for="password"><?= lang('New password', 'Neues Passwort') ?></label>
-                    <input type="password" name="password" id="password" class="form-control">
+                    <input type="password" name="password" id="password" class="form-control" oninput="validatePassword(this);">
+                    <small class="text-danger" id="password-wrong-length">
+                    <?= lang('The password should be at least 8 characters long.', 'Das Passwort sollte mindestens 8 Zeichen lang sein.') ?>
+                    </small>
+                    <br>
+                    <small class="text-danger" id="password-wrong-uppercase">
+                        <?= lang('The password must contain at least one uppercase letter.', 'Das Passwort muss mindestens einen Großbuchstaben enthalten.') ?>
+                    </small>
+                    <br>
+                    <small class="text-danger" id="password-wrong-lowercase">
+                        <?= lang('The password must contain at least one lowercase letter.', 'Das Passwort muss mindestens einen Kleinbuchstaben enthalten.') ?>
+                    </small>
                 </div>
+                
                 <div class="col-sm-6">
                     <label for="password2"><?= lang('Repeat password', 'Passwort wiederholen') ?></label>
                     <input type="password" name="password2" id="password2" class="form-control">

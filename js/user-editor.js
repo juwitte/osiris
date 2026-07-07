@@ -209,6 +209,68 @@ function updateScienceUnit(user, unit){
     });
 }
 
+function validatePassword(element){
+    var password = $(element).val();
+    let valid = true;
+
+    if (password === '') {
+        $(element).removeClass('is-invalid');
+        $(element).removeClass('is-valid');
+        $('#password-wrong-length').addClass('text-danger');
+        $('#password-wrong-length').removeClass('text-success');
+        $('#password-wrong-uppercase').addClass('text-danger');
+        $('#password-wrong-uppercase').removeClass('text-success');
+        $('#password-wrong-lowercase').addClass('text-danger');
+        $('#password-wrong-lowercase').removeClass('text-success');
+        return [true, ''];
+    }
+
+    if (password.length < 8) {
+        $(element).addClass('is-invalid');
+        $(element).removeClass('is-valid');
+        $('#password-wrong-length').addClass('text-danger');
+        $('#password-wrong-length').removeClass('text-success');
+        valid = false
+    }
+    else{
+        $('#password-wrong-length').removeClass('text-danger');
+        $('#password-wrong-length').addClass('text-success');
+    }
+
+    if (!/[A-Z]/.test(password)) {
+        $(element).addClass('is-invalid');
+        $(element).removeClass('is-valid');
+        $('#password-wrong-uppercase').addClass('text-danger');
+        $('#password-wrong-uppercase').removeClass('text-success');
+        valid = false;
+    }
+    else{
+        $('#password-wrong-uppercase').removeClass('text-danger');
+        $('#password-wrong-uppercase').addClass('text-success');
+    }
+
+    if (!/[a-z]/.test(password)) {
+        $(element).addClass('is-invalid');
+        $(element).removeClass('is-valid');
+        $('#password-wrong-lowercase').addClass('text-danger');
+        $('#password-wrong-lowercase').removeClass('text-success');
+        valid = false;
+    }
+    else{
+        $('#password-wrong-lowercase').removeClass('text-danger');
+        $('#password-wrong-lowercase').addClass('text-success');
+    }
+
+    if (valid) {
+        $(element).removeClass('is-invalid');
+        $(element).addClass('is-valid');
+    } else {
+        $(element).addClass('is-invalid');
+        $(element).removeClass('is-valid');
+    }
+    return [valid, lang('Password does not meet the requirements.', 'Das Passwort erfüllt nicht die Anforderungen.')];
+}
+
 function validateGoogleScholar(element){
     var id = $(element).val();
     // regex for google scholar id
