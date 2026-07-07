@@ -1456,7 +1456,7 @@ $active = function ($field) use ($data_fields) {
 
 
     <br>
-    <button type="submit" class="btn secondary" onclick="validateUserForm(event, $('#user-form'))">
+    <button type="submit" class="btn secondary">
         Update
     </button>
 
