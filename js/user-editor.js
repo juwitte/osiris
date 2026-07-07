@@ -208,3 +208,60 @@ function updateScienceUnit(user, unit){
         }
     });
 }
+
+
+// allowed social media domains
+const socialHostRules = {
+    github: ['github.com', 'www.github.com'],
+    linkedin: ['linkedin.com', 'www.linkedin.com', 'de.linkedin.com'],
+    researchgate: ['researchgate.net', 'www.researchgate.net'],
+    youtube: ['youtube.com', 'www.youtube.com', 'youtu.be'],
+    mastodon: [], // hard to pin to one domain; allow any valid URL
+    bluesky: ['bsky.app', 'www.bsky.app'],
+    instagram: ['instagram.com', 'www.instagram.com'],
+    facebook: ['facebook.com', 'www.facebook.com', 'fb.com', 'www.fb.com'],
+    x: ['x.com', 'www.x.com', 'twitter.com', 'www.twitter.com'],
+    matrix: ['matrix.to', 'www.matrix.to'],
+    website: [] // personal website: allow any valid URL
+};
+
+function validate_social(element){
+    const name = $(element).attr('name') || '';
+    const match = name.match(/\[socials\]\[([^\]]+)\]/i);
+    if (!match) return true;
+
+    const type = match[1].toLowerCase();
+    const url = String($(element).val() || '').trim();
+
+    if (url === '') {
+        $(element).toggleClass('is-invalid', false);
+        return true
+    }
+
+    let parsedUrl;
+    try {
+        parsedUrl = new URL(url);
+    } catch (e) {
+        toastError(`Socials: ${type}: please enter a valid URL.`);
+        $(element).toggleClass('is-invalid', true);
+        return false;
+    }
+
+    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+        toastError(`Socials: ${type}: URL must start with http:// or https://`);
+        $(element).toggleClass('is-invalid', true);
+        return false;
+    }
+
+    if (socialHostRules[type] && socialHostRules[type].length > 0) {
+        const hostname = parsedUrl.hostname;
+        if (!socialHostRules[type].includes(hostname)) {
+            toastError(`Socials: ${type}: URL must point to ${socialHostRules[type].join(', ')}`);
+            $(element).toggleClass('is-invalid', true);
+            return false;
+        };
+    }
+
+    $(element).toggleClass('is-invalid', false);
+    return true;
+}
