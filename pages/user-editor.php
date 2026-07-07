@@ -528,33 +528,16 @@ $active = function ($field) use ($data_fields) {
         <div class="form-row row-eq-spacing">
             <div class="col-sm-6">
                 <label for="orcid">ORCID</label>
-                <input type="text" name="values[orcid]" id="orcid" class="form-control" value="<?= $data['orcid'] ?? '' ?>" onchange="validateORCID(this);">
+                <input type="text" name="values[orcid]" id="orcid" class="form-control need-validation" data-validator="orcid" value="<?= $data['orcid'] ?? '' ?>">
                 <small class="text-danger" id="orcid-wrong" style="display: none;">
                     <?= lang('The ORCID should be in the format 0000-0000-0000-0000', 'Die ORCID sollte im Format 0000-0000-0000-0000 angegeben werden') ?>
                 </small>
             </div>
 
-            <script>
-                function validateORCID(input) {
-                    var orcid = input.value;
-                    // regex for orcid
-                    var regex = /^\d{4}-\d{4}-\d{4}-\d{3}[0-9X]{1}$/;
-                    if (orcid === '') {
-                        input.classList.remove('is-invalid');
-                        $('#orcid-wrong').hide();
-                    } else if (!regex.test(orcid)) {
-                        input.classList.add('is-invalid');
-                        $('#orcid-wrong').show();
-                    } else {
-                        input.classList.remove('is-invalid');
-                        $('#orcid-wrong').hide();
-                    }
-                }
-            </script>
 
             <div class="col-sm-6">
                 <label for="google_scholar">Google Scholar ID</label>
-                <input type="text" name="values[google_scholar]" id="google_scholar" class="form-control" value="<?= $data['google_scholar'] ?? '' ?>">
+                <input type="text" name="values[google_scholar]" id="google_scholar" class="form-control need-validation" data-validator="googleScholar" value="<?= $data['google_scholar'] ?? '' ?>">
                 <small class="text-muted">
                     <?= lang('Not the URL! Only the bold part: https://scholar.google.com/citations?user=<b>2G1YzvwAAAAJ</b>&hl=de ', 'Nicht die URL! Nur der fettgedruckte Teil: https://scholar.google.com/citations?user=<b>2G1YzvwAAAAJ</b>&hl=de') ?>
                 </small>
@@ -566,21 +549,14 @@ $active = function ($field) use ($data_fields) {
 
 
         <script>
-            // validate google scholar id on change
+            // validate ORCID on change
+            $('#orcid').on('change', function() {
+                validateORCID(this);
+            });
+
+            // validate Google Scholar ID on change
             $('#google_scholar').on('change', function() {
-                var id = $(this).val();
-                // regex for google scholar id
-                var regex = /^[a-zA-Z0-9_-]{12}$/;
-                if (id === '') {
-                    $('#google_scholar').removeClass('is-invalid');
-                    $('#google-scholar-wrong').hide();
-                } else if (!regex.test(id)) {
-                    $('#google_scholar').addClass('is-invalid');
-                    $('#google-scholar-wrong').show();
-                } else {
-                    $('#google_scholar').addClass('is-valid');
-                    $('#google-scholar-wrong').hide();
-                }
+                validateGoogleScholar(this);
             });
         </script>
 

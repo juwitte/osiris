@@ -209,6 +209,49 @@ function updateScienceUnit(user, unit){
     });
 }
 
+function validateGoogleScholar(element){
+    var id = $(element).val();
+    // regex for google scholar id
+    var regex = /^[a-zA-Z0-9_-]{12}$/;
+    if (id === '') {
+        $(element).removeClass('is-invalid');
+        $(element).removeClass('is-valid');
+        $('#google-scholar-wrong').hide();
+        return [true, ''];
+    } else if (!regex.test(id)) {
+        $(element).addClass('is-invalid');
+        $(element).removeClass('is-valid');
+        $('#google-scholar-wrong').show();
+        return [false, lang('Google Scholar ID must be 12 characters long and can only contain letters and numbers.', 'Die Google Scholar ID muss 12 Zeichen lang sein und darf nur Buchstaben und Zahlen enthalten.')];
+    } else {
+        $(element).removeClass('is-invalid');
+        $(element).addClass('is-valid');
+        $('#google-scholar-wrong').hide();
+        return [true, ''];
+    }
+}
+
+function validateORCID(input) {
+    var orcid = $(input).val();
+    // regex for orcid
+    var regex = /^\d{4}-\d{4}-\d{4}-\d{3}[0-9X]{1}$/;
+    if (orcid === '') {
+        $(input).removeClass('is-invalid');
+        $(input).removeClass('is-valid');
+        $('#orcid-wrong').hide();
+        return [true, ''];
+    } else if (!regex.test(orcid)) {
+        $(input).addClass('is-invalid');
+        $(input).removeClass('is-valid');
+        $('#orcid-wrong').show();
+        return [false, lang('ORCID must be in the format 0000-0000-0000-0000', 'Die ORCID muss im Format 0000-0000-0000-0000 angegeben werden')];
+    } else {
+        $(input).removeClass('is-invalid');
+        $(input).addClass('is-valid');
+        $('#orcid-wrong').hide();
+        return [true, ''];
+    }
+}
 
 // allowed social media domains
 const socialHostRules = {
@@ -269,7 +312,9 @@ function validateSocial(element){
 }
 
 const validators = {
-    social: validateSocial
+    social: validateSocial,
+    googleScholar: validateGoogleScholar,
+    orcid: validateORCID
 }
 
 
