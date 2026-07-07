@@ -604,12 +604,14 @@ $active = function ($field) use ($data_fields) {
                 <?php
                 $socials = DB::doc2Arr($data['socials'] ?? []);
                 foreach ($socials as $t => $url) {
+                    $logo = socialLogo($t);
                 ?>
                     <div class="form-group">
                         <div class="input-group">
                             <div class="input-group-prepend">
                                 <span class="input-group-text">
-                                    <?= $t ?>
+                                    <i class="ph <?= $logo ?> mr-5 text-primary"></i>
+                                    <?= ucfirst($t) ?>
                                 </span>
                             </div>
                             <input type="text" name="values[socials][<?= $t ?>]" class="form-control" value="<?= $url ?>" placeholder="<?= lang('URL', 'URL') ?>">
@@ -662,6 +664,12 @@ $active = function ($field) use ($data_fields) {
         `;
                     $('#socials').append(html);
                 }
+
+                // validate social media urls
+                $(document).on('blur', '#socials input', function() {
+                    validate_social(this);
+                });
+
             </script>
         <?php } ?>
     </section>
