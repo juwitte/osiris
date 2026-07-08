@@ -2913,7 +2913,7 @@ class Modules
             case "link":
             ?>
                 <div class="data-module floating-form col-sm-<?= $width ?>" data-module="link">
-                    <input type="text" class="form-control" <?= $labelClass ?> name="values[link]" value="<?= $this->val('link') ?>" id="link" placeholder="link">
+                    <input type="text" class="form-control" <?= $labelClass ?> name="values[link]" value="<?= $this->val('link') ?>" id="link" placeholder="link" oninput="validateLink(this)">
                     <label for="link" class="element-link <?= $labelClass ?>"><?= $label ?></label>
                     <?= $this->render_help($help) ?>
                 </div>
@@ -3065,7 +3065,7 @@ class Modules
             ?>
                 <?php if (empty($this->form)) { ?>
                     <div class="data-module floating-form col-sm-<?= $width ?>" data-module="doi">
-                        <input type="text" class="form-control" <?= $labelClass ?> name="values[doi]" value="<?= $this->val('doi') ?>" id="doi" placeholder="doi">
+                        <input type="text" class="form-control" <?= $labelClass ?> name="values[doi]" value="<?= $this->val('doi') ?>" id="doi" placeholder="doi" oninput="validateDoi(this)">
                         <label for="doi" class="element-link <?= $labelClass ?>"><?= $label ?></label>
                         <?= $this->render_help($help) ?>
                     </div>
@@ -3074,7 +3074,7 @@ class Modules
                         <label for="doi" class="floating-title <?= $labelClass ?>"><?= $label ?></label>
 
                         <div class="input-group ">
-                            <input type="text" class="form-control" <?= $labelClass ?> name="values[doi]" value="<?= $this->val('doi') ?>" id="doi" placeholder="doi">
+                            <input type="text" class="form-control" <?= $labelClass ?> name="values[doi]" value="<?= $this->val('doi') ?>" id="doi" placeholder="doi" oninput="validateDoi(this)">
                             <div class="input-group-append" data-toggle="tooltip" data-title="<?= lang('Retreive updated information via DOI', 'Aktualisiere die Daten via DOI') ?>">
                                 <button class="btn" type="button" onclick="getPubData(event, this)"><i class="ph ph-arrows-clockwise"></i></button>
                                 <span class="sr-only">
