@@ -2913,7 +2913,7 @@ class Modules
             case "link":
             ?>
                 <div class="data-module floating-form col-sm-<?= $width ?>" data-module="link">
-                    <input type="text" class="form-control" <?= $labelClass ?> name="values[link]" value="<?= $this->val('link') ?>" id="link" placeholder="link">
+                    <input type="text" class="form-control" <?= $labelClass ?> name="values[link]" value="<?= $this->val('link') ?>" id="link" placeholder="link" oninput="validateLink(this)">
                     <label for="link" class="element-link <?= $labelClass ?>"><?= $label ?></label>
                     <?= $this->render_help($help) ?>
                 </div>
@@ -3085,23 +3085,6 @@ class Modules
                         <?= $this->render_help($help) ?>
                     </div>
                 <?php } ?>
-                <script>
-                    function validateDoi(element) {
-                        // DOI regex pattern
-                        const doi = element.value.trim();
-                        const doiPattern = /(10\.\d{4,9}\/[-._;()/:A-Z0-9]+$)/i;
-                        if (doi === "") {
-                            $(element).toggleClass("is-valid", false);
-                            $(element).toggleClass("is-invalid", false);
-                        } else if (doiPattern.test(doi)) {
-                            $(element).toggleClass("is-valid", true);
-                            $(element).toggleClass("is-invalid", false);
-                        } else {
-                            $(element).toggleClass("is-valid", false);
-                            $(element).toggleClass("is-invalid", true);
-                        }
-                    }
-                </script>
             <?php
                 break;
 
