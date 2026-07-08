@@ -469,7 +469,7 @@ $active = function ($field) use ($data_fields) {
         <h2 class="title"><?= lang('Contact', 'Kontakt') ?></h2>
         <div class="form-group">
             <label for="mail">Mail</label>
-            <input type="text" name="values[mail]" id="mail" class="form-control" value="<?= $data['mail'] ?? '' ?>" <?= in_array('mail', $ldap_fields) ? 'disabled' : '' ?>>
+            <input type="text" name="values[mail]" id="mail" class="form-control need-validation" data-validator="email" value="<?= $data['mail'] ?? '' ?>" <?= in_array('mail', $ldap_fields) ? 'disabled' : '' ?> onblur="validateEmail(this)">
             <?php if (in_array('mail', $ldap_fields)) {
                 echo $ldap_msg;
             } ?>
@@ -505,7 +505,7 @@ $active = function ($field) use ($data_fields) {
             <?php if ($active('telephone')) { ?>
                 <div class="col-sm-6">
                     <label for="telephone"><?= lang('Telephone', 'Telefon') ?></label>
-                    <input type="tel" name="values[telephone]" id="telephone" class="form-control" value="<?= $data['telephone'] ?? '' ?>" <?= in_array('telephone', $ldap_fields) ? 'disabled' : '' ?>>
+                    <input type="tel" name="values[telephone]" id="telephone" class="form-control need-validation" data-validator="telephone" value="<?= $data['telephone'] ?? '' ?>" <?= in_array('telephone', $ldap_fields) ? 'disabled' : '' ?> onblur="validateTelephone(this)">
                     <?php if (in_array('telephone', $ldap_fields)) {
                         echo $ldap_msg;
                     } ?>
@@ -514,8 +514,8 @@ $active = function ($field) use ($data_fields) {
 
             <?php if ($active('mobile')) { ?>
                 <div class="col-sm-6">
-                    <label for="mobile">mobile</label>
-                    <input type="tel" name="values[mobile]" id="mobile" class="form-control" value="<?= $data['mobile'] ?? '' ?>" <?= in_array('mobile', $ldap_fields) ? 'disabled' : '' ?>>
+                    <label for="mobile"><?= lang('Mobile', 'Mobil') ?></label>
+                    <input type="tel" name="values[mobile]" id="mobile" class="form-control need-validation" data-validator="telephone" value="<?= $data['mobile'] ?? '' ?>" <?= in_array('mobile', $ldap_fields) ? 'disabled' : '' ?> onblur="validateTelephone(this)">
                     <?php if (in_array('mobile', $ldap_fields)) {
                         echo $ldap_msg;
                     } ?>
@@ -528,7 +528,7 @@ $active = function ($field) use ($data_fields) {
         <div class="form-row row-eq-spacing">
             <div class="col-sm-6">
                 <label for="orcid">ORCID</label>
-                <input type="text" name="values[orcid]" id="orcid" class="form-control need-validation" data-validator="orcid" value="<?= $data['orcid'] ?? '' ?>">
+                <input type="text" name="values[orcid]" id="orcid" class="form-control need-validation" data-validator="orcid" value="<?= $data['orcid'] ?? '' ?>" oninput="validateORCID(this)">
                 <small class="text-danger" id="orcid-wrong" style="display: none;">
                     <?= lang('The ORCID should be in the format 0000-0000-0000-0000', 'Die ORCID sollte im Format 0000-0000-0000-0000 angegeben werden') ?>
                 </small>
@@ -537,7 +537,7 @@ $active = function ($field) use ($data_fields) {
 
             <div class="col-sm-6">
                 <label for="google_scholar">Google Scholar ID</label>
-                <input type="text" name="values[google_scholar]" id="google_scholar" class="form-control need-validation" data-validator="googleScholar" value="<?= $data['google_scholar'] ?? '' ?>">
+                <input type="text" name="values[google_scholar]" id="google_scholar" class="form-control need-validation" data-validator="googleScholar" value="<?= $data['google_scholar'] ?? '' ?>" oninput="validateGoogleScholar(this)">
                 <small class="text-muted">
                     <?= lang('Not the URL! Only the bold part: https://scholar.google.com/citations?user=<b>2G1YzvwAAAAJ</b>&hl=de ', 'Nicht die URL! Nur der fettgedruckte Teil: https://scholar.google.com/citations?user=<b>2G1YzvwAAAAJ</b>&hl=de') ?>
                 </small>
@@ -546,19 +546,6 @@ $active = function ($field) use ($data_fields) {
                 </div>
             </div>
         </div>
-
-
-        <script>
-            // validate ORCID on change
-            $('#orcid').on('change', function() {
-                validateORCID(this);
-            });
-
-            // validate Google Scholar ID on change
-            $('#google_scholar').on('change', function() {
-                validateGoogleScholar(this);
-            });
-        </script>
 
 
         <?php if ($active('socials')) { ?>
@@ -684,23 +671,27 @@ $active = function ($field) use ($data_fields) {
             <div class="form-row row-eq-spacing">
                 <div class="col-sm-6">
                     <label for="password"><?= lang('New password', 'Neues Passwort') ?></label>
-                    <input type="password" name="password" id="password" class="form-control" oninput="validatePassword(this);">
-                    <small class="text-danger" id="password-wrong-length">
+                    <input type="password" name="password" id="password" class="form-control need-validation" data-validator="password" oninput="validatePassword(this);">
+                    <small id="password-wrong-length">
                     <?= lang('The password should be at least 8 characters long.', 'Das Passwort sollte mindestens 8 Zeichen lang sein.') ?>
                     </small>
                     <br>
-                    <small class="text-danger" id="password-wrong-uppercase">
+                    <small id="password-wrong-uppercase">
                         <?= lang('The password must contain at least one uppercase letter.', 'Das Passwort muss mindestens einen Großbuchstaben enthalten.') ?>
                     </small>
                     <br>
-                    <small class="text-danger" id="password-wrong-lowercase">
+                    <small id="password-wrong-lowercase">
                         <?= lang('The password must contain at least one lowercase letter.', 'Das Passwort muss mindestens einen Kleinbuchstaben enthalten.') ?>
                     </small>
                 </div>
                 
                 <div class="col-sm-6">
                     <label for="password2"><?= lang('Repeat password', 'Passwort wiederholen') ?></label>
-                    <input type="password" name="password2" id="password2" class="form-control">
+                    <input type="password" name="password2" id="password2" class="form-control need-validation" data-validator="password2" oninput="validatePassword2(this)">
+                    <br>
+                    <small class="text-danger" id="password2-wrong" style="display: none;">
+                        <?= lang('Passwords do not match.', 'Die Passwörter stimmen nicht überein.') ?>
+                    </small>
                 </div>
             </div>
         <?php } ?>
@@ -1444,7 +1435,7 @@ $active = function ($field) use ($data_fields) {
 
 
     <br>
-    <button type="submit" class="btn secondary" onclick="return validateUserForm(event, this.form);">
+    <button type="submit" class="btn secondary" onclick="return validateUserForm(event);">
         Update
     </button>
 

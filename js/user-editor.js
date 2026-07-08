@@ -209,6 +209,44 @@ function updateScienceUnit(user, unit){
     });
 }
 
+// Validator functions
+
+function validateEmail(element) {
+    var email = $(element).val();
+    var regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (email === '') {
+        $(element).removeClass('is-invalid');
+        $(element).removeClass('is-valid');
+        return [true, ''];
+    } else if (!regex.test(email)) {
+        $(element).addClass('is-invalid');
+        $(element).removeClass('is-valid');
+        return [false, lang('Please enter a valid email address.', 'Bitte geben Sie eine gültige E-Mail-Adresse ein.')];
+    } else {
+        $(element).removeClass('is-invalid');
+        $(element).addClass('is-valid');
+        return [true, ''];
+    }
+}
+
+function validateTelephone(element) {
+    var telephone = $(element).val();
+    var regex = /^\+?[0-9\s\-()]+$/;
+    if (telephone === '') {
+        $(element).removeClass('is-invalid');
+        $(element).removeClass('is-valid');
+        return [true, ''];
+    } else if (!regex.test(telephone)) {
+        $(element).addClass('is-invalid');
+        $(element).removeClass('is-valid');
+        return [false, lang('Please enter a valid telephone number.', 'Bitte geben Sie eine gültige Telefonnummer ein.')];
+    } else {
+        $(element).removeClass('is-invalid');
+        $(element).addClass('is-valid');
+        return [true, ''];
+    }
+}
+
 function validatePassword(element){
     var password = $(element).val();
     let valid = true;
@@ -216,11 +254,11 @@ function validatePassword(element){
     if (password === '') {
         $(element).removeClass('is-invalid');
         $(element).removeClass('is-valid');
-        $('#password-wrong-length').addClass('text-danger');
+        $('#password-wrong-length').removeClass('text-danger');
         $('#password-wrong-length').removeClass('text-success');
-        $('#password-wrong-uppercase').addClass('text-danger');
+        $('#password-wrong-uppercase').removeClass('text-danger');
         $('#password-wrong-uppercase').removeClass('text-success');
-        $('#password-wrong-lowercase').addClass('text-danger');
+        $('#password-wrong-lowercase').removeClass('text-danger');
         $('#password-wrong-lowercase').removeClass('text-success');
         return [true, ''];
     }
@@ -269,6 +307,32 @@ function validatePassword(element){
         $(element).removeClass('is-valid');
     }
     return [valid, lang('Password does not meet the requirements.', 'Das Passwort erfüllt nicht die Anforderungen.')];
+}
+
+function validatePassword2(element){
+    var password = $('#password').val();
+    var password2 = $(element).val();
+    if (password2 === '') {
+        $(element).removeClass('is-invalid');
+        $(element).removeClass('is-valid');
+        $('#password2-wrong').hide();
+        if (password === '') {
+            return [true, ''];
+        }
+        else {
+            return [false, lang('Please repeat the password.', 'Bitte wiederholen Sie das Passwort.')];
+        }
+    } else if (password !== password2) {
+        $(element).addClass('is-invalid');
+        $(element).removeClass('is-valid');
+        $('#password2-wrong').show();
+        return [false, lang('Passwords do not match.', 'Die Passwörter stimmen nicht überein.')];
+    } else {
+        $(element).removeClass('is-invalid');
+        $(element).addClass('is-valid');
+        $('#password2-wrong').hide();
+        return [true, ''];
+    }
 }
 
 function validateGoogleScholar(element){
@@ -373,14 +437,27 @@ function validateSocial(element){
     return [true, msg];
 }
 
+function cleanEmptySocials() {
+    $('#socials input').each(function() {
+        const url = String($(this).val() || '').trim();
+        if (url === '') {
+            $(this).closest('.input-group').remove();
+        }
+    });
+}
+
 const validators = {
     social: validateSocial,
     googleScholar: validateGoogleScholar,
-    orcid: validateORCID
+    orcid: validateORCID,
+    password: validatePassword,
+    password2: validatePassword2,
+    email: validateEmail,
+    telephone: validateTelephone
 }
 
 
-function validateUserForm(event, form) {
+function validateUserForm(event) {
     let valid = true;
     let firstInvalidElement = null;
     
@@ -403,9 +480,10 @@ function validateUserForm(event, form) {
         }
     });
    
+    cleanEmptySocials();
+
     if (!valid) {
         event.preventDefault();
-        toastError(lang('Please correct the errors in the form.', 'Bitte korrigieren Sie die Fehler im Formular.'));
         if (firstInvalidElement) {
             const tabName = $(firstInvalidElement).closest('section').attr('id');
             if (tabName) {
