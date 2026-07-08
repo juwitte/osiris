@@ -3065,7 +3065,7 @@ class Modules
             ?>
                 <?php if (empty($this->form)) { ?>
                     <div class="data-module floating-form col-sm-<?= $width ?>" data-module="doi">
-                        <input type="text" class="form-control" <?= $labelClass ?> name="values[doi]" value="<?= $this->val('doi') ?>" id="doi" placeholder="doi">
+                        <input type="text" class="form-control" <?= $labelClass ?> name="values[doi]" value="<?= $this->val('doi') ?>" id="doi" placeholder="doi" oninput="validateDoi(this)">
                         <label for="doi" class="element-link <?= $labelClass ?>"><?= $label ?></label>
                         <?= $this->render_help($help) ?>
                     </div>
@@ -3074,7 +3074,7 @@ class Modules
                         <label for="doi" class="floating-title <?= $labelClass ?>"><?= $label ?></label>
 
                         <div class="input-group ">
-                            <input type="text" class="form-control" <?= $labelClass ?> name="values[doi]" value="<?= $this->val('doi') ?>" id="doi" placeholder="doi">
+                            <input type="text" class="form-control" <?= $labelClass ?> name="values[doi]" value="<?= $this->val('doi') ?>" id="doi" placeholder="doi" oninput="validateDoi(this)">
                             <div class="input-group-append" data-toggle="tooltip" data-title="<?= lang('Retreive updated information via DOI', 'Aktualisiere die Daten via DOI') ?>">
                                 <button class="btn" type="button" onclick="getPubData(event, this)"><i class="ph ph-arrows-clockwise"></i></button>
                                 <span class="sr-only">
@@ -3085,6 +3085,23 @@ class Modules
                         <?= $this->render_help($help) ?>
                     </div>
                 <?php } ?>
+                <script>
+                    function validateDoi(element) {
+                        // DOI regex pattern
+                        const doi = element.value.trim();
+                        const doiPattern = /(10\.\d{4,9}\/[-._;()/:A-Z0-9]+$)/i;
+                        if (doi === "") {
+                            $(element).toggleClass("is-valid", false);
+                            $(element).toggleClass("is-invalid", false);
+                        } else if (doiPattern.test(doi)) {
+                            $(element).toggleClass("is-valid", true);
+                            $(element).toggleClass("is-invalid", false);
+                        } else {
+                            $(element).toggleClass("is-valid", false);
+                            $(element).toggleClass("is-invalid", true);
+                        }
+                    }
+                </script>
             <?php
                 break;
 
