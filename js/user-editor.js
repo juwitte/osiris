@@ -446,6 +446,25 @@ function cleanEmptySocials() {
     });
 }
 
+function checkNewPassword() {
+    const password = $('#password').val();
+    const password2 = $('#password2').val();
+
+    const oldPassword = $('#old_password');
+    
+    if (password === '' && password2 === '') {
+        return true;
+    }
+    else if (oldPassword.val() === '') {
+        toastError(lang('Please enter your old password to change your password.', 'Bitte geben Sie Ihr altes Passwort ein, um Ihr Passwort zu ändern.'));
+        oldPassword.focus();
+        oldPassword.addClass('is-invalid');
+        return false;
+    }
+    return true;
+}
+    
+
 const validators = {
     social: validateSocial,
     googleScholar: validateGoogleScholar,
@@ -481,6 +500,10 @@ function validateUserForm(event) {
     });
    
     cleanEmptySocials();
+
+    if (!checkNewPassword()) {
+        valid = false;
+    }
 
     if (!valid) {
         event.preventDefault();
