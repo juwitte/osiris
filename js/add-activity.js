@@ -379,6 +379,9 @@ function verifyForm(event, form) {
                 correct = false
                 errors_invalid.push("Link")
             }
+            if (input.val() && !input.val().match(/^(https?:\/\/)/)) {
+                input.val('https://' + input.val());
+            }
         }
         if (input.attr('id') == "doi") {
             if (!validateDoi(input)) {
