@@ -1,3 +1,24 @@
+<time datetime="2026-07-10">10.07.2026</time>
+<a class="anchor" href="#version-2.0.2" id="version-2.0.2"></a>
+
+## Version 2.0.2
+
+Datenvalidierung im User-Editor und Bugfixes
+
+### User-Editor:
+  - Auf Basis des feature request [#256](https://github.com/OSIRIS-Solutions/osiris/issues/256) gibt es nun Eingabevalidierungen
+  im Editor der Nutzerprofile für nahezu alle Felder im `Kontakt` mit visuellem Feedback
+  - Wenn Nutzer sich selbst ein neues Passwort vergeben gibt es nun Basisregeln zur Passwortsicherheit
+
+### Sonstiges
+  - Die Sortierung nach Impact-Faktor wurde in der Journals-Übersicht gefixt [#535](https://github.com/OSIRIS-Solutions/osiris/issues/535)
+  - Feedback für die Felder `DOI` und `Link` wurde im Activity-Editor hinzugefügt [#533](https://github.com/OSIRIS-Solutions/osiris/issues/533)
+  - Ein fehlerhafter Link auf der Startseite der zur Event-Übersicht führen sollte wurde gefixt
+
+Vielen Dank an alle Issue Reporter!
+
+----
+
 <time datetime="2026-06-29">29.06.2026</time>
 <a class="anchor" href="#patch-2.0.1" id="patch-2.0.1"></a>
 
