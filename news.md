@@ -7,13 +7,14 @@ Datenvalidierung im User-Editor und Bugfixes
 
 ### User-Editor:
   - Auf Basis des feature request [#256](https://github.com/OSIRIS-Solutions/osiris/issues/256) gibt es nun Eingabevalidierungen
-  im Editor der Nutzerprofile für nahezu alle Felder im `Kontakt` mit visuellem Feedback
-  - Wenn Nutzer sich selbst ein neues Passwort vergeben gibt es nun Basisregeln zur Passwortsicherheit
+  im Editor der Nutzerprofile für nahezu alle Felder im Bereich `Kontakt` mit visuellem Feedback
+  - Wenn Nutzer sich selbst ein neues Passwort vergeben gibt es nun Basisregeln zur Passwortsicherheit und sofortiges Feedback
+  - Ein Bug wurde behoben bei dem die Fehlernachricht bei einem falschen alten Passwort nicht zu sehen war
 
 ### Sonstiges
   - Die Sortierung nach Impact-Faktor wurde in der Journals-Übersicht gefixt [#535](https://github.com/OSIRIS-Solutions/osiris/issues/535)
-  - Feedback für die Felder `DOI` und `Link` wurde im Activity-Editor hinzugefügt [#533](https://github.com/OSIRIS-Solutions/osiris/issues/533)
-  - Ein fehlerhafter Link auf der Startseite der zur Event-Übersicht führen sollte wurde gefixt
+  - User Feedback für die Felder `DOI` und `Link` wurde im Activity-Editor hinzugefügt [#533](https://github.com/OSIRIS-Solutions/osiris/issues/533)
+  - Ein fehlerhafter Link von der Startseite zur Eventübersicht wurde gefixt
 
 Vielen Dank an alle Issue Reporter!
 
