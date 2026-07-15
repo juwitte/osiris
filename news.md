@@ -15,6 +15,7 @@ Datenvalidierung im User-Editor und Bugfixes
   - Die Sortierung nach Impact-Faktor wurde in der Journals-Übersicht gefixt [#535](https://github.com/OSIRIS-Solutions/osiris/issues/535)
   - User Feedback für die Felder `DOI` und `Link` wurde im Activity-Editor hinzugefügt [#533](https://github.com/OSIRIS-Solutions/osiris/issues/533)
   - Ein fehlerhafter Link von der Startseite zur Eventübersicht wurde gefixt
+  - Es wurde ein Konflikt mit Podman in den Dockerfiles gefixt
 
 Vielen Dank an alle Issue Reporter!
 
