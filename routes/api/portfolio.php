@@ -705,7 +705,7 @@ Route::get('/portfolio/(unit|person|project|topic)/([^/]*)/(publications|activit
         $filter = [
             'topics' => $id,
             'hide' => ['$ne' => true],
-            'authors.aoi' => ['$in' => [1, '1', true, 'true']]
+            '$or' =>  [['authors.aoi' => ['$in' => [1, '1', true, 'true']]],['editors.aoi' => ['$in' => [1, '1', true, 'true']]]]
         ];
     } elseif ($context == 'unit') {
         if ($id == 0) {
@@ -717,7 +717,7 @@ Route::get('/portfolio/(unit|person|project|topic)/([^/]*)/(publications|activit
         $filter = [
             'units' => ['$in' => $child_ids],
             'hide' => ['$ne' => true],
-            'authors.aoi' => ['$in' => [1, '1', true, 'true']]
+            '$or' =>  [['authors.aoi' => ['$in' => [1, '1', true, 'true']]],['editors.aoi' => ['$in' => [1, '1', true, 'true']]]]
         ];
     } elseif ($context == 'project') {
         if (DB::is_ObjectID($id)) {
@@ -726,7 +726,7 @@ Route::get('/portfolio/(unit|person|project|topic)/([^/]*)/(publications|activit
         $filter = [
             'projects' => $id,
             'hide' => ['$ne' => true],
-            'authors.aoi' => ['$in' => [1, '1', true, 'true']]
+            '$or' =>  [['authors.aoi' => ['$in' => [1, '1', true, 'true']]],['editors.aoi' => ['$in' => [1, '1', true, 'true']]]]
         ];
     } elseif ($context == 'person') {
         $id = DB::to_ObjectID($id);
