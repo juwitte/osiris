@@ -1262,6 +1262,10 @@ Route::get('/portfolio/activity/([^/]*)', function ($id) {
         ];
     }
 
+    foreach ($doc['editors'] as $e){
+        if ($e['aoi']) $result['affiliated'] =  true;
+    }
+
     $depts = [];
     if (!empty($doc['units'])) {
         foreach ($doc['units'] as $d) {
