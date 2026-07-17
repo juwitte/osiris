@@ -18,6 +18,8 @@ Datenvalidierung im User-Editor und Bugfixes
   - Es wurde ein Konflikt mit Podman in den Dockerfiles gefixt
   - Bugs am der Portfolio API wurden behoben - Issues [#544](https://github.com/OSIRIS-Solutions/osiris/issues/544) und [#545](https://github.com/OSIRIS-Solutions/osiris/issues/545)
   - Abkürzungen von Einheiten können nun 9 Zeichen enthalten (war zuvor limitiert auf 8 Zeichen) [#537](https://github.com/OSIRIS-Solutions/osiris/issues/537)
+  - Style-Verbesserungen
+  - Die Semesterliste in den Statistiken der Lehrveranstaltungen wird nun aus den vorhandenen Daten generiert
 
 Vielen Dank an alle Issue Reporter!
 
