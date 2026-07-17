@@ -1,0 +1,17 @@
+name: Question
+description: Ask a question or seek clarification
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Feel free to ask any questions or seek clarification regarding the project, its features, or any other related topics.
+    id: question
+    attributes:
+      label: Question
+      description: |
+        Please describe your question in detail.
+        Include any relevant context, examples, or references to help us understand your query and provide a helpful response.
+      placeholder: "Describe your question here..."
+      required: true
