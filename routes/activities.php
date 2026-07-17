@@ -705,8 +705,9 @@ Route::post('/crud/activities/create', function () {
         }
         $values['projects'] = $projects;
     }
-
-    $values = renderAuthorUnits($values);
+    if (isset($values['authors']) || isset($values['editors']) || isset($values['supervisors'])) {
+        $values = renderAuthorUnits($values);
+    }
 
     // if this activity is created from a draft, delete the draft
     if (isset($values['draft_id']) && !empty($values['draft_id'])) {
