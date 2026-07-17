@@ -16,4 +16,5 @@ body:
         Explain why this is important and how it would benefit users or which problem it could solve.
         Also, if you have any specific ideas or examples, please include them.
       placeholder: "Describe the feature or improvement here..."
+    validations:
       required: true
