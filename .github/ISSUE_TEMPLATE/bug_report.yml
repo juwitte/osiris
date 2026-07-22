@@ -30,6 +30,8 @@ body:
     id: version
     attributes:
       label: In what version(s) of OSIRIS did you find this bug?
+      description: |
+        You can find the version in the footer of your OSIRIS
       placeholder: "e.g. v2.0.2, v2.1.0"
     validations:
       required: true
