@@ -23,14 +23,13 @@ body:
 
         *Screenshots can be pasted from the clipboard directly into the issue description.*
       placeholder: Describe the bug here...
-      value: Oh no, there is a bug!
     validations:
       required: true
 
   - type: input
     id: version
     attributes:
-      label: In what version of OSIRIS did you find this bug?
+      label: In what version(s) of OSIRIS did you find this bug?
       placeholder: "e.g. v2.0.2, v2.1.0"
     validations:
       required: true
